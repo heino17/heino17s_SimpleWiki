@@ -1031,6 +1031,13 @@
                     <button class="btn btn-secondary" @click="openLinkDialog">
                         🔗 {{ t('linkButton') }}
                     </button>
+                    <button
+                        class="btn btn-secondary"
+                        @click="duplicatePage"
+                        :title="t('duplicateHint')"
+                    >
+                        ⧉ {{ t('duplicate') }}
+                    </button>
                     <button class="btn btn-danger" @click="deletePage(currentPage.id)">
                         {{ t('delete') }}
                     </button>
@@ -1210,6 +1217,9 @@
                     "startPage": "Startseite",
                     "editorFallback": "Hinweis: Der komfortable Editor konnte nicht geladen werden – du schreibst im reinen Markdown-Text.",
                     "linkButton": "Verlinken",
+                    "duplicate": "Duplizieren",
+                    "duplicateHint": "Kopie dieser Seite anlegen – mit eigenem Namen, aber ohne Verknüpfung zur Vorlage.",
+                    "copySuffix": "Kopie",
                     "linkDialogTitle": "Seite verlinken",
                     "linkNewPlaceholder": "Neue Seite: Namen eingeben …",
                     "linkSearchPlaceholder": "Vorhandene Seite suchen …",
@@ -1251,6 +1261,9 @@
                     "startPage": "Start page",
                     "editorFallback": "Note: the comfortable editor could not be loaded – you are writing in plain Markdown text.",
                     "linkButton": "Link",
+                    "duplicate": "Duplicate",
+                    "duplicateHint": "Create a copy of this page – with its own name, but not linked to the original.",
+                    "copySuffix": "Copy",
                     "linkDialogTitle": "Link a page",
                     "linkNewPlaceholder": "New page: type a name …",
                     "linkSearchPlaceholder": "Search existing pages …",
@@ -1827,6 +1840,71 @@
                     this.destroyEditor();
                     this.editContent = '';
                     this.editTitle = '';
+                },
+
+                /* ---------- Seite duplizieren ---------- */
+                duplicatePage() {
+                    if (!this.currentPage) return;
+                    const quelle = this.currentPage;
+
+                    /* Ungespeichertes gehoert in die Kopie: geklickt wird
+                       im Bearbeitungsmodus, also soll die Kopie genau das
+                       zeigen, was gerade zu sehen ist. */
+                    const inhalt = this.mdEditor
+                        ? this.mdEditor.getMarkdown()
+                        : (this.editContent || quelle.content || '');
+
+                    /* Name der Vorlage, notfalls der Titel aus dem
+                       Eingabefeld – die Kopie muss als Kopie erkennbar
+                       bleiben, sonst waere sie von der Vorlage nicht
+                       mehr zu unterscheiden. */
+                    const suffix = this.t('copySuffix');
+                    let basis = (quelle.title || this.editTitle || this.t('untitled')).trim();
+
+                    /* Ein vorhandenes Suffix wird nicht mitkopiert: aus
+                       "Alpha (Kopie)" darf nicht "Alpha (Kopie) (Kopie)"
+                       werden. Die Kopie einer Kopie ist wieder eine Kopie
+                       von "Alpha" und bekommt die naechste freie Nummer. */
+                    if (basis.charAt(basis.length - 1) === ')') {
+                        const klammer = basis.lastIndexOf(' (');
+                        if (klammer > 0) {
+                            const innen = basis.slice(klammer + 2, -1).split(' ');
+                            const rest = innen.slice(1).join('');
+                            const istZahl = rest.length > 0 && /^[0-9]+$/.test(rest);
+                            if (innen[0] === suffix && (innen.length === 1 || istZahl)) {
+                                basis = basis.slice(0, klammer).trim();
+                            }
+                        }
+                    }
+
+                    let titel = basis + ' (' + suffix + ')';
+                    let n = 2;
+                    while (this.pages.some(p => p.title === titel)) {
+                        titel = basis + ' (' + suffix + ' ' + n + ')';
+                        n++;
+                    }
+
+                    /* Eigene Kennung, und im Prinzip nie doppelt. */
+                    let id = Date.now().toString();
+                    while (this.pages.some(p => p.id === id)) id += 'x';
+
+                    const kopie = {
+                        id: id,
+                        title: titel,
+                        content: inhalt,
+                        links: Array.isArray(quelle.links) ? quelle.links.slice() : [],
+                        tags: Array.isArray(quelle.tags) ? quelle.tags.slice() : [],
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString()
+                    };
+
+                    this.pages.unshift(kopie);
+                    this.currentPage = kopie;
+                    this.isEditing = false;
+                    this.destroyEditor();
+                    this.editContent = '';
+                    this.editTitle = '';
+                    this.savePages();
                 },
 
                 deletePage(id) {

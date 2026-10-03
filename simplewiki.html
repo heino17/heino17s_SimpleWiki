@@ -509,50 +509,153 @@
         }
 
         /* Verweis auf eine Seite, die es noch nicht gibt */
-        .preview .wiki-link-fehlt,
-        .outgoing .wiki-link-fehlt {
+        .preview .wiki-link-fehlt {
             color: var(--danger-color);
             text-decoration-style: dashed;
         }
 
-        .backlinks,
-        .outgoing {
-            margin: 0 20px 20px;
-            padding: 14px 18px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-secondary);
+        /* ---------- Verweis-Panel ---------- */
+
+        .refs-toggle {
+            position: relative;
         }
 
-        .backlinks h3,
-        .outgoing h3 {
+        /* Zähler am Knopf: nur, wenn es etwas zu zeigen gibt */
+        .menu-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            border-radius: 9px;
+            background: var(--accent-color);
+            color: #fff;
+            font-size: 0.68rem;
+            line-height: 17px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .refs-toggle.is-leer {
+            opacity: 0.55;
+        }
+
+        .refs-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px 28px;
+        }
+
+        /* Für welche Seite die Verweise gelten */
+        .refs-current {
+            margin-bottom: 18px;
+            padding: 8px 12px;
+            border-left: 3px solid var(--accent-color);
+            background: var(--bg-primary);
+            border-radius: 0 6px 6px 0;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .refs-group {
+            margin-bottom: 22px;
+        }
+
+        .refs-group h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             margin: 0 0 8px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--text-muted);
         }
 
-        .backlinks ul,
-        .outgoing ul {
+        .refs-count {
+            min-width: 20px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            font-size: 0.72rem;
+            text-align: center;
+            letter-spacing: 0;
+        }
+
+        .refs-list {
+            list-style: none;
             margin: 0;
-            padding-left: 20px;
+            padding: 0;
         }
 
-        .backlinks li,
-        .outgoing li {
+        .refs-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 10px;
             margin-bottom: 4px;
-        }
-
-        .backlinks a,
-        .outgoing a {
-            color: var(--accent-color);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-primary);
+            font: inherit;
+            text-align: left;
             cursor: pointer;
         }
 
-        .outgoing a {
+        .refs-item:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-color);
+        }
+
+        .refs-arrow {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .refs-name {
+            flex: 1;
+            overflow-wrap: anywhere;
+        }
+
+        /* Ziel gibt es noch nicht – rot, wie im Text auch */
+        .refs-item-fehlt .refs-name {
+            color: var(--danger-color);
             text-decoration: underline;
-            text-decoration-style: dotted;
+            text-decoration-style: dashed;
+        }
+
+        .refs-hint-badge {
+            flex: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px dashed var(--danger-color);
+            color: var(--danger-color);
+            font-size: 0.72rem;
+            line-height: 16px;
+            text-align: center;
+        }
+
+        .refs-empty {
+            padding: 18px 4px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .refs-empty-title {
+            margin: 0 0 6px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .refs-empty-hint {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         /* Dialog zum Verlinken */
@@ -942,6 +1045,16 @@
                 >✕</button>
                 <button class="menu-toggle" @click="openToc" :title="t('tocTitle')">☰</button>
                 <button
+                    class="refs-toggle"
+                    :class="{ 'is-leer': refCount === 0 }"
+                    @click="openRefs"
+                    :title="t('refsButton')"
+                    :aria-label="t('refsButton')"
+                >
+                    🔗
+                    <span v-if="refCount" class="menu-badge">{{ refCount }}</span>
+                </button>
+                <button
                     class="settings-toggle"
                     @click="openSettings"
                     :title="t('settings')"
@@ -990,28 +1103,6 @@
                 </div>
 
                 <!-- Rückverweise: von welchen Seiten wird hierher verlinkt? -->
-                <div v-if="!isEditing && currentPage && backlinks.length" class="backlinks">
-                    <h3>{{ t('backlinksTitle') }}</h3>
-                    <ul>
-                        <li v-for="p in backlinks" :key="p.id">
-                            <a href="#" @click.prevent="selectPage(p)">{{ p.title }}</a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div v-if="!isEditing && currentPage && outgoingLinks.length" class="outgoing">
-                    <h3>{{ t('outgoingTitle') }}</h3>
-                    <ul>
-                        <li v-for="titel in outgoingLinks" :key="titel">
-                            <a
-                                href="#"
-                                :class="pages.some(p => p.title === titel) ? 'wiki-link' : 'wiki-link wiki-link-fehlt'"
-                                @click.prevent="pages.some(p => p.title === titel) ? selectPage(pages.find(p => p.title === titel)) : createPageWithTitle(titel)"
-                            >{{ titel }}</a>
-                        </li>
-                    </ul>
-                </div>
-
                 <!-- Nur zeigen, wenn es wirklich keine Seite gibt -->
                 <div v-if="!currentPage" class="empty-state">
                     <h2>{{ t('welcomeTitle') }}</h2>
@@ -1053,7 +1144,7 @@
 
         <div
             class="side-overlay"
-            :class="{ open: showToc || showSettings }"
+            :class="{ open: showToc || showSettings || showRefs }"
             @click="closeAllPanels"
         ></div>
 
@@ -1095,6 +1186,68 @@
                 <button class="new-page-btn" @click="createNewPage">
                     {{ t('newPage') }}
                 </button>
+            </div>
+        </div>
+
+        <!-- Verweise: Rück- und Ausgehende in einem Menü -->
+        <div class="side-panel refs-panel" :class="{ open: showRefs }">
+            <div class="side-header">
+                <h2>{{ t('refsTitle') }}</h2>
+                <button class="side-close" @click="closeRefs" :title="t('close')">×</button>
+            </div>
+
+            <div class="refs-body">
+                <template v-if="currentPage">
+                    <div class="refs-current">{{ currentPage.title }}</div>
+
+                    <div class="refs-group" v-if="backlinks.length">
+                        <h3>
+                            {{ t('backlinksTitle') }}
+                            <span class="refs-count">{{ backlinks.length }}</span>
+                        </h3>
+                        <ul class="refs-list">
+                            <li v-for="p in backlinks" :key="p.id">
+                                <button class="refs-item" @click="selectPage(p)">
+                                    <span class="refs-arrow">←</span>
+                                    <span class="refs-name">{{ p.title }}</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="refs-group" v-if="outgoingLinks.length">
+                        <h3>
+                            {{ t('outgoingTitle') }}
+                            <span class="refs-count">{{ outgoingLinks.length }}</span>
+                        </h3>
+                        <ul class="refs-list">
+                            <li v-for="titel in outgoingLinks" :key="titel">
+                                <button
+                                    class="refs-item"
+                                    :class="{ 'refs-item-fehlt': !pageExists(titel) }"
+                                    @click="openLinkTarget(titel)"
+                                >
+                                    <span class="refs-arrow">→</span>
+                                    <span class="refs-name">{{ titel }}</span>
+                                    <span
+                                        v-if="!pageExists(titel)"
+                                        class="refs-hint-badge"
+                                        :title="t('refsCreate')"
+                                    >?</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="refs-empty" v-if="!backlinks.length && !outgoingLinks.length">
+                        <p class="refs-empty-title">{{ t('refsEmpty') }}</p>
+                        <p class="refs-empty-hint">{{ t('refsEmptyHint') }}</p>
+                    </div>
+                </template>
+
+                <div class="refs-empty" v-else>
+                    <p class="refs-empty-title">{{ t('refsNoPage') }}</p>
+                </div>
             </div>
         </div>
 
@@ -1226,7 +1379,13 @@
                     "linkCreateAndLink": "Anlegen und verlinken",
                     "linkHint": "Haken setzen zum Verlinken, erneut klicken zum Lösen.",
                     "linkNoPages": "Keine passende Seite gefunden – oben einen Namen eingeben.",
-                    "backlinksTitle": "Verlinkt von",
+                                        "refsTitle": "Verweise",
+                    "refsButton": "Verweise dieser Seite",
+                    "refsCreate": "Seite anlegen",
+                    "refsEmpty": "Keine Verweise",
+                    "refsEmptyHint": "Beim Bearbeiten verbindest du Seiten über den 🔗-Knopf oder mit [[Seitenname]] im Text.",
+                    "refsNoPage": "Es ist keine Seite geöffnet.",
+"backlinksTitle": "Verlinkt von",
                     "outgoingTitle": "Verlinkt auf",
                     "startPageHint": "Diese Seite wird beim Öffnen des Wikis zuerst angezeigt.",
                     "appName": "SimpleWiki",
@@ -1270,7 +1429,13 @@
                     "linkCreateAndLink": "Create and link",
                     "linkHint": "Click to link a page, click again to remove the link.",
                     "linkNoPages": "No matching page found – enter a name above.",
-                    "backlinksTitle": "Linked from",
+                                        "refsTitle": "Links",
+                    "refsButton": "Links of this page",
+                    "refsCreate": "Create page",
+                    "refsEmpty": "No links",
+                    "refsEmptyHint": "While editing, connect pages with the 🔗 button or with [[PageName]] in the text.",
+                    "refsNoPage": "No page is open.",
+"backlinksTitle": "Linked from",
                     "outgoingTitle": "Links to",
                     "startPageHint": "This page is shown first when the wiki is opened.",
                     "appName": "SimpleWiki",
@@ -1400,8 +1565,9 @@
                     linkSearch: '',
                     linkNewTitle: '',
                     pageToDelete: null,
-                    showToc: false,
-                    showSettings: false,
+showToc: false,
+                showSettings: false,
+                showRefs: false,
                     isDarkMode: false,
                     startPageId: '',
                     mdEditor: null,
@@ -1463,6 +1629,13 @@
                 /* Seiten, auf die die aktuelle Seite verweist */
                 outgoingLinks() {
                     return this.pageLinks(this.currentPage);
+                },
+
+                /* Anzahl der Verweise der aktuellen Seite – als Zähler
+                   am Knopf. */
+                refCount() {
+                    if (!this.currentPage) return 0;
+                    return this.backlinks.length + this.outgoingLinks.length;
                 }
             },
 
@@ -1477,6 +1650,10 @@
                     this.currentLang = SIMPLEWIKI_BASE_LANG;
                 }
                 this.applyLanguage();
+                /* Das Verweis-Panel kommt so zurück, wie es das letzte
+                   Mal verlassen wurde – sonst wäre die Einstellung
+                   nach einem Neuladen verloren. */
+                this.showRefs = SimpleWikiStore.get('simplewiki_refs') === '1';
                 window.addEventListener('keydown', this.onKeydown);
                 window.addEventListener('resize', this.onResize);
             },
@@ -1484,14 +1661,23 @@
             methods: {
                 /* ---------- Seiten verlinken ---------- */
 
-                /* Links, die im Text notiert sind: [Text](<wiki:Titel>)
-                   – die spitzen Klammern erlauben Leerzeichen im Titel. */
+                /* Links, die im Text notiert sind – beide Schreibweisen:
+                   [Text](<wiki:Titel>) und [[Titel]] bzw.
+                   [[Text|Titel]]. Die spitzen Klammern der Markdown-Form
+                   erlauben Leerzeichen im Titel. Code wird überlesen:
+                   dort ist [[..]] nur Beispieltext. */
                 extractWikiLinks(content) {
+                    const ohneCode = this.quelltextAusblenden(content).text;
                     const treffer = [];
                     const muster = /\]\(\s*<?wiki:([^)>]+)>?\s*(?:"[^"]*")?\s*\)/g;
                     let m;
-                    while ((m = muster.exec(content || '')) !== null) {
+                    while ((m = muster.exec(ohneCode)) !== null) {
                         treffer.push(decodeURIComponent(m[1].trim()));
+                    }
+                    const klammern = /\[\[([^\]\n]+)\]\]/g;
+                    while ((m = klammern.exec(ohneCode)) !== null) {
+                        const teile = m[1].split('|');
+                        treffer.push((teile.length > 1 ? teile[1] : teile[0]).trim());
                     }
                     return treffer;
                 },
@@ -1555,23 +1741,34 @@
                     this.showLinkDialog = false;
                 },
 
+                /* Codeblöcke und Inline-Code ausblenden. Was dort steht, ist
+                   Quelltext und kein Link – auch dann nicht, wenn man
+                   die Syntax selbst dokumentiert. */
+                quelltextAusblenden(text) {
+                    const tresor = [];
+                    const s = String(text == null ? '' : text)
+                        .replace(/```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`/g, treffer => {
+                            tresor.push(treffer);
+                            return '\u0000' + (tresor.length - 1) + '\u0000';
+                        });
+                    return {
+                        text: s,
+                        wiederherstellen: teil => teil.replace(
+                            /\u0000(\d+)\u0000/g,
+                            (t, n) => tresor[Number(n)]
+                        )
+                    };
+                },
+
                 /* TiddlyWiki-Schreibweise "[[Seite]]" und "[[Text|Seite]]"
                    in die Markdown-Form umdeuten, die schon existiert:
                    [Text](wiki:Seite). Damit bekommen beide Schreibweisen
                    dasselbe Verhalten – klickbar und fehlende Ziele rot
                    markiert (siehe decorateWikiLinks). */
                 ersetzeWikiSyntax(text) {
-                    /* Code wird zuerst zur Seite gestellt: [[..]] in einem
-                       Beispiel ist Quelltext und kein Link – auch dann,
-                       wenn man die Syntax selbst dokumentiert. */
-                    const tresor = [];
-                    let s = String(text == null ? '' : text)
-                        .replace(/```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`/g, treffer => {
-                            tresor.push(treffer);
-                            return '\u0000' + (tresor.length - 1) + '\u0000';
-                        });
+                    const code = this.quelltextAusblenden(text);
 
-                    s = s.replace(/\[\[([^\]\n]+)\]\]/g, (treffer, inhalt) => {
+                    const s = code.text.replace(/\[\[([^\]\n]+)\]\]/g, (treffer, inhalt) => {
                         const teile = inhalt.split('|');
                         const ziel = (teile.length > 1 ? teile[1] : teile[0]).trim();
                         if (!ziel) return treffer;               /* [[]] ist kein Link */
@@ -1580,7 +1777,7 @@
                             '](wiki:' + encodeURIComponent(ziel) + ')';
                     });
 
-                    return s.replace(/\u0000(\d+)\u0000/g, (t, n) => tresor[Number(n)]);
+                    return code.wiederherstellen(s);
                 },
 
                 /* Sonderzeichen im Linktext escaped Markdown, damit aus
@@ -1612,19 +1809,29 @@
                     return div.innerHTML;
                 },
 
+                pageExists(titel) {
+                    return this.pages.some(p => p.title === titel);
+                },
+
+                /* Verweis öffnen: vorhandene Seite zeigen, fehlende
+                   gleich anlegen und bearbeiten. Wird vom Text und vom
+                   Verweis-Panel benutzt. */
+                openLinkTarget(titel) {
+                    const seite = this.pages.find(p => p.title === titel);
+                    if (seite) {
+                        this.selectPage(seite);
+                        return;
+                    }
+                    this.createPageWithTitle(titel);
+                },
+
                 onPreviewClick(event) {
                     const link = event.target.closest('a[data-wiki-link]');
                     if (!link) return;
                     event.preventDefault();
                     const titel = link.getAttribute('data-wiki-link');
                     if (!titel) return;
-                    const seite = this.pages.find(p => p.title === titel);
-                    if (seite) {
-                        this.selectPage(seite);
-                        return;
-                    }
-                    /* Fehlende Seite anlegen und direkt bearbeiten. */
-                    this.createPageWithTitle(titel);
+                    this.openLinkTarget(titel);
                 },
 
                 createPageWithTitle(titel) {
@@ -1675,13 +1882,32 @@
 
 
                 closeAllPanels() {
-                    this.showToc = false;
-                    this.showSettings = false;
+                    this.panelSetzen(null, false);
+                },
+
+                /* Panels schließen sich gegenseitig aus. Das
+                   Verweis-Panel merkt sich seinen Zustand, damit es
+                   beim nächsten Öffnen so dasteht wie beim letzten Mal –
+                   geöffnet und geschlossen wird es ausschließlich über
+                   den Knopf, die Schließen-Schaltfläche, den
+                   Hintergrund oder die Escape-Taste. */
+                panelSetzen(name, offen) {
+                    this.showToc = name === 'toc' && offen;
+                    this.showSettings = name === 'settings' && offen;
+                    this.showRefs = name === 'refs' && offen;
+                    SimpleWikiStore.set('simplewiki_refs', this.showRefs ? '1' : '0');
                 },
 
                 openToc() {
-                    this.showSettings = false;
-                    this.showToc = true;
+                    this.panelSetzen('toc', true);
+                },
+
+                openRefs() {
+                    this.panelSetzen('refs', true);
+                },
+
+                closeRefs() {
+                    this.panelSetzen('refs', false);
                 },
 
                 onKeydown(event) {
@@ -1692,8 +1918,7 @@
 
                 onSearchInput() {
                     if (this.searchQuery.trim()) {
-                        this.showSettings = false;
-                        this.showToc = true;
+                        this.panelSetzen('toc', true);
                     }
                 },
 
@@ -1718,8 +1943,7 @@
                 },
 
                 openSettings() {
-                    this.showToc = false;
-                    this.showSettings = true;
+                    this.panelSetzen('settings', true);
                 },
 
                 clearSearch() {

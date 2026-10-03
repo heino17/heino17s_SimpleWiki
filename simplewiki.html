@@ -17,7 +17,7 @@
         der Text den Block verlassen. Der Export schreibt deshalb
         "<" als "\u003c".
     -->
-    <script id="simplewiki-daten" type="application/json">{}</script>
+    <script id="simplewiki-daten" type="application/json">{"version": 1, "seiten": [{"id": "1", "title": "Willkommen bei SimpleWiki! 🎉", "content": "# Willkommen bei SimpleWiki! 🎉\n\nDein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️", "links": [], "tags": [], "created": "2026-10-03T23:23:01.878Z", "updated": "2026-10-03T23:23:21.924Z"}, {"id": "1791069818658", "title": "Seite 1", "content": "\\# Überschrift\n\nText...", "links": [], "tags": [], "created": "2026-10-03T23:23:38.658Z", "updated": "2026-10-03T23:24:14.001Z"}, {"id": "1791069858522", "title": "Seite 2", "content": "\\# Überschrift\n\nText...", "links": ["Willkommen bei SimpleWiki! 🎉"], "tags": [], "created": "2026-10-03T23:24:18.522Z", "updated": "2026-10-03T23:24:46.307Z"}, {"id": "1791069898378", "title": "Seite 3", "content": "\\# Überschrift\n\nText...", "links": ["Willkommen bei SimpleWiki! 🎉"], "tags": [], "created": "2026-10-03T23:24:58.378Z", "updated": "2026-10-03T23:25:28.358Z"}], "startseite": "1", "sprache": "de", "thema": "light"}</script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -1707,6 +1707,16 @@
 
         /* ---------- Start ---------- */
 
+        /* Kopie des Dokuments, BEVOR Vue startet.
+
+           Wichtig: Vue nimmt den Aufbau aus dem HTML-DOM weg, sobald es
+           mountet – danach ist im div#app nichts mehr zu finden, was man
+           in eine Sicherung schreiben könnte. Deshalb wird die Vorlage
+           hier gesichert, solange sie noch vollständig vorhanden ist.
+           Ohne diese Kopie käme die gesicherte Datei ohne Oberfläche
+           daher und würde nichts anzeigen. */
+        const VORLAGE_HTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
         /* Deutsche Oberflächentexte für den Markdown-Editor registrieren.
            Die i18n-Datei von Toast UI ist mit dem All-Bundle nicht
            kompatibel, deshalb liegt die Wortliste hier im Wiki. */
@@ -2257,30 +2267,35 @@ showToc: false,
                    und dem Browser zum Herunterladen gegeben – wer sie
                    unter demselben Namen speichert, hat damit das Wiki
                    inklusive Reihenfolge in der Datei. */
+                /* Die gesicherte Datei bauen: die Vorlage von vor dem Mount,
+                   nur mit frischen Daten im Datenblock. */
+                bauExport() {
+                    const doc = new DOMParser().parseFromString(VORLAGE_HTML, 'text/html');
+                    const daten = {
+                        version: 1,
+                        seiten: this.pages,
+                        startseite: this.startPageId,
+                        sprache: this.currentLang,
+                        thema: this.isDarkMode ? 'dark' : 'light'
+                    };
+                    const inhalt = JSON.stringify(daten).replace(/</g, '\\u003c');
+
+                    let halter = doc.getElementById('simplewiki-daten');
+                    if (!halter) {
+                        /* Ältere Datei ohne Datenblock: ihn anlegen. */
+                        halter = doc.createElement('script');
+                        halter.id = 'simplewiki-daten';
+                        halter.type = 'application/json';
+                        doc.head.appendChild(halter);
+                    }
+                    halter.textContent = inhalt;
+                    return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+                },
+
                 sichernAlsDatei() {
                     try {
-                        /* Kopie des Dokuments ohne das, was Vue hineingerendert
-                           hat – sonst landet die Oberfläche im Ergebnis. */
-                        const klon = document.documentElement.cloneNode(true);
-                        const wurzel = klon.querySelector('#app');
-                        if (wurzel) wurzel.textContent = '';
-                        const halter = klon.querySelector('#simplewiki-daten');
-                        if (!halter) {
-                            this.hinweis(this.t('noticeSaveError'));
-                            return;
-                        }
-                        const daten = {
-                            version: 1,
-                            seiten: this.pages,
-                            startseite: this.startPageId,
-                            sprache: this.currentLang,
-                            thema: this.isDarkMode ? 'dark' : 'light'
-                        };
-                        halter.textContent =
-                            JSON.stringify(daten).replace(/</g, '\\u003c');
-
                         const blob = new Blob(
-                            ['<!DOCTYPE html>\n' + klon.outerHTML],
+                            [this.bauExport()],
                             { type: 'text/html;charset=utf-8' }
                         );
                         const url = URL.createObjectURL(blob);

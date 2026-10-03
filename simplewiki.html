@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleWiki</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- WYSIWYG-Markdown-Editor (TOAST UI Editor, MIT-Lizenz, Version fest gepinnt) -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/3.2.2/toastui-editor.min.css">
+    <link
+        id="mdEditorDarkTheme"
+        rel="stylesheet"
+        href="https://uicdn.toast.com/editor/3.2.2/theme/toastui-editor-dark.min.css"
+        disabled
+    >
+    <script src="https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f7f2e9;
+            --bg-secondary: #fff;
+            --bg-hover: #f0ebe0;
+            --bg-active: #e8e0d0;
+            --text-primary: #3d2f1f;
+            --text-secondary: #6b5744;
+            --text-muted: #8b7355;
+            --border-color: #e0d8c8;
+            --accent-color: #b8860b;
+            --accent-hover: #9a7209;
+            --danger-color: #c0392b;
+            --danger-hover: #a93226;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #f0ebe0;
+            --blockquote-border: #b8860b;
+            --table-header-bg: #f0ebe0;
+        }
+
+        body.dark-mode {
+            --bg-primary: #6b4a1f;
+            --bg-secondary: #5a3d18;
+            --bg-hover: #7a5a28;
+            --bg-active: #8a6830;
+            --text-primary: #f5f0e1;
+            --text-secondary: #e8dcc0;
+            --text-muted: #d4c8a8;
+            --border-color: #8a6830;
+            --accent-color: #d4a017;
+            --accent-hover: #c49415;
+            --danger-color: #e74c3c;
+            --danger-hover: #c0392b;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #5a3d18;
+            --blockquote-border: #d4a017;
+            --table-header-bg: #5a3d18;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 150px;
+            max-width: 400px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .clear-search {
+            padding: 8px 12px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .clear-search:hover {
+            background: var(--bg-active);
+            color: var(--text-primary);
+        }
+
+        .new-page-btn {
+            padding: 8px 16px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .new-page-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .menu-toggle {
+            display: block;
+            padding: 8px 12px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: auto;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle {
+            padding: 8px 12px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .select-input {
+            padding: 8px 12px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .settings-toggle {
+            padding: 8px 12px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .settings-toggle:hover {
+            background: var(--bg-active);
+        }
+
+        /* Einstellungen: Abschnitte für spätere Optionen */
+        .settings-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 5px 20px 20px;
+        }
+
+        .settings-section {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .settings-section .select-input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 1rem;
+        }
+
+        .settings-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Overlay + Seitenpanel – von rechts einfahrend.
+           Wird von Inhaltsverzeichnis und Einstellungen genutzt. */
+        .side-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--overlay-bg);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .side-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: -360px;
+            width: 360px;
+            max-width: 90%;
+            height: 100vh;
+            background: var(--bg-secondary);
+            box-shadow: -2px 0 10px var(--shadow-color);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-panel.open {
+            right: 0;
+        }
+
+        .side-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .side-header h2 {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+
+        .side-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .side-close:hover {
+            color: var(--text-primary);
+        }
+
+        .toc-search {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toc-search input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .toc-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .toc-item {
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toc-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .toc-item.active {
+            background: var(--bg-active);
+            color: var(--accent-color);
+        }
+
+        /* Stern kennzeichnet die Startseite; die Spalte bleibt immer frei,
+           damit die Zeilen beim Ein- und Ausblenden nicht springen. */
+        .toc-item-start {
+            flex: none;
+            width: 1.2em;
+            padding-right: 6px;
+            color: var(--accent-color);
+        }
+
+        .toc-item-start.is-empty {
+            visibility: hidden;
+        }
+
+        .toc-item-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .toc-item-delete {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .toc-item:hover .toc-item-delete {
+            opacity: 1;
+        }
+
+        .toc-item-delete:hover {
+            background: var(--bg-hover);
+        }
+
+        .toc-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .toc-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .toc-footer .new-page-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .toc-footer .new-page-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .content-title {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .title-editor {
+            width: 100%;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            border: none;
+            outline: none;
+            padding: 0;
+            font-family: inherit;
+            font-weight: inherit;
+            background: transparent;
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .editor {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            border: none;
+            outline: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: none;
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .preview {
+            line-height: 1.8;
+        }
+
+        .preview h1 { font-size: 2rem; margin: 1.5rem 0 1rem; }
+        .preview h2 { font-size: 1.5rem; margin: 1.25rem 0 0.75rem; }
+        .preview h3 { font-size: 1.25rem; margin: 1rem 0 0.5rem; }
+        .preview p { margin-bottom: 1rem; }
+        .preview ul, .preview ol { margin: 1rem 0 1rem 2rem; }
+        .preview li { margin-bottom: 0.5rem; }
+        .preview code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .preview pre {
+            background: var(--code-bg);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .preview pre code {
+            background: none;
+            padding: 0;
+        }
+        .preview blockquote {
+            border-left: 4px solid var(--blockquote-border);
+            padding-left: 15px;
+            margin: 1rem 0;
+            color: var(--text-secondary);
+        }
+        .preview a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .preview a:hover {
+            text-decoration: underline;
+        }
+        .preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .preview th, .preview td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .preview th {
+            background: var(--table-header-bg);
+        }
+
+        .editor-fallback-hint {
+            margin: 10px 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer {
+            border-top: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-active);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--overlay-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            color: var(--text-primary);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+/* ---------- WYSIWYG-Editor an das Wiki-Thema anpassen ---------- */
+        .md-host {
+            min-height: 200px;
+        }
+
+        .toastui-editor-defaultUI {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-secondary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-toolbar {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-toolbar-icons {
+            color: var(--text-secondary);
+            border-radius: 4px;
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-toolbar-icons:hover {
+            color: var(--accent-color);
+            background: var(--bg-hover);
+        }
+
+        /* Die Überschriften-Schaltfläche ist in Toast UI dauerhaft als "active"
+           markiert – deshalb nur die Farbe ändern, keinen Hintergrund. */
+        .toastui-editor-defaultUI .toastui-editor-toolbar-icons.active {
+            background: transparent;
+            color: var(--accent-color);
+        }
+
+        /* Für die Überschriften-Auswahl liefert Toast UI kein Symbol
+           (alle anderen Knöpfe haben eins) – wir ergänzen ein H. */
+        .toastui-editor-defaultUI .toastui-editor-toolbar-icons.heading::before {
+            content: 'H';
+            font-weight: bold;
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-toolbar-divider {
+            background: var(--border-color);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-mode-switch {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-mode-switch .tab-item {
+            color: var(--text-muted);
+            border-color: var(--accent-color);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-mode-switch .tab-item.active {
+            color: var(--accent-color);
+            background: var(--bg-secondary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* Der eigentliche Schreibbereich setzt eigene Textfarben */
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror,
+        .toastui-editor-defaultUI .toastui-editor-contents .toastui-editor-md-preview {
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror p,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror li,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror td,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror th {
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror h1,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror h2,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror h3,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror h4,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror h5,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror h6 {
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror a {
+            color: var(--accent-color);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror code,
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror pre {
+            background: var(--code-bg);
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .ProseMirror th {
+            background: var(--table-header-bg);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .placeholder,
+        .toastui-editor-defaultUI .toastui-editor-contents .toastui-editor-placeholder {
+            color: var(--text-muted) !important;
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .toastui-editor-md-preview .toastui-editor-md-block {
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-md-preview .toastui-editor-md-heading {
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-md-preview .toastui-editor-md-delimiter {
+            color: var(--accent-color);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-md-splitter {
+            border-color: var(--border-color);
+            background: var(--bg-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-md-preview .toastui-editor-md-blockquote {
+            border-color: var(--accent-color);
+            color: var(--text-secondary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-md-preview .toastui-editor-md-code {
+            background: var(--code-bg);
+            color: var(--text-primary);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-md-preview .toastui-editor-md-table th {
+            background: var(--table-header-bg);
+        }
+
+        .toastui-editor-defaultUI .toastui-editor-contents .toastui-editor-placeholder {
+            color: var(--text-muted);
+        }
+
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .search-box {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+            }
+
+            .content-body {
+                padding: 15px;
+            }
+
+        .footer {
+                padding: 10px 15px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+
+            .side-panel {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1rem;
+            }
+
+            .new-page-btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+
+            .side-panel {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="app">
+            <header class="header">
+                <h1>📚 SimpleWiki</h1>
+                <input
+                    type="text"
+                    class="search-box"
+                    :placeholder="t('search')"
+                    v-model="searchQuery"
+                    @input="onSearchInput"
+                >
+                <button
+                    v-if="searchQuery"
+                    class="clear-search"
+                    :title="t('searchReset')"
+                    @click="clearSearch"
+                >✕</button>
+                <button class="menu-toggle" @click="openToc" :title="t('tocTitle')">☰</button>
+                <button
+                    class="settings-toggle"
+                    @click="openSettings"
+                    :title="t('settings')"
+                    :aria-label="t('settings')"
+                >⚙️</button>
+                <button
+                    class="theme-toggle"
+                    @click="toggleTheme"
+                    :title="t('theme')"
+                    :aria-label="t('theme')"
+                >
+                    {{ isDarkMode ? '☀️' : '🌙' }}
+                </button>
+            </header>
+
+            <main class="main-content">
+                <div v-if="currentPage" class="content-header">
+                    <input
+                        v-if="isEditing"
+                        type="text"
+                        class="title-editor"
+                        v-model="editTitle"
+                        :placeholder="t('titlePlaceholder')"
+                    >
+                    <h2 v-else class="content-title">{{ currentPage.title }}</h2>
+                </div>
+
+                <div v-if="currentPage" class="content-body">
+                    <!-- Ansicht -->
+                    <div v-if="!isEditing" class="preview" v-html="renderedContent"></div>
+
+                    <!-- Bearbeiten: WYSIWYG-Editor, sonst Textfeld als Rückfall -->
+                    <template v-else>
+                        <div v-show="editorReady" ref="mdHost" class="md-host"></div>
+                        <textarea
+                            v-if="!editorReady"
+                            class="editor"
+                            v-model="editContent"
+                            :placeholder="t('contentPlaceholder')"
+                        ></textarea>
+                        <p v-if="!editorReady" class="editor-fallback-hint">
+                            {{ t('editorFallback') }}
+                        </p>
+                    </template>
+                </div>
+
+                <div v-else class="empty-state">
+                    <h2>{{ t('welcomeTitle') }}</h2>
+                    <p>{{ t('welcomeText') }}</p>
+                </div>
+            </main>
+
+            <footer v-if="currentPage" class="footer">
+                <button
+                    v-if="!isEditing"
+                    class="btn btn-primary"
+                    @click="startEditing"
+                >
+                    {{ t('edit') }}
+                </button>
+                <template v-else>
+                    <button class="btn btn-danger" @click="deletePage(currentPage.id)">
+                        {{ t('delete') }}
+                    </button>
+                    <button class="btn btn-primary" @click="savePage">
+                        {{ t('save') }}
+                    </button>
+                    <button class="btn btn-secondary" @click="cancelEditing">
+                        {{ t('cancel') }}
+                    </button>
+                </template>
+            </footer>
+        </div>
+
+        <div
+            class="side-overlay"
+            :class="{ open: showToc || showSettings }"
+            @click="closeAllPanels"
+        ></div>
+
+        <div class="side-panel toc-panel" :class="{ open: showToc }">
+            <div class="side-header">
+                <h2>{{ t('tocTitle') }}</h2>
+                <button class="side-close" @click="showToc = false" :title="t('close')">×</button>
+            </div>
+            <div class="toc-search">
+                <input
+                    type="text"
+                    :placeholder="t('tocSearch')"
+                    v-model="searchQuery"
+                >
+            </div>
+            <div class="toc-list">
+                <div
+                    v-for="page in filteredPages"
+                    :key="page.id"
+                    class="toc-item"
+                    :class="{ active: currentPage && currentPage.id === page.id }"
+                    @click="selectPage(page); closeAllPanels()"
+                >
+                    <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
+                    <span class="toc-item-title">{{ page.title }}</span>
+                    <button
+                        class="toc-item-delete"
+                        @click.stop="deletePage(page.id)"
+                        :title="t('delete')"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div v-if="filteredPages.length === 0" class="toc-empty">
+                    {{ t('tocEmpty') }}
+                </div>
+            </div>
+            <div class="toc-footer">
+                <button class="new-page-btn" @click="createNewPage">
+                    {{ t('newPage') }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Einstellungen: hier kommen später weitere Optionen dazu -->
+        <div class="side-panel settings-panel" :class="{ open: showSettings }">
+            <div class="side-header">
+                <h2>{{ t('settings') }}</h2>
+                <button class="side-close" @click="showSettings = false" :title="t('close')">×</button>
+            </div>
+            <div class="settings-body">
+                <div class="settings-section">
+                    <label class="settings-label" for="settings-language">{{ t('language') }}</label>
+                    <select
+                        id="settings-language"
+                        class="select-input"
+                        v-model="currentLang"
+                        @change="changeLanguage"
+                    >
+                        <option v-for="lang in languages" :key="lang.code" :value="lang.code">
+                            {{ lang.name }}
+                        </option>
+                    </select>
+                </div>
+                <div class="settings-section">
+                    <label class="settings-label" for="settings-startpage">{{ t('startPage') }}</label>
+                    <select
+                        id="settings-startpage"
+                        class="select-input"
+                        v-model="startPageId"
+                        @change="changeStartPage"
+                    >
+                        <option v-for="p in pages" :key="p.id" :value="p.id">
+                            {{ p.title || t('untitled') }}
+                        </option>
+                    </select>
+                    <p class="settings-hint">{{ t('startPageHint') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+            <div class="modal">
+                <h3>{{ t('deleteConfirm') }}</h3>
+                <p>{{ t('deleteMessage').replace('{title}', pageToDelete?.title || '') }}</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="showDeleteModal = false">
+                        {{ t('deleteCancel') }}
+                    </button>
+                    <button class="btn btn-danger" @click="confirmDelete">
+                        {{ t('deleteConfirmBtn') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===================================================================
+           SimpleWiki – Sprachsystem
+           -------------------------------------------------------------------
+           • Deutsch ist fest eingebaut und dadurch immer verfügbar.
+           • Weitere Sprachen liegen als Datei "simplewiki-lang-<code>.js"
+             neben dieser HTML-Datei, z. B. simplewiki-lang-en.js
+           • Diese Dateien werden beim Start automatisch gesucht und
+             erkannt – auch wenn die Wiki über file:// geöffnet wurde.
+           • Fehlt eine Datei, wird die Sprache einfach nicht angeboten.
+           =================================================================== */
+        /* Alle Sprachen sind fest eingebaut – die Wiki ist dadurch eine
+           einzige Datei und funktioniert ohne Server und ohne Netz. */
+        const SIMPLEWIKI_LANGS = {
+            "de": {
+                name: "Deutsch",
+                translations: {
+                    "settings": "Einstellungen",
+                    "close": "Schließen",
+                    "theme": "Hell / Dunkel",
+                    "startPage": "Startseite",
+                    "editorFallback": "Hinweis: Der komfortable Editor konnte nicht geladen werden – du schreibst im reinen Markdown-Text.",
+                    "startPageHint": "Diese Seite wird beim Öffnen des Wikis zuerst angezeigt.",
+                    "appName": "SimpleWiki",
+                    "search": "Suchen...",
+                    "searchReset": "Suche zurücksetzen",
+                    "newPage": "+ Neue Seite",
+                    "edit": "✏️ Bearbeiten",
+                    "save": "💾 Speichern",
+                    "cancel": "❌ Abbrechen",
+                    "delete": "🗑️ Löschen",
+                    "tocTitle": "Inhaltsverzeichnis",
+                    "tocSearch": "Seiten durchsuchen...",
+                    "tocEmpty": "Keine Seiten gefunden",
+                    "deleteConfirm": "Seite löschen?",
+                    "deleteMessage": "Möchtest du \"{title}\" wirklich löschen?",
+                    "deleteCancel": "Abbrechen",
+                    "deleteConfirmBtn": "Löschen",
+                    "welcomeTitle": "Willkommen bei SimpleWiki! 🎉",
+                    "welcomeText": "Erstelle deine erste Seite oder wähle eine bestehende aus.",
+                    "titlePlaceholder": "Seitentitel...",
+                    "contentPlaceholder": "Schreibe hier... (Markdown wird unterstützt)",
+                    "untitled": "Neue Seite",
+                    "language": "Sprache"
+                }
+            },
+            "en": {
+                name: "English",
+                translations: {
+                    "settings": "Settings",
+                    "close": "Close",
+                    "theme": "Light / Dark",
+                    "startPage": "Start page",
+                    "editorFallback": "Note: the comfortable editor could not be loaded – you are writing in plain Markdown text.",
+                    "startPageHint": "This page is shown first when the wiki is opened.",
+                    "appName": "SimpleWiki",
+                    "search": "Search...",
+                    "searchReset": "Reset search",
+                    "language": "Language",
+                    "newPage": "+ New Page",
+                    "edit": "✏️ Edit",
+                    "save": "💾 Save",
+                    "cancel": "❌ Cancel",
+                    "delete": "🗑️ Delete",
+                    "tocTitle": "Table of Contents",
+                    "tocSearch": "Search pages...",
+                    "tocEmpty": "No pages found",
+                    "deleteConfirm": "Delete page?",
+                    "deleteMessage": "Do you really want to delete \"{title}\"?",
+                    "deleteCancel": "Cancel",
+                    "deleteConfirmBtn": "Delete",
+                    "welcomeTitle": "Welcome to SimpleWiki! 🎉",
+                    "welcomeText": "Create your first page or select an existing one.",
+                    "titlePlaceholder": "Page title...",
+                    "contentPlaceholder": "Write here... (Markdown is supported)",
+                    "untitled": "New Page"
+                }
+            }
+        };
+
+        /* Hauptsprache und Rückfall-Kette: fehlt ein Text, wird Deutsch genommen */
+        const SIMPLEWIKI_BASE_LANG = 'de';
+
+        /* Sicherer Zugriff auf den Browserspeicher: funktioniert auch dann,
+           wenn localStorage gesperrt ist (privater Modus, blockierte Cookies). */
+        const SimpleWikiStore = {
+            get: function (key, fallback) {
+                try {
+                    const value = window.localStorage.getItem(key);
+                    return value === null ? fallback : value;
+                } catch (e) {
+                    return fallback;
+                }
+            },
+            set: function (key, value) {
+                try {
+                    window.localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn('SimpleWiki: Speichern nicht möglich –', e.message);
+                }
+            }
+        };
+
+        /* Oberflächentexte des Markdown-Editors.
+           Die i18n-Datei von Toast UI ist mit dem All-Bundle inkompatibel,
+           deshalb registrieren wir die deutschen Texte selbst. */
+        const MARKDOWN_EDITOR_I18N = {
+            "Markdown": "Markdown",
+            "WYSIWYG": "WYSIWYG",
+            "Write": "Verfassen",
+            "Preview": "Vorschau",
+            "Headings": "Überschriften",
+            "Paragraph": "Text",
+            "Bold": "Fett",
+            "Italic": "Kursiv",
+            "Strike": "Durchgestrichen",
+            "Code": "Code",
+            "Line": "Trennlinie",
+            "Blockquote": "Blocktext",
+            "Unordered list": "Aufzählung",
+            "Ordered list": "Nummerierte Aufzählung",
+            "Task": "Aufgabe",
+            "Indent": "Einrücken",
+            "Outdent": "Ausrücken",
+            "Insert link": "Link einfügen",
+            "Insert CodeBlock": "Codeblock einfügen",
+            "Insert table": "Tabelle einfügen",
+            "Insert image": "Grafik einfügen",
+            "Heading": "Titel",
+            "Image URL": "Bild URL",
+            "Select image file": "Grafik auswählen",
+            "Choose a file": "Wähle eine Datei",
+            "No file": "Keine Datei",
+            "Description": "Beschreibung",
+            "OK": "OK",
+            "More": "Mehr",
+            "Cancel": "Abbrechen",
+            "File": "Datei",
+            "URL": "URL",
+            "Link text": "Anzuzeigender Text",
+            "Add row to up": "Zeile nach oben hinzufügen",
+            "Add row to down": "Zeile nach unten hinzufügen",
+            "Add column to left": "Spalte links hinzufügen",
+            "Add column to right": "Spalte rechts hinzufügen",
+            "Remove row": "Zeile entfernen",
+            "Remove column": "Spalte entfernen",
+            "Align column to left": "Links ausrichten",
+            "Align column to center": "Zentrieren",
+            "Align column to right": "Rechts ausrichten",
+            "Remove table": "Tabelle entfernen",
+            "Would you like to paste as table?": "Möchten Sie eine Tabelle einfügen?",
+            "Text color": "Textfarbe",
+            "Auto scroll enabled": "Autoscrollen aktiviert",
+            "Auto scroll disabled": "Autoscrollen deaktiviert",
+            "Choose language": "Sprache auswählen"
+        };
+
+        /* ---------- Start ---------- */
+
+        /* Deutsche Oberflächentexte für den Markdown-Editor registrieren.
+           Die i18n-Datei von Toast UI ist mit dem All-Bundle nicht
+           kompatibel, deshalb liegt die Wortliste hier im Wiki. */
+        if (window.toastui && window.toastui.Editor && window.toastui.Editor.setLanguage) {
+            window.toastui.Editor.setLanguage(['de', 'de-DE'], MARKDOWN_EDITOR_I18N);
+        }
+
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    pages: [],
+                    currentPage: null,
+                    isEditing: false,
+                    editContent: '',
+                    editTitle: '',
+                    searchQuery: '',
+                    showDeleteModal: false,
+                    pageToDelete: null,
+                    showToc: false,
+                    showSettings: false,
+                    isDarkMode: false,
+                    startPageId: '',
+                    mdEditor: null,
+                    editorReady: false,
+                    currentLang: 'de'
+                };
+            },
+
+            computed: {
+                languages() {
+                    return Object.keys(SIMPLEWIKI_LANGS)
+                        .map(code => ({
+                            code: code,
+                            name: SIMPLEWIKI_LANGS[code].name
+                        }))
+                        .sort(function (a, b) {
+                            if (a.code === SIMPLEWIKI_BASE_LANG) return -1;
+                            if (b.code === SIMPLEWIKI_BASE_LANG) return 1;
+                            return a.name.localeCompare(b.name);
+                        });
+                },
+
+                langDict() {
+                    const lang = SIMPLEWIKI_LANGS[this.currentLang];
+                    return lang ? lang.translations : {};
+                },
+
+                baseDict() {
+                    const lang = SIMPLEWIKI_LANGS[SIMPLEWIKI_BASE_LANG];
+                    return lang ? lang.translations : {};
+                },
+
+                filteredPages() {
+                    const query = this.searchQuery.trim().toLowerCase();
+                    if (!query) return this.pages;
+                    return this.pages.filter(p =>
+                        p.title.toLowerCase().includes(query) ||
+                        p.content.toLowerCase().includes(query)
+                    );
+                },
+
+                renderedContent() {
+                    if (!this.currentPage) return '';
+                    return marked.parse(this.currentPage.content || '');
+                }
+            },
+
+            mounted() {
+                this.loadPages();
+                this.isDarkMode = SimpleWikiStore.get('simplewiki_theme') === 'dark';
+                this.updateTheme();
+                this.currentLang = SimpleWikiStore.get('simplewiki_lang');
+                /* Fehlt die gespeicherte Sprache (z. B. weil eine entfernt
+                   wurde), zurück auf die Hauptsprache. */
+                if (!SIMPLEWIKI_LANGS[this.currentLang]) {
+                    this.currentLang = SIMPLEWIKI_BASE_LANG;
+                }
+                this.applyLanguage();
+                window.addEventListener('keydown', this.onKeydown);
+                window.addEventListener('resize', this.onResize);
+            },
+
+            methods: {
+                t(key) {
+                    return this.langDict[key] || this.baseDict[key] || key;
+                },
+
+                applyLanguage() {
+                    document.documentElement.lang = this.currentLang;
+                    document.title = 'SimpleWiki – ' + this.t('appName');
+                },
+
+                changeLanguage() {
+                    this.applyLanguage();
+                    SimpleWikiStore.set('simplewiki_lang', this.currentLang);
+                    /* Läuft der Editor gerade, neu aufbauen – sonst bliebe seine
+                       Oberfläche in der alten Sprache. Der Text bleibt erhalten. */
+                    if (this.mdEditor) {
+                        this.editContent = this.mdEditor.getMarkdown();
+                        this.$nextTick(() => this.initEditor());
+                    }
+                },
+
+                openSettings() {
+                    this.showToc = false;
+                    this.showSettings = true;
+                },
+
+                closeAllPanels() {
+                    this.showToc = false;
+                    this.showSettings = false;
+                },
+
+                openToc() {
+                    this.showSettings = false;
+                    this.showToc = true;
+                },
+
+                onKeydown(event) {
+                    if (event.key === 'Escape') {
+                        this.closeAllPanels();
+                    }
+                },
+
+                onSearchInput() {
+                    if (this.searchQuery.trim()) {
+                        this.showSettings = false;
+                        this.showToc = true;
+                    }
+                },
+
+                clearSearch() {
+                    this.searchQuery = '';
+                },
+
+                loadPages() {
+                    const saved = SimpleWikiStore.get('simplewiki_pages');
+                    if (saved) {
+                        this.pages = JSON.parse(saved);
+                    } else {
+                        this.pages = [
+                            {
+                                id: '1',
+                                title: 'Willkommen bei SimpleWiki! 🎉',
+                                content: '# Willkommen bei SimpleWiki! 🎉\n\nDein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n- **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n- **Schreiben** – Markdown wird verstanden\n- **Suchen** – oben im Kopf\n- **Sprache wählen** – oben rechts\n- **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️',
+                                tags: [],
+                                created: new Date().toISOString(),
+                                updated: new Date().toISOString()
+                            }
+                        ];
+                        this.savePages();
+                    }
+
+                    /* Beim Start die Startseite öffnen. */
+                    const startId = SimpleWikiStore.get('simplewiki_startpage');
+                    const start = this.pages.find(p => p.id === startId);
+                    if (start) {
+                        this.startPageId = start.id;
+                    } else if (this.pages.length) {
+                        this.startPageId = this.pages[0].id;
+                        SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                    }
+                    this.currentPage = this.pages.find(p => p.id === this.startPageId) || null;
+                },
+
+                changeStartPage() {
+                    SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                },
+
+                savePages() {
+                    SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.pages));
+                },
+
+                createNewPage() {
+                    const newPage = {
+                        id: Date.now().toString(),
+                        title: this.t('untitled'),
+                        content: '',
+                        tags: [],
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString()
+                    };
+                    this.pages.unshift(newPage);
+                    this.currentPage = newPage;
+                    this.isEditing = true;
+                    this.editContent = '';
+                    this.editTitle = newPage.title;
+                    this.savePages();
+                    this.$nextTick(() => this.initEditor());
+                },
+
+                selectPage(page) {
+                    this.currentPage = page;
+                    this.isEditing = false;
+                },
+
+                startEditing() {
+                    this.editContent = this.currentPage.content;
+                    this.editTitle = this.currentPage.title;
+                    this.isEditing = true;
+                    this.$nextTick(() => this.initEditor());
+                },
+
+                /* ---------- WYSIWYG-Editor ---------- */
+
+                initEditor() {
+                    this.destroyEditor();
+                    if (!window.toastui || !window.toastui.Editor || !this.$refs.mdHost) {
+                        return;               // Textfeld bleibt als Rückfall
+                    }
+
+                    this.mdEditor = new window.toastui.Editor({
+                        el: this.$refs.mdHost,
+                        height: this.editorHeight(),
+                        initialEditType: 'wysiwyg',
+                        /* Sprache der Editor-Oberfläche. Die Wortliste für
+                           Deutsch wird einmalig unten registriert. */
+                        language: this.currentLang === 'de' ? 'de' : 'en-US',
+                        initialValue: this.editContent,
+                        placeholder: this.t('contentPlaceholder'),
+                        usageStatistics: false
+                    });
+                    this.applyEditorTheme();
+                    this.editorReady = true;
+                },
+
+                /* Die offizielle Dunkel-Klasse von Toast UI setzen, damit auch
+                   Auswahllisten und Klapplisten dunkel sind. */
+                applyEditorTheme() {
+                    const root = this.$refs.mdHost && this.$refs.mdHost
+                        .querySelector('.toastui-editor-defaultUI');
+                    if (root) {
+                        root.classList.toggle('toastui-editor-dark', this.isDarkMode);
+                    }
+                },
+
+                destroyEditor() {
+                    if (this.mdEditor) {
+                        this.mdEditor.destroy();
+                        this.mdEditor = null;
+                    }
+                    this.editorReady = false;
+                },
+
+                editorHeight() {
+                    return Math.max(260, window.innerHeight - 260) + 'px';
+                },
+
+                onResize() {
+                    if (this.mdEditor) {
+                        this.mdEditor.setHeight(this.editorHeight());
+                    }
+                },
+
+                savePage() {
+                    if (this.currentPage) {
+                        if (this.mdEditor) {
+                            this.editContent = this.mdEditor.getMarkdown();
+                        }
+                        this.currentPage.title = this.editTitle || this.t('untitled');
+                        this.currentPage.content = this.editContent;
+                        this.currentPage.updated = new Date().toISOString();
+                        this.isEditing = false;
+                        this.destroyEditor();
+                        this.savePages();
+                    }
+                },
+
+                cancelEditing() {
+                    this.isEditing = false;
+                    this.destroyEditor();
+                    this.editContent = '';
+                    this.editTitle = '';
+                },
+
+                deletePage(id) {
+                    this.pageToDelete = this.pages.find(p => p.id === id);
+                    this.showDeleteModal = true;
+                },
+
+                confirmDelete() {
+                    const deleted = this.pageToDelete;
+                    if (!deleted) return;
+
+                    this.pages = this.pages.filter(p => p.id !== deleted.id);
+
+                    /* War die gelöschte Seite die Startseite, eine neue
+                       bestimmen – sonst zeigt das Wiki ins Leere. */
+                    if (this.startPageId === deleted.id) {
+                        this.startPageId = this.pages.length ? this.pages[0].id : '';
+                        SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                    }
+
+                    /* Auf eine gültige Seite wechseln und den Editor verlassen. */
+                    if (!this.currentPage || this.currentPage.id === deleted.id) {
+                        this.currentPage = this.pages.find(p => p.id === this.startPageId) || this.pages[0] || null;
+                    }
+                    this.isEditing = false;
+                    this.editTitle = '';
+                    this.editContent = '';
+                    this.destroyEditor();
+
+                    this.savePages();
+                    this.showDeleteModal = false;
+                    this.pageToDelete = null;
+                },
+
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    this.updateTheme();
+                    SimpleWikiStore.set('simplewiki_theme', this.isDarkMode ? 'dark' : 'light');
+                },
+
+                updateTheme() {
+                    if (this.isDarkMode) {
+                        document.body.classList.add('dark-mode');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                    }
+                    /* Dunkles Stylesheet des Markdown-Editors mit schalten */
+                    const darkSheet = document.getElementById('mdEditorDarkTheme');
+                    if (darkSheet) {
+                        darkSheet.disabled = !this.isDarkMode;
+                    }
+                    this.applyEditorTheme();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Fremdmaterial: nur zum Vergleichen/Anschauen, nicht Teil der Entwicklung.
+# TiddlyWiki (5.4.1) und FeatherWiki dienen als Vorbilder für SimpleWiki.
+empty.html
+empty_deutsch.html
+FeatherWiki_*.html
+
+# Ausgaben von Tests und Werkzeuge
+*.png
+*.log
+node_modules/
+
+# Betriebssystem- und Editor-Kram
+.DS_Store
+Thumbs.db
+*~
+*.swp
+.idea/
+.vscode/

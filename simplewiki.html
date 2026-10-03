@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SimpleWiki</title>
+
+    <!--
+        Hier steht das Wiki, wenn die Datei mit "Als Datei sichern"
+        geschrieben wurde: Seiten in ihrer Reihenfolge, Startseite,
+        Sprache und Farbe. Beim Start wird dieser Block gelesen, wenn
+        im Browser noch nichts steht – deshalb lässt sich eine
+        gesicherte Datei einfach weitergeben und öffnet sich mit
+        ihrem Inhalt.
+
+        Wichtig: Inhalte dürfen hier kein "<" enthalten, sonst würde
+        der Text den Block verlassen. Der Export schreibt deshalb
+        "<" als "\u003c".
+    -->
+    <script id="simplewiki-daten" type="application/json">{}</script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -218,6 +232,48 @@
             margin-top: 8px;
         }
 
+        .settings-btn {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .settings-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* Die Dateiauswahl ist nur technisch sichtbar. */
+        .datei-feld {
+            display: none;
+        }
+
+        /* Hinweis nach dem Sichern oder Laden */
+        .hinweis {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 1200;
+            max-width: min(90%, 520px);
+            padding: 12px 18px;
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            box-shadow: 0 4px 16px var(--shadow-color);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
         /* Overlay + Seitenpanel – von rechts einfahrend.
            Wird von Inhaltsverzeichnis und Einstellungen genutzt. */
         .side-overlay {
@@ -323,6 +379,53 @@
         .toc-item.active {
             background: var(--bg-active);
             color: var(--accent-color);
+        }
+
+        /* ---------- Reihenfolge ändern ---------- */
+
+        /* Der Griff lädt die Zeile zum Ziehen ein. */
+        .toc-grip {
+            flex: none;
+            width: 1.1em;
+            margin-right: 2px;
+            color: var(--text-muted);
+            cursor: grab;
+            opacity: 0.55;
+        }
+
+        .toc-grip:hover {
+            opacity: 1;
+        }
+
+        .toc-grip:active {
+            cursor: grabbing;
+        }
+
+        /* Beim Suchen lässt sich die Reihenfolge nicht ändern. */
+        .toc-grip.ist-ruhig {
+            cursor: not-allowed;
+            opacity: 0.2;
+        }
+
+        /* Die Zeile, die gerade gezogen wird, wird blasser. */
+        .toc-item.wird-gezogen {
+            opacity: 0.45;
+        }
+
+        /* Linie an der Stelle, an der eingefügt wird. */
+        .toc-item.einfuegen-oben {
+            box-shadow: inset 0 3px 0 0 var(--accent-color);
+        }
+
+        .toc-item.einfuegen-unten {
+            box-shadow: inset 0 -3px 0 0 var(--accent-color);
+        }
+
+        .toc-hint {
+            margin: 0 0 10px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: var(--text-muted);
         }
 
         /* Stern kennzeichnet die Startseite; die Spalte bleibt immer frei,
@@ -1162,12 +1265,30 @@
             </div>
             <div class="toc-list">
                 <div
-                    v-for="page in filteredPages"
+                    v-for="(page, i) in filteredPages"
                     :key="page.id"
                     class="toc-item"
-                    :class="{ active: currentPage && currentPage.id === page.id }"
+                    :class="{
+                        active: currentPage && currentPage.id === page.id,
+                        'wird-gezogen': dragIndex === i,
+                        'einfuegen-oben': dropIndex === i && dropHint === i && dragIndex !== i,
+                        'einfuegen-unten': dropIndex === i && dropHint === i + 1 && dragIndex !== i
+                    }"
+                    tabindex="0"
                     @click="selectPage(page); closeAllPanels()"
+                    @keydown="onZeileKeydown($event, page)"
+                    @dragover.prevent="onDragOver(i, $event)"
+                    @drop.prevent="onDrop"
                 >
+                    <span
+                        class="toc-grip"
+                        :class="{ 'ist-ruhig': searchQuery.trim() }"
+                        :draggable="!searchQuery.trim()"
+                        :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')"
+                        @dragstart.stop="onDragStart(i, $event)"
+                        @dragend="onDragEnd"
+                        @click.stop
+                    >⠿</span>
                     <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
                     <span class="toc-item-title">{{ page.title }}</span>
                     <button
@@ -1183,11 +1304,15 @@
                 </div>
             </div>
             <div class="toc-footer">
+                <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
                 <button class="new-page-btn" @click="createNewPage">
                     {{ t('newPage') }}
                 </button>
             </div>
         </div>
+
+        <!-- Kurzer Hinweis, wenn gesichert, geladen oder etwas nicht geklappt hat -->
+        <div v-if="hinweisText" class="hinweis">{{ hinweisText }}</div>
 
         <!-- Verweise: Rück- und Ausgehende in einem Menü -->
         <div class="side-panel refs-panel" :class="{ open: showRefs }">
@@ -1285,6 +1410,24 @@
                     </select>
                     <p class="settings-hint">{{ t('startPageHint') }}</p>
                 </div>
+                <div class="settings-section">
+                    <label class="settings-label">{{ t('dataSection') }}</label>
+                    <button class="settings-btn" @click="sichernAlsDatei">
+                        💾 {{ t('fileSave') }}
+                    </button>
+                    <p class="settings-hint">{{ t('fileSaveHint') }}</p>
+                    <button class="settings-btn" @click="$refs.dateiFeld.click()">
+                        📂 {{ t('fileLoad') }}
+                    </button>
+                    <p class="settings-hint">{{ t('fileLoadHint') }}</p>
+                    <input
+                        ref="dateiFeld"
+                        type="file"
+                        accept=".html,text/html"
+                        class="datei-feld"
+                        @change="dateiLaden"
+                    >
+                </div>
             </div>
         </div>
 
@@ -1379,7 +1522,18 @@
                     "linkCreateAndLink": "Anlegen und verlinken",
                     "linkHint": "Haken setzen zum Verlinken, erneut klicken zum Lösen.",
                     "linkNoPages": "Keine passende Seite gefunden – oben einen Namen eingeben.",
-                                        "refsTitle": "Verweise",
+                                                            "dataSection": "Wiki-Daten",
+                    "fileSave": "Als Datei sichern",
+                    "fileSaveHint": "Legt eine HTML-Datei mit allen Seiten in dieser Reihenfolge an – du kannst sie unter dem Namen simplewiki.html speichern und damit diese Datei ersetzen.",
+                    "fileLoad": "Datei laden",
+                    "fileLoadHint": "Übernimmt die Seiten aus einer gesicherten Datei und ersetzt das aktuelle Wiki.",
+                    "noticeSaved": "Gesichert. Die Datei liegt jetzt im Download-Ordner.",
+                    "noticeLoaded": "Wiki übernommen – {n} Seiten in dieser Reihenfolge.",
+                    "noticeError": "In dieser Datei steckt kein SimpleWiki.",
+                    "noticeSaveError": "Das Sichern hat nicht geklappt.",
+                    "reorderHint": "Reihenfolge: Zeile am ⠿ ziehen oder Alt + ↑/↓",
+                    "reorderBlocked": "Zum Ändern der Reihenfolge die Suche leeren.",
+"refsTitle": "Verweise",
                     "refsButton": "Verweise dieser Seite",
                     "refsCreate": "Seite anlegen",
                     "refsEmpty": "Keine Verweise",
@@ -1429,7 +1583,18 @@
                     "linkCreateAndLink": "Create and link",
                     "linkHint": "Click to link a page, click again to remove the link.",
                     "linkNoPages": "No matching page found – enter a name above.",
-                                        "refsTitle": "Links",
+                                                            "dataSection": "Wiki data",
+                    "fileSave": "Save as file",
+                    "fileSaveHint": "Creates an HTML file with all pages in this order – save it as simplewiki.html to replace this file.",
+                    "fileLoad": "Load file",
+                    "fileLoadHint": "Takes over the pages from a previously saved file and replaces the current wiki.",
+                    "noticeSaved": "Saved. The file is now in your download folder.",
+                    "noticeLoaded": "Wiki taken over – {n} pages in this order.",
+                    "noticeError": "This file does not contain a SimpleWiki.",
+                    "noticeSaveError": "Saving did not work.",
+                    "reorderHint": "Order: drag a row by ⠿ or press Alt + ↑/↓",
+                    "reorderBlocked": "Clear the search to change the order.",
+"refsTitle": "Links",
                     "refsButton": "Links of this page",
                     "refsCreate": "Create page",
                     "refsEmpty": "No links",
@@ -1568,6 +1733,10 @@
 showToc: false,
                 showSettings: false,
                 showRefs: false,
+                dragIndex: null,
+                dropIndex: null,
+                hinweisText: '',
+                hinweisTimer: null,
                     isDarkMode: false,
                     startPageId: '',
                     mdEditor: null,
@@ -1910,6 +2079,85 @@ showToc: false,
                     this.panelSetzen('refs', false);
                 },
 
+                /* ---------- Reihenfolge im Inhaltsverzeichnis ---------- */
+
+                /* Ziehen: der Griff nimmt die Zeile mit, die Zeile
+                   selbst ist das Ziel. Eingefügt wird vor oder hinter
+                   ihr, je nachdem wo der Zeiger steht – wie beim
+                   Umlegen eines Zettels. */
+                onDragStart(i, event) {
+                    if (this.searchQuery.trim()) return;
+                    this.dragIndex = i;
+                    this.dropIndex = i;
+                    this.dropHint = i;
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = 'move';
+                        /* Firefox beginnt das Ziehen nur, wenn Daten
+                           mitgegeben werden. */
+                        try {
+                            event.dataTransfer.setData('text/plain', String(i));
+                        } catch (e) { /* egal, der Zeiger reicht */ }
+                    }
+                },
+
+                onDragOver(i, event) {
+                    if (this.dragIndex === null) return;
+                    const kasten = event.currentTarget.getBoundingClientRect();
+                    const unten = event.clientY > kasten.top + kasten.height / 2;
+                    this.dropIndex = i;
+                    this.dropHint = unten ? i + 1 : i;
+                },
+
+                onDrop() {
+                    if (this.dragIndex === null) return;
+                    const von = this.dragIndex;
+                    const kante = this.dropHint;
+                    this.dragIndex = null;
+                    this.dropIndex = null;
+                    this.movePage(von, kante);
+                },
+
+                onDragEnd() {
+                    this.dragIndex = null;
+                    this.dropIndex = null;
+                },
+
+                /* Seite vor die Position "nach" setzen – Positionen
+                   beziehen sich immer auf die Liste vor dem Verschieben. */
+                movePage(von, nach) {
+                    if (von < 0 || von >= this.pages.length) return;
+                    const liste = this.pages.slice();
+                    const seite = liste.splice(von, 1)[0];
+                    let ziel = nach;
+                    if (von < nach) ziel = nach - 1;   /* der Rest rutscht eins vor */
+                    ziel = Math.max(0, Math.min(ziel, liste.length));
+                    if (ziel === von) return;
+                    liste.splice(ziel, 0, seite);
+                    this.pages = liste;
+                    this.savePages();
+                },
+
+                /* Alt + Pfeil verschiebt die Zeile: für die Tastatur
+                   und dort, wo ein Browser nicht ziehen kann. */
+                onZeileKeydown(event, page) {
+                    if (!event.altKey) return;
+                    const hoch = event.key === 'ArrowUp';
+                    if (!hoch && event.key !== 'ArrowDown') return;
+                    /* Bei einer Suche ist die Liste gefiltert und hat
+                       damit keine feste Reihenfolge. */
+                    if (this.searchQuery.trim()) return;
+                    const i = this.pages.findIndex(p => p.id === page.id);
+                    if (i < 0) return;
+                    event.preventDefault();
+                    const ziel = Math.max(0, Math.min(this.pages.length - 1, i + (hoch ? -1 : 1)));
+                    if (ziel === i) return;
+                    this.movePage(i, hoch ? ziel : ziel + 1);
+                    this.$nextTick(() => {
+                        const zeilen = [].slice.call(document.querySelectorAll('.toc-item'));
+                        if (zeilen[ziel]) zeilen[ziel].focus();
+                    });
+                },
+
                 onKeydown(event) {
                     if (event.key === 'Escape') {
                         this.closeAllPanels();
@@ -1950,10 +2198,160 @@ showToc: false,
                     this.searchQuery = '';
                 },
 
+                /* ---------- Als Datei sichern und laden ---------- */
+
+                /* Seiten auf die Form bringen, die die App erwartet –
+                   beim Laden können fremde oder ältere Dateien kommen. */
+                normiereSeiten(seiten) {
+                    return seiten.map((p, i) => ({
+                        id: p && p.id ? String(p.id) : 's' + i + '-' + (p && p.title ? p.title : 'seite'),
+                        title: p && p.title ? String(p.title) : this.t('untitled'),
+                        content: p && p.content ? String(p.content) : '',
+                        links: p && Array.isArray(p.links) ? p.links.slice() : [],
+                        tags: p && Array.isArray(p.tags) ? p.tags.slice() : [],
+                        created: p && p.created ? p.created : '',
+                        updated: p && p.updated ? p.updated : ''
+                    }));
+                },
+
+                /* Den Datenblock aus dem Dokument lesen. "<" steht dort
+                   als "<", damit Seiteninhalte den Block nicht
+                   zerreißen können. */
+                readDatenAusDatei() {
+                    const halter = document.getElementById('simplewiki-daten');
+                    if (!halter) return null;
+                    const roh = (halter.textContent || '').trim();
+                    if (!roh) return null;
+                    try {
+                        return JSON.parse(roh.replace(/\\u003c/g, '<'));
+                    } catch (e) {
+                        return null;
+                    }
+                },
+
+                /* Startseite, Sprache und Farbe aus der Datei übernehmen,
+                   solange der Browser nichts dazu gespeichert hat. */
+                uebernehmenAusDatei(daten) {
+                    if (daten.startseite && this.pages.some(p => p.id === daten.startseite)) {
+                        this.startPageId = daten.startseite;
+                        SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                    }
+                    if (daten.sprache && SIMPLEWIKI_LANGS[daten.sprache] &&
+                        !SimpleWikiStore.get('simplewiki_lang')) {
+                        this.currentLang = daten.sprache;
+                        this.applyLanguage();
+                        SimpleWikiStore.set('simplewiki_lang', this.currentLang);
+                    }
+                    if (daten.thema && !SimpleWikiStore.get('simplewiki_theme')) {
+                        this.isDarkMode = daten.thema === 'dark';
+                        this.updateTheme();
+                        SimpleWikiStore.set('simplewiki_theme', this.isDarkMode ? 'dark' : 'light');
+                    }
+                },
+
+                /* Das Wiki als HTML-Datei sichern.
+
+                   Warum so umständlich: eine Datei, die per Doppelklick
+                   geöffnet wurde, kann sich nicht selbst überschreiben.
+                   Deshalb wird hier der Inhalt in die Datei geschrieben
+                   und dem Browser zum Herunterladen gegeben – wer sie
+                   unter demselben Namen speichert, hat damit das Wiki
+                   inklusive Reihenfolge in der Datei. */
+                sichernAlsDatei() {
+                    try {
+                        /* Kopie des Dokuments ohne das, was Vue hineingerendert
+                           hat – sonst landet die Oberfläche im Ergebnis. */
+                        const klon = document.documentElement.cloneNode(true);
+                        const wurzel = klon.querySelector('#app');
+                        if (wurzel) wurzel.textContent = '';
+                        const halter = klon.querySelector('#simplewiki-daten');
+                        if (!halter) {
+                            this.hinweis(this.t('noticeSaveError'));
+                            return;
+                        }
+                        const daten = {
+                            version: 1,
+                            seiten: this.pages,
+                            startseite: this.startPageId,
+                            sprache: this.currentLang,
+                            thema: this.isDarkMode ? 'dark' : 'light'
+                        };
+                        halter.textContent =
+                            JSON.stringify(daten).replace(/</g, '\\u003c');
+
+                        const blob = new Blob(
+                            ['<!DOCTYPE html>\n' + klon.outerHTML],
+                            { type: 'text/html;charset=utf-8' }
+                        );
+                        const url = URL.createObjectURL(blob);
+                        const knopf = document.createElement('a');
+                        knopf.href = url;
+                        knopf.download = 'simplewiki.html';
+                        document.body.appendChild(knopf);
+                        knopf.click();
+                        document.body.removeChild(knopf);
+                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                        this.hinweis(this.t('noticeSaved'));
+                    } catch (e) {
+                        this.hinweis(this.t('noticeSaveError'));
+                    }
+                },
+
+                /* Eine gesicherte Datei einlesen und übernehmen. */
+                dateiLaden(event) {
+                    const datei = event.target.files && event.target.files[0];
+                    event.target.value = '';
+                    if (!datei) return;
+                    const leser = new FileReader();
+                    leser.onload = () => {
+                        const gefunden = String(leser.result || '').match(
+                            /<script[^>]*id="simplewiki-daten"[^>]*>([\s\S]*?)<\/script>/
+                        );
+                        if (!gefunden) {
+                            this.hinweis(this.t('noticeError'));
+                            return;
+                        }
+                        let daten;
+                        try {
+                            daten = JSON.parse(gefunden[1].replace(/\\u003c/g, '<'));
+                        } catch (e) {
+                            daten = null;
+                        }
+                        if (!daten || !Array.isArray(daten.seiten) || !daten.seiten.length) {
+                            this.hinweis(this.t('noticeError'));
+                            return;
+                        }
+                        this.pages = this.normiereSeiten(daten.seiten);
+                        this.savePages();
+                        this.uebernehmenAusDatei(daten);
+                        if (this.currentPage) this.isEditing = false;
+                        this.destroyEditor();
+                        this.panelSetzen(null, false);
+                        this.hinweis(this.t('noticeLoaded').replace('{n}', this.pages.length));
+                    };
+                    leser.onerror = () => this.hinweis(this.t('noticeError'));
+                    leser.readAsText(datei);
+                },
+
+                /* Kurzer Hinweis unten im Bild. */
+                hinweis(text) {
+                    this.hinweisText = text;
+                    if (this.hinweisTimer) clearTimeout(this.hinweisTimer);
+                    this.hinweisTimer = setTimeout(() => { this.hinweisText = ''; }, 6000);
+                },
+
                 loadPages() {
                     const saved = SimpleWikiStore.get('simplewiki_pages');
+                    /* Reihenfolge der Zustände: was im Browser steht, gewinnt –
+                       sonst der Inhalt aus der Datei – sonst die neue Wiki. */
+                    const ausDatei = this.readDatenAusDatei();
+
                     if (saved) {
                         this.pages = JSON.parse(saved);
+                    } else if (ausDatei && ausDatei.seiten && ausDatei.seiten.length) {
+                        this.pages = this.normiereSeiten(ausDatei.seiten);
+                        this.savePages();
+                        this.uebernehmenAusDatei(ausDatei);
                     } else {
                         this.pages = [
                             {

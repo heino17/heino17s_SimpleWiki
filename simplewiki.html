@@ -500,6 +500,136 @@
             color: var(--text-muted);
         }
 
+        /* ---------- Seiten verlinken ---------- */
+        .preview .wiki-link {
+            color: var(--accent-color);
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            cursor: pointer;
+        }
+
+        /* Verweis auf eine Seite, die es noch nicht gibt */
+        .preview .wiki-link-fehlt,
+        .outgoing .wiki-link-fehlt {
+            color: var(--danger-color);
+            text-decoration-style: dashed;
+        }
+
+        .backlinks,
+        .outgoing {
+            margin: 0 20px 20px;
+            padding: 14px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+        }
+
+        .backlinks h3,
+        .outgoing h3 {
+            margin: 0 0 8px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .backlinks ul,
+        .outgoing ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .backlinks li,
+        .outgoing li {
+            margin-bottom: 4px;
+        }
+
+        .backlinks a,
+        .outgoing a {
+            color: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .outgoing a {
+            text-decoration: underline;
+            text-decoration-style: dotted;
+        }
+
+        /* Dialog zum Verlinken */
+        .modal-link {
+            width: 460px;
+        }
+
+        .link-new-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .link-list {
+            margin: 14px 0;
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .link-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 12px;
+            background: none;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .link-item:last-child {
+            border-bottom: none;
+        }
+
+        .link-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .link-item-haken {
+            flex: none;
+            width: 1.2em;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .link-item-titel {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .link-item-aktiv {
+            background: var(--bg-active);
+        }
+
+        .link-item-aktiv .link-item-titel {
+            color: var(--accent-color);
+        }
+
+        .link-leer {
+            margin: 14px 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
         .footer {
             border-top: 1px solid var(--border-color);
             padding: 12px 20px;
@@ -841,13 +971,14 @@
 
                 <div v-if="currentPage" class="content-body">
                     <!-- Ansicht -->
-                    <div v-if="!isEditing" class="preview" v-html="renderedContent"></div>
+                    <div v-if="!isEditing" class="preview" @click="onPreviewClick" v-html="renderedContent"></div>
 
                     <!-- Bearbeiten: WYSIWYG-Editor, sonst Textfeld als Rückfall -->
                     <template v-else>
                         <div v-show="editorReady" ref="mdHost" class="md-host"></div>
                         <textarea
                             v-if="!editorReady"
+                            ref="plainEditor"
                             class="editor"
                             v-model="editContent"
                             :placeholder="t('contentPlaceholder')"
@@ -858,7 +989,31 @@
                     </template>
                 </div>
 
-                <div v-else class="empty-state">
+                <!-- Rückverweise: von welchen Seiten wird hierher verlinkt? -->
+                <div v-if="!isEditing && currentPage && backlinks.length" class="backlinks">
+                    <h3>{{ t('backlinksTitle') }}</h3>
+                    <ul>
+                        <li v-for="p in backlinks" :key="p.id">
+                            <a href="#" @click.prevent="selectPage(p)">{{ p.title }}</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div v-if="!isEditing && currentPage && outgoingLinks.length" class="outgoing">
+                    <h3>{{ t('outgoingTitle') }}</h3>
+                    <ul>
+                        <li v-for="titel in outgoingLinks" :key="titel">
+                            <a
+                                href="#"
+                                :class="pages.some(p => p.title === titel) ? 'wiki-link' : 'wiki-link wiki-link-fehlt'"
+                                @click.prevent="pages.some(p => p.title === titel) ? selectPage(pages.find(p => p.title === titel)) : createPageWithTitle(titel)"
+                            >{{ titel }}</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Nur zeigen, wenn es wirklich keine Seite gibt -->
+                <div v-if="!currentPage" class="empty-state">
                     <h2>{{ t('welcomeTitle') }}</h2>
                     <p>{{ t('welcomeText') }}</p>
                 </div>
@@ -873,6 +1028,9 @@
                     {{ t('edit') }}
                 </button>
                 <template v-else>
+                    <button class="btn btn-secondary" @click="openLinkDialog">
+                        🔗 {{ t('linkButton') }}
+                    </button>
                     <button class="btn btn-danger" @click="deletePage(currentPage.id)">
                         {{ t('delete') }}
                     </button>
@@ -970,6 +1128,49 @@
             </div>
         </div>
 
+        <div v-if="showLinkDialog" class="modal-overlay" @click.self="showLinkDialog = false">
+            <div class="modal modal-link">
+                <h3>{{ t('linkDialogTitle') }}</h3>
+                <input
+                    ref="linkSearchInput"
+                    type="text"
+                    class="link-new-input"
+                    v-model="linkSearch"
+                    :placeholder="t('linkSearchPlaceholder')"
+                >
+                <input
+                    type="text"
+                    class="link-new-input"
+                    v-model="linkNewTitle"
+                    :placeholder="t('linkNewPlaceholder')"
+                    @keydown.enter.prevent="linkAndCreate(linkNewTitle.trim())"
+                >
+                <p class="settings-hint">{{ t('linkHint') }}</p>
+                <div v-if="linkCandidates().length" class="link-list">
+                    <button
+                        v-for="p in linkCandidates()"
+                        :key="p.id"
+                        class="link-item"
+                        :class="{ 'link-item-aktiv': isLinked(p.title) }"
+                        @click="toggleLink(p.title)"
+                    >
+                        <span class="link-item-haken">{{ isLinked(p.title) ? '\u2713' : '' }}</span>
+                        <span class="link-item-titel">{{ p.title }}</span>
+                    </button>
+                </div>
+                <p v-else class="link-leer">{{ t('linkNoPages') }}</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="showLinkDialog = false">
+                        {{ t('close') }}
+                    </button>
+                    <button
+                        class="btn btn-primary"
+                        :disabled="!linkNewTitle.trim()"
+                        @click="linkAndCreate(linkNewTitle.trim())"
+                    >{{ t('linkCreateAndLink') }}</button>
+                </div>
+            </div>
+        </div>
         <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
             <div class="modal">
                 <h3>{{ t('deleteConfirm') }}</h3>
@@ -1008,6 +1209,15 @@
                     "theme": "Hell / Dunkel",
                     "startPage": "Startseite",
                     "editorFallback": "Hinweis: Der komfortable Editor konnte nicht geladen werden – du schreibst im reinen Markdown-Text.",
+                    "linkButton": "Verlinken",
+                    "linkDialogTitle": "Seite verlinken",
+                    "linkNewPlaceholder": "Neue Seite: Namen eingeben …",
+                    "linkSearchPlaceholder": "Vorhandene Seite suchen …",
+                    "linkCreateAndLink": "Anlegen und verlinken",
+                    "linkHint": "Haken setzen zum Verlinken, erneut klicken zum Lösen.",
+                    "linkNoPages": "Keine passende Seite gefunden – oben einen Namen eingeben.",
+                    "backlinksTitle": "Verlinkt von",
+                    "outgoingTitle": "Verlinkt auf",
                     "startPageHint": "Diese Seite wird beim Öffnen des Wikis zuerst angezeigt.",
                     "appName": "SimpleWiki",
                     "search": "Suchen...",
@@ -1040,6 +1250,15 @@
                     "theme": "Light / Dark",
                     "startPage": "Start page",
                     "editorFallback": "Note: the comfortable editor could not be loaded – you are writing in plain Markdown text.",
+                    "linkButton": "Link",
+                    "linkDialogTitle": "Link a page",
+                    "linkNewPlaceholder": "New page: type a name …",
+                    "linkSearchPlaceholder": "Search existing pages …",
+                    "linkCreateAndLink": "Create and link",
+                    "linkHint": "Click to link a page, click again to remove the link.",
+                    "linkNoPages": "No matching page found – enter a name above.",
+                    "backlinksTitle": "Linked from",
+                    "outgoingTitle": "Links to",
                     "startPageHint": "This page is shown first when the wiki is opened.",
                     "appName": "SimpleWiki",
                     "search": "Search...",
@@ -1164,6 +1383,9 @@
                     editTitle: '',
                     searchQuery: '',
                     showDeleteModal: false,
+                    showLinkDialog: false,
+                    linkSearch: '',
+                    linkNewTitle: '',
                     pageToDelete: null,
                     showToc: false,
                     showSettings: false,
@@ -1210,7 +1432,23 @@
 
                 renderedContent() {
                     if (!this.currentPage) return '';
-                    return marked.parse(this.currentPage.content || '');
+                    return this.decorateWikiLinks(marked.parse(this.currentPage.content || ''));
+                },
+
+                /* Alle Seiten, die auf die aktuelle Seite verweisen. Wird
+                   jedes Mal neu berechnet – dadurch immer aktuell. */
+                backlinks() {
+                    if (!this.currentPage || !this.currentPage.title) return [];
+                    const ziel = this.currentPage.title;
+                    return this.pages.filter(p =>
+                        p.id !== this.currentPage.id &&
+                        this.pageLinks(p).indexOf(ziel) >= 0
+                    );
+                },
+
+                /* Seiten, auf die die aktuelle Seite verweist */
+                outgoingLinks() {
+                    return this.pageLinks(this.currentPage);
                 }
             },
 
@@ -1230,30 +1468,162 @@
             },
 
             methods: {
-                t(key) {
-                    return this.langDict[key] || this.baseDict[key] || key;
-                },
+                /* ---------- Seiten verlinken ---------- */
 
-                applyLanguage() {
-                    document.documentElement.lang = this.currentLang;
-                    document.title = 'SimpleWiki – ' + this.t('appName');
-                },
-
-                changeLanguage() {
-                    this.applyLanguage();
-                    SimpleWikiStore.set('simplewiki_lang', this.currentLang);
-                    /* Läuft der Editor gerade, neu aufbauen – sonst bliebe seine
-                       Oberfläche in der alten Sprache. Der Text bleibt erhalten. */
-                    if (this.mdEditor) {
-                        this.editContent = this.mdEditor.getMarkdown();
-                        this.$nextTick(() => this.initEditor());
+                /* Links, die im Text notiert sind: [Text](<wiki:Titel>)
+                   – die spitzen Klammern erlauben Leerzeichen im Titel. */
+                extractWikiLinks(content) {
+                    const treffer = [];
+                    const muster = /\]\(\s*<?wiki:([^)>]+)>?\s*(?:"[^"]*")?\s*\)/g;
+                    let m;
+                    while ((m = muster.exec(content || '')) !== null) {
+                        treffer.push(decodeURIComponent(m[1].trim()));
                     }
+                    return treffer;
                 },
 
-                openSettings() {
-                    this.showToc = false;
-                    this.showSettings = true;
+                /* Alle Seitentitel, auf die eine Seite verweist – sowohl die
+                   über die Verknüpfung als auch im Text notierte Links. */
+                pageLinks(page) {
+                    if (!page) return [];
+                    const verknuepft = Array.isArray(page.links) ? page.links : [];
+                    return verknuepft
+                        .concat(this.extractWikiLinks(page.content))
+                        .filter((t, i, arr) => t && arr.indexOf(t) === i);
                 },
+
+                isLinked(titel) {
+                    if (!this.currentPage || !Array.isArray(this.currentPage.links)) return false;
+                    return this.currentPage.links.indexOf(titel) >= 0;
+                },
+
+                /* Verknüpfung umschalten: schon verlinkt -> lösen,
+                   sonst verlinken. */
+                toggleLink(titel) {
+                    if (!titel) return;
+                    if (!Array.isArray(this.currentPage.links)) {
+                        this.currentPage.links = [];
+                    }
+                    const i = this.currentPage.links.indexOf(titel);
+                    if (i >= 0) {
+                        this.currentPage.links.splice(i, 1);
+                    } else {
+                        this.currentPage.links.push(titel);
+                    }
+                    /* Verknüpfungen sind Eigenschaften der Seite, kein Text –
+                       deshalb sofort sichern, unabhängig vom Textbearbeiten. */
+                    this.savePages();
+                    this.showLinkDialog = false;
+                },
+
+                /* Verlinken und – falls nötig – die Seite gleich anlegen. */
+                linkAndCreate(titel) {
+                    if (!titel) return;
+                    if (!this.pages.some(p => p.title === titel)) {
+                        const neu = {
+                            id: Date.now().toString(),
+                            title: titel,
+                            content: '',
+                            links: [],
+                            tags: [],
+                            created: new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        };
+                        this.pages.unshift(neu);
+                    }
+                    if (!Array.isArray(this.currentPage.links)) {
+                        this.currentPage.links = [];
+                    }
+                    if (this.currentPage.links.indexOf(titel) < 0) {
+                        this.currentPage.links.push(titel);
+                    }
+                    this.savePages();
+                    this.showLinkDialog = false;
+                },
+
+                /* Die von marked erzeugten Links für unsere Oberfläche
+                   umbauen: vorhandene Seiten normal, fehlende Seiten
+                   sichtbar als "gibt es noch nicht". */
+                decorateWikiLinks(html) {
+                    return html.replace(
+                        /href="wiki:([^"]*)"/g,
+                        (treffer, kodiert) => {
+                            const titel = decodeURIComponent(kodiert);
+                            const esc = this.escapeHtml(titel);
+                            const vorhanden = this.pages.some(p => p.title === titel);
+                            const klasse = vorhanden ? 'wiki-link' : 'wiki-link wiki-link-fehlt';
+                            return 'href="#" class="' + klasse + '" data-wiki-link="' + esc + '"';
+                        }
+                    );
+                },
+
+                escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text == null ? '' : String(text);
+                    return div.innerHTML;
+                },
+
+                onPreviewClick(event) {
+                    const link = event.target.closest('a[data-wiki-link]');
+                    if (!link) return;
+                    event.preventDefault();
+                    const titel = link.getAttribute('data-wiki-link');
+                    if (!titel) return;
+                    const seite = this.pages.find(p => p.title === titel);
+                    if (seite) {
+                        this.selectPage(seite);
+                        return;
+                    }
+                    /* Fehlende Seite anlegen und direkt bearbeiten. */
+                    this.createPageWithTitle(titel);
+                },
+
+                createPageWithTitle(titel) {
+                    const neu = {
+                        id: Date.now().toString(),
+                        title: titel,
+                        content: '',
+                        links: [],
+                        tags: [],
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString()
+                    };
+                    this.pages.unshift(neu);
+                    this.currentPage = neu;
+                    this.savePages();
+                    this.startEditing();
+                },
+
+                /* ---------- Dialog zum Verlinken ---------- */
+
+                openLinkDialog() {
+                    this.linkSearch = '';
+                    this.linkNewTitle = '';
+                    this.showLinkDialog = true;
+                    this.$nextTick(() => {
+                        if (this.$refs.linkSearchInput) {
+                            this.$refs.linkSearchInput.focus();
+                        }
+                    });
+                },
+
+                linkCandidates() {
+                    const q = this.linkSearch.trim().toLowerCase();
+                    const vorhanden = this.pages
+                        .filter(p => !this.currentPage || p.id !== this.currentPage.id)
+                        .filter(p => !q || p.title.toLowerCase().includes(q));
+                    /* Existiert der getippte Name schon, nicht doppelt anbieten. */
+                    const tipp = this.linkNewTitle.trim();
+                    if (tipp && !this.pages.some(p => p.title === tipp)) {
+                        return vorhanden.concat([{
+                            id: '__neu__',
+                            title: tipp,
+                            istNeu: true
+                        }]);
+                    }
+                    return vorhanden;
+                },
+
 
                 closeAllPanels() {
                     this.showToc = false;
@@ -1278,6 +1648,31 @@
                     }
                 },
 
+                t(key) {
+                    return this.langDict[key] || this.baseDict[key] || key;
+                },
+
+                applyLanguage() {
+                    document.documentElement.lang = this.currentLang;
+                    document.title = 'SimpleWiki – ' + this.t('appName');
+                },
+
+                changeLanguage() {
+                    this.applyLanguage();
+                    SimpleWikiStore.set('simplewiki_lang', this.currentLang);
+                    /* Läuft der Editor gerade, neu aufbauen – sonst bliebe seine
+                       Oberfläche in der alten Sprache. */
+                    if (this.mdEditor) {
+                        this.editContent = this.mdEditor.getMarkdown();
+                        this.$nextTick(() => this.initEditor());
+                    }
+                },
+
+                openSettings() {
+                    this.showToc = false;
+                    this.showSettings = true;
+                },
+
                 clearSearch() {
                     this.searchQuery = '';
                 },
@@ -1292,6 +1687,7 @@
                                 id: '1',
                                 title: 'Willkommen bei SimpleWiki! 🎉',
                                 content: '# Willkommen bei SimpleWiki! 🎉\n\nDein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n- **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n- **Schreiben** – Markdown wird verstanden\n- **Suchen** – oben im Kopf\n- **Sprache wählen** – oben rechts\n- **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️',
+                                links: [],
                                 tags: [],
                                 created: new Date().toISOString(),
                                 updated: new Date().toISOString()
@@ -1325,6 +1721,7 @@
                         id: Date.now().toString(),
                         title: this.t('untitled'),
                         content: '',
+                        links: [],
                         tags: [],
                         created: new Date().toISOString(),
                         updated: new Date().toISOString()
@@ -1352,14 +1749,25 @@
 
                 /* ---------- WYSIWYG-Editor ---------- */
 
-                initEditor() {
+                async initEditor() {
                     this.destroyEditor();
-                    if (!window.toastui || !window.toastui.Editor || !this.$refs.mdHost) {
+                    if (!window.toastui || !window.toastui.Editor) {
                         return;               // Textfeld bleibt als Rückfall
                     }
 
+                    /* Wichtig: erst den Bereich einblenden, dann den Editor
+                       aufbauen. Ein Editor im verborgenen Bereich misst
+                       seinen Zustand falsch und verliert ihn. */
+                    this.editorReady = true;
+                    await this.$nextTick();
+                    const host = this.$refs.mdHost;
+                    if (!host) {
+                        this.editorReady = false;
+                        return;
+                    }
+
                     this.mdEditor = new window.toastui.Editor({
-                        el: this.$refs.mdHost,
+                        el: host,
                         height: this.editorHeight(),
                         initialEditType: 'wysiwyg',
                         /* Sprache der Editor-Oberfläche. Die Wortliste für
@@ -1370,7 +1778,6 @@
                         usageStatistics: false
                     });
                     this.applyEditorTheme();
-                    this.editorReady = true;
                 },
 
                 /* Die offizielle Dunkel-Klasse von Toast UI setzen, damit auch

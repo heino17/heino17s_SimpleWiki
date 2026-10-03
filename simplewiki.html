@@ -1445,7 +1445,8 @@
 
                 renderedContent() {
                     if (!this.currentPage) return '';
-                    return this.decorateWikiLinks(marked.parse(this.currentPage.content || ''));
+                    const markdown = this.ersetzeWikiSyntax(this.currentPage.content || '');
+                    return this.decorateWikiLinks(marked.parse(markdown));
                 },
 
                 /* Alle Seiten, die auf die aktuelle Seite verweisen. Wird
@@ -1552,6 +1553,41 @@
                     }
                     this.savePages();
                     this.showLinkDialog = false;
+                },
+
+                /* TiddlyWiki-Schreibweise "[[Seite]]" und "[[Text|Seite]]"
+                   in die Markdown-Form umdeuten, die schon existiert:
+                   [Text](wiki:Seite). Damit bekommen beide Schreibweisen
+                   dasselbe Verhalten – klickbar und fehlende Ziele rot
+                   markiert (siehe decorateWikiLinks). */
+                ersetzeWikiSyntax(text) {
+                    /* Code wird zuerst zur Seite gestellt: [[..]] in einem
+                       Beispiel ist Quelltext und kein Link – auch dann,
+                       wenn man die Syntax selbst dokumentiert. */
+                    const tresor = [];
+                    let s = String(text == null ? '' : text)
+                        .replace(/```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]*`/g, treffer => {
+                            tresor.push(treffer);
+                            return '\u0000' + (tresor.length - 1) + '\u0000';
+                        });
+
+                    s = s.replace(/\[\[([^\]\n]+)\]\]/g, (treffer, inhalt) => {
+                        const teile = inhalt.split('|');
+                        const ziel = (teile.length > 1 ? teile[1] : teile[0]).trim();
+                        if (!ziel) return treffer;               /* [[]] ist kein Link */
+                        const beschriftung = teile[0].trim() || ziel;
+                        return '[' + this.escapeMarkdown(beschriftung) +
+                            '](wiki:' + encodeURIComponent(ziel) + ')';
+                    });
+
+                    return s.replace(/\u0000(\d+)\u0000/g, (t, n) => tresor[Number(n)]);
+                },
+
+                /* Sonderzeichen im Linktext escaped Markdown, damit aus
+                   einem Seitennamen wie "*Bezeichnung*" kein kursiver
+                   Text wird. */
+                escapeMarkdown(text) {
+                    return String(text).replace(/([\\`*_[\]<>|])/g, '\\$1');
                 },
 
                 /* Die von marked erzeugten Links für unsere Oberfläche
@@ -1699,7 +1735,7 @@
                             {
                                 id: '1',
                                 title: 'Willkommen bei SimpleWiki! 🎉',
-                                content: '# Willkommen bei SimpleWiki! 🎉\n\nDein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n- **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n- **Schreiben** – Markdown wird verstanden\n- **Suchen** – oben im Kopf\n- **Sprache wählen** – oben rechts\n- **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️',
+                                content: '# Willkommen bei SimpleWiki! 🎉\n\nDein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n- **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n- **Schreiben** – Markdown wird verstanden\n- **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n- **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n- **Suchen** – oben im Kopf\n- **Sprache wählen** – oben rechts\n- **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️',
                                 links: [],
                                 tags: [],
                                 created: new Date().toISOString(),

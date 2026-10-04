@@ -28,7 +28,7 @@ script = r"""
          Inhaltsverzeichnis steht er nicht mehr. */
       function knopfImVerzeichnis() { return all('.toc-footer .new-page-btn'); }
       function flussOeffnen() { q('.kopf-fluss').click(); }
-      function zurueck() { all('.fluss-aktionen .btn')[1].click(); }
+      function zurueck() { q('.kopf-fluss').click(); }
       function ende() {
         log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
@@ -108,6 +108,8 @@ script = r"""
                               setTimeout(function () {
                                 flussOeffnen();
                                 setTimeout(function () {
+                                  ok(all('.fluss-aktionen .btn').length === 1, 'im Fluss bleibt nur der Druck-Knopf: ' + all('.fluss-aktionen .btn').map(function (b) { return b.textContent.trim(); }).join(' / '));
+                                  ok(!q('.fluss-aktionen .btn-primary'), 'kein Zurueck-Knopf mehr im Fluss - der Kopf-Knopf schaltet');
                                   ok(!!all('.fluss-aktionen .btn')[0], 'Druck-Knopf: ' + all('.fluss-aktionen .btn')[0].textContent.trim());
                                   window.__print = 0;
                                   window.print = function () { window.__print++; };

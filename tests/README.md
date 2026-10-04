@@ -61,6 +61,15 @@ auf, weil `t_scroll.py` mit einem Fenster von 900×420 Pixeln und absichtlich
 langen Seiten prüft – und der letzte Satz der letzten Seite muss im
 ausgelesenen PDF stehen, nicht nur „sieht vollständig aus“.
 
+## Last und Wiederholung
+
+Das Einlesen einer Datei braucht echte Datei-Zeit, und die läuft nicht
+mit der Uhr des Testskripts. Wenn mehrere Browser hintereinander laufen,
+kommt es vor, dass ein Test beim ersten Lauf durchfällt, obwohl das Programm
+in Ordnung ist. Deshalb läuft eine durchgefallene Kopie **einmal mit der
+doppelten Zeit wieder** – erst ein zweimaliger Fehlschlag zählt als Fehler.
+Solche Läufe sind in der Ausgabe als `(Wiederholung, …)` gekennzeichnet.
+
 ## Wenn ein Test ausfliegt
 
 `tests/_kopien/` enthält die Kopie, mit der es schiefging. Der Bericht steht

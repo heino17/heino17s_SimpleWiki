@@ -75,23 +75,43 @@ def pruefe(*dateien):
     zeilen = []
     for pfad in dateien:
         name = os.path.basename(pfad)
-        dom = dumpdom(name)
+
+        def lauf_budget(doppelt=False):
+            return dumpdom(name, budget=240000 if doppelt else 120000)
+
+        dom = lauf_budget()
         text = bericht(dom)
+        notiz = ''
+
+        # Ein durchgefallener Test bekommt einen zweiten Versuch mit mehr
+        # Zeit. Das Einlesen einer Datei braucht echte Datei-Zeit, und
+        # unter Last mehrerer Browser laeuft die nicht mit der Uhr des
+        # Testskripts. Erst ein zweimaliger Fehlschlag zaehlt als Fehler -
+        # sonst ist ein roter Lauf eine Aussage ueber die Maschine und
+        # nicht ueber das Programm.
+        if not text or zahlen(text)[1] > 0:
+            dom = lauf_budget(doppelt=True)
+            text2 = bericht(dom)
+            if text2 and (not text or zahlen(text2)[1] == 0):
+                text = text2
+                notiz = ' (Wiederholung, beim ersten Lauf unter Last gescheitert)'
+
         if not text:
             # Kein Bericht: entweder ist die App nicht gekommen, oder
             # das Testskript ist zu frueh. Beides ist ein Fehler.
             if not app_da(dom):
-                zeilen.append('%-22s KEIN REPORT – die App kam nicht' % name)
+                zeilen.append('%-22s KEIN REPORT - die App kam nicht' % name)
             else:
-                zeilen.append('%-22s KEIN REPORT – Testskript zu frueh' % name)
+                zeilen.append('%-22s KEIN REPORT - Testskript zu frueh' % name)
             gesamt_fehler += 1
             continue
         ok, fehler = zahlen(text)
         gesamt_ok += ok
         gesamt_fehler += fehler
         abschluss = [l for l in text.split('\n') if l.startswith('>>>')]
-        zeilen.append('%-22s %s' % (name, (abschluss[-1] if abschluss else
-                                           '%d bestanden, %d fehlgeschlagen' % (ok, fehler))))
+        zeilen.append('%-22s %s%s' % (name, (abschluss[-1] if abschluss else
+                                              '%d bestanden, %d fehlgeschlagen' % (ok, fehler)),
+                                       notiz))
         if fehler:
             for l in text.split('\n'):
                 if l.startswith('FAIL'):

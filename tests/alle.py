@@ -86,7 +86,12 @@ def main():
         ausgabe = lauf.stdout
         # Die Reports der Tests sind ausfuehrlich; hier nur die Fazits.
         for zeile in ausgabe.split('\n'):
-            if re.match(r'^(>>>|\s{4}(OK|FAIL)|.*FEHLGESCHLAGEN|.*BESTANDEN|GESAMT)', zeile):
+            # Auch die Zeilen zeigen, die kein Pruefergebnis sind, sondern
+            # eine Auswertung: "KEIN REPORT" und "UNVOLLSTAENDIG" sagen,
+            # dass der Browser zu langsam war - genau das, was man sonst
+            # nicht sieht und fuer einen Programmbug haelt.
+            if re.match(r'^(>>>|\s{4}(OK|FAIL)|.*FEHLGESCHLAGEN|.*BESTANDEN'
+                        r'|.*KEIN REPORT|.*UNVOLLSTAENDIG|GESAMT)', zeile):
                 print(zeile)
         # Jeder Test meldet am Ende "GESAMT: N bestanden, M fehlgeschlagen";
         # das ist die Zahl, die zaehlt - nicht die Zeilen im Bericht.

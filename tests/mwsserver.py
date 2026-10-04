@@ -39,7 +39,8 @@ class Wiki:
     """Der Inhalt eines Wikis: Titel -> Felder."""
 
     def __init__(self, slug, tiddler, nurLesen=False, titel='Testwiki',
-                 skript='', vorab='', marker_leer=False, ersetzungen=None):
+                 skript='', vorab='', marker_leer=False, ersetzungen=None,
+                 fehler=None):
         self.slug = slug
         self.nurLesen = nurLesen
         # Was die Testfigur in die ausgelieferte Seite einhaengt - so
@@ -49,6 +50,10 @@ class Wiki:
         # Ein Marker ohne Inhalt: so sieht eine Seite aus, die der
         # Browser bedienen soll, obwohl sie vom Server kommt.
         self.marker_leer = marker_leer
+        # Antworten, die der Server fuer einen Aufruf geben soll, statt
+        # zu arbeiten: {'save': 500}. Damit laesst sich pruefen, was die
+        # App tut, wenn es keinen Fehler ist, sondern einen Ausfall.
+        self.fehler = dict(fehler or {})
         # Eingriffe in die Datei, bevor sie ausgeliefert wird - damit
         # kommen Testhaaken an dieselbe Stelle wie bei Dateikopien.
         self.ersetzungen = list(ersetzungen or [])
@@ -75,8 +80,11 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---------------------------------------------------------- Hilfsmittel
     def _json(self, code, daten):
-        if self.anfragen:
-            self.anfragen[-1]['antwort'] = code
+        # Der Status gehoert zu diesem Aufruf, nicht zum letzten in der
+        # Liste: zwei Anfragen koennen sich ueberholen, dann landet die
+        # Antwort sonst bei der falschen.
+        if getattr(self, 'eintrag', None) is not None:
+            self.eintrag['antwort'] = code
         roh = json.dumps(daten, ensure_ascii=False).encode('utf-8')
         self.send_response(code)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
@@ -106,6 +114,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         m = re.match(r'^/wiki/([^/]+)/$', self.path)
         if m and m.group(1) in self.wikis:
+            self.eintrag = None
             self.anfragen.append({'weg': 'GET', 'pfad': self.path})
             self._html(200, self._mit_marker(self.wikis[m.group(1)]))
             return
@@ -124,18 +133,25 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         koerper = self._koerper()
-        self.anfragen.append({
+        self.eintrag = {
             'weg': 'POST',
             'pfad': self.path,
             'op': op,
             'kopf': self.headers.get('X-Requested-With'),
             'nutzlast': koerper
-        })
+        }
+        self.anfragen.append(self.eintrag)
 
         # Der Kopf ist Pflicht. Ohne ihn ist es eine fremde Anfrage -
-        # zum Beispiel ein Lesezugriff aus einem anderen Programm.
+        # zum Beispiel ein Lesezugriff aus einem anderen Programm. Das
+        # wird vor allem anderen geprueft, wie es der echte Server tut.
         if self.headers.get('X-Requested-With') != 'fetch':
-            self._json(400, {'error': 'MISSING_HEADER_X_REQUESTED_WITH'})
+            self._json(400, {'error': 'INVALID_X_REQUESTED_WITH'})
+            return
+
+        # Ein Ausfall, den der Test braucht.
+        if op in wiki.fehler:
+            self._json(wiki.fehler[op], {'error': 'SERVER_TEAPOT_' + op})
             return
 
         if wiki.nurLesen and op in ('save', 'delete'):

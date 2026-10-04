@@ -46,6 +46,8 @@ wikis = {
     'leer': Wiki('leer', []),          # Marker mit Inhalt, aber ohne Seiten
     'ohne': Wiki('ohne', [ALPHA, BETA, STANDARD], marker_leer=True,
                  vorab=VORAB),        # Marker leer: der Browser soll her
+    'kaputt': Wiki('kaputt', [ALPHA, BETA, STANDARD],
+                   fehler={'save': 500}),   # der Server faellt aus
 }
 
 server, thread, port = starten(wikis)
@@ -357,6 +359,50 @@ teil7 = r"""
 """
 
 
+# ---------------------------------------------------------------- Teil 8
+# Der Server faellt aus: der Grund muss im Bild stehen, und es darf
+# nicht so tun, als waere das Wiki nur lesbar
+teil8 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function hinweis() { var h = q('.hinweis'); return h ? h.textContent.trim() : ''; }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+
+      setTimeout(function () {
+        log.push('--- Wiki, dessen Server ausfaellt');
+        ok(!q('.nurlesen-hinweis'), 'zuerst kein Nur-Lesen-Hinweis');
+        ok(all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0].disabled === false,
+           'Bearbeiten ist an');
+        log.push('--- Speichern und der Grund');
+        all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0].click();
+        setTimeout(function () {
+          if (window.__ed) window.__ed.setMarkdown('# Alpha\n\nGeaendert.');
+          setTimeout(function () {
+            all('.footer .btn').filter(function (b) { return /Speichern|Save/.test(b.textContent); })[0].click();
+            setTimeout(function () {
+              ok(hinweis().length > 0, 'es steht ein Hinweis: "' + hinweis() + '"');
+              ok(/SERVER_TEAPOT_save/.test(hinweis()), 'nennt den Grund vom Server: ' + hinweis());
+              ok(/nicht gespeichert|not saved/i.test(hinweis()), 'sagt, dass es nicht gespeichert wurde');
+              ok(!q('.nurlesen-hinweis'),
+                 'kein Nur-Lesen-Hinweis: ein Ausfall ist kein Rechteproblem');
+              var b2 = all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0];
+              ok(!!b2 && b2.disabled === false, 'Bearbeiten bleibt moeglich');
+              log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+              out();
+            }, 1200);
+          }, 700);
+        }, 2800);
+      }, 2500);
+    })();
+    </script>
+"""
+
+
 def lauf(name, skript, pfad, fenster=None):
     leeren()
     wikis[pfad.strip('/').split('/')[-1]].skript = skript
@@ -384,12 +430,47 @@ try:
     text6, ruf6 = lauf('_mws_neuladen', teil6, '/wiki/alpha')
     print()
     text7, ruf7 = lauf('_mws_browser', teil7, '/wiki/ohne')
+    print()
+    text8, ruf8 = lauf('_mws_ausfall', teil8, '/wiki/kaputt')
+    print()
+    # ---- Der Kopf ist Pflicht: ohne ihn 400 INVALID_X_REQUESTED_WITH
+    import urllib.request, urllib.error
+    def roh_ruf(op, nutzlast, mit_kopf):
+        anfrage = urllib.request.Request(
+            basis + '/recipe/alpha/batch/' + op,
+            data=json.dumps(nutzlast).encode('utf-8'),
+            headers=dict([('Content-Type', 'application/json')] +
+                        ([('X-Requested-With', 'fetch')] if mit_kopf else [])),
+            method='POST')
+        try:
+            with urllib.request.urlopen(anfrage, timeout=10) as antwort:
+                return antwort.status, json.loads(antwort.read().decode('utf-8'))
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read().decode('utf-8'))
+
+    code_ohne, koerper_ohne = roh_ruf('list', {}, False)
+    code_mit, _ = roh_ruf('list', {}, True)
+    print('ohne X-Requested-With: %s %s' % (code_ohne, koerper_ohne.get('error')))
+    print('mit  X-Requested-With: %s' % code_mit)
+
+    # ---- Zeitstempel: 17 Stellen hin und zurueck, ohne Verlust
+    alpha = wikis['alpha'].tiddler.get('a1', {})
+    print('created unveraendert: %s (17 Stellen: %s)' % (alpha.get('created'),
+                                                         len(str(alpha.get('created'))) == 17))
+    print('modified 17 Stellen: %s' % (len(str(alpha.get('modified'))) == 17))
+    # Der Weg ist in beiden Richtungen geschlossen und an der App geprueft:
+    # der Test weiter oben hat 20260203100000000 als
+    # 2026-02-03T10:00:00.000Z gelesen, und hier kommt der unveraenderte
+    # 17-Steller wieder heraus. Beides ist dieselbe Zahl.
+    print('Zeitweg hin und zurueck geschlossen: %s'
+          % (alpha.get('created') == ALPHA['created']))
+
 finally:
     beenden(server)
 
 # ------------------------------------------------------------------ Auswertung
 ok = fail = 0
-for t in (text1, text2, text3, text4, text5, text6, text7):
+for t in (text1, text2, text3, text4, text5, text6, text7, text8):
     import re
     ok += len(re.findall(r'(?m)^OK\s', t))
     fail += len(re.findall(r'(?m)^FAIL\s', t))
@@ -406,7 +487,7 @@ print('davon einzelne Tiddler: %s'
 print('Reihenfolge geschrieben: %s'
       % sorted(set(str((a['nutzlast']['tiddlers'][0] or {}).get('reihenfolge'))
                   for a in saves if (a['nutzlast'].get('tiddlers') or [{}])[0])))
-alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7
+alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8
 print('updates abgerufen: %s'
       % ('ja' if any('updates' in (a.get('pfad') or '') for a in alle_rufe) else 'nein'))
 post5 = [a for a in ruf5 if a.get('weg') == 'POST']

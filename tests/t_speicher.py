@@ -166,7 +166,24 @@ teil2 = r"""
         ok(g.wikiTitel === 'Vertrag', 'wikiTitel: ' + g.wikiTitel);
         ok(g.nurLesen === false, 'nurLesen: ' + g.nurLesen);
         ok(g.startseite === 'a1', 'startseite: ' + g.startseite);
-        ende();
+
+        log.push('--- list und read spricht der Serverspeicher an');
+        sp.SPEICHER.alleTiddlerLesen().then(function (alle) {
+          ok(Array.isArray(alle), 'list liefert eine Liste: ' + typeof alle);
+          var namen = alle.map(function (t) { return t.title; });
+          ok(namen.indexOf('a1') >= 0 && namen.indexOf('b2') >= 0 &&
+             namen.indexOf('$:/DefaultTiddlers') >= 0,
+             'list liefert die Seiten und den Systemtiddler: ' + namen.join('|'));
+          return sp.SPEICHER.tiddlerLesen('a1');
+        }).then(function (t) {
+          ok(!!t && t.caption === 'Alpha', 'read liefert den Tiddler: ' + JSON.stringify(t));
+          return sp.SPEICHER.tiddlerLesen('gibtsnicht');
+        }).then(function (t) {
+          ok(t === null, 'read von etwas, das es nicht gibt: ' + JSON.stringify(t));
+          ok(typeof sp.LocalStore.alleTiddlerLesen !== 'function',
+             'der Browserspeicher hat kein list - es gibt nichts zu fragen');
+          ende();
+        }).catch(function (e) { ok(false, 'Fehler bei list oder read: ' + e.message); ende(); });
       }, 2500);
 
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }

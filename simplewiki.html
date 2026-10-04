@@ -2060,6 +2060,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Sprache",
                     "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nurLesenKurz": "Nur lesen",
+                    "speicherFehler": "Nicht auf dem Server gespeichert: {grund}. " +
+                        "Die Änderung steht in dieser Seite, aber nicht beim Server.",
                     "mwsHinweis": "Die Seiten liegen auf dem Server. Jede Änderung geht sofort dorthin."
                 }
             },
@@ -2146,6 +2148,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "untitled": "New Page",
                     "nurLesen": "This wiki cannot be written to. You can read everything, but not create, change or delete anything.",
                     "nurLesenKurz": "Read only",
+                    "speicherFehler": "Not saved on the server: {grund}. " +
+                        "The change is in this page, but not on the server.",
                     "mwsHinweis": "The pages live on the server. Every change goes there right away."
                 }
             }
@@ -2331,6 +2335,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
              startseiteSetzen(id)   id zur Startseite machen
              themaSetzen(thema)     'light' oder 'dark'
              spracheSetzen(sprache) 'de' oder 'en'
+
+           Dazu zwei Aufrufe, die nur der Serverspeicher hat: list holt
+           alle Tiddler, read einen bestimmten. Im Browser gibt es nichts
+           zu fragen - der Normalfall braucht sie nicht, weil der Server
+           die Tiddler in den Marker steckt. Sie sind da, weil die
+           Schnittstelle sie kennt.
         */
 
         const SPEICHER_METHODEN = ['laden', 'uebernehmen', 'seiteSichern',
@@ -2467,6 +2477,19 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            Betriebszustand: das Wiki gehört jemand anderem. Dann wird das
            Bearbeiten abgeschaltet und der Grund gesagt - jede andere
            Fehlermeldung bleibt ein Fehler. */
+        /* Ein Aufruf an den Server.
+
+           Der Kopf X-Requested-With: fetch ist Pflicht; ohne ihn antwortet
+           der Server mit 400 INVALID_X_REQUESTED_WITH.
+
+           Antwortet er mit 403, ist das kein Fehler, sondern ein
+           Betriebszustand: das Wiki gehört jemand anderem. Dann wird das
+           Bearbeiten abgeschaltet und der Grund gesagt.
+
+           Jeder andere Fehler - ein 500, ein 400, eine Verbindung, die
+           nicht zustande kommt - wird gemeldet und nicht geschluckt.
+           Ein Fehler, den niemand sieht, faellt erst beim naechsten
+           Neuladen auf, und dann sieht er aus wie Datenverlust. */
         MwsStore.prototype.ruf = function (op, nutzlast) {
             const selbst = this;
             return fetch(this.rezepte(op), {
@@ -2477,26 +2500,65 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 },
                 body: JSON.stringify(nutzlast || {})
             }).then(function (antwort) {
-                if (antwort.status === 403) {
-                    const e = new Error('BAG_NO_WRITE_PERMISSION');
-                    e.sperre = true;
-                    throw e;
-                }
-                if (!antwort.ok) throw new Error('HTTP ' + antwort.status);
-                return antwort.text().then(function (t) {
-                    if (!t) return {};
-                    try {
-                        return JSON.parse(t);
-                    } catch (x) {
-                        return {};
+                return antwort.text().then(function (text) {
+                    let daten = {};
+                    if (text) {
+                        try {
+                            daten = JSON.parse(text);
+                        } catch (x) {
+                            daten = {};
+                        }
                     }
+                    if (antwort.status === 403) {
+                        const e = new Error('BAG_NO_WRITE_PERMISSION');
+                        e.sperre = true;
+                        throw e;
+                    }
+                    if (!antwort.ok) {
+                        /* Der Grund steht in der Antwort, wenn der Server
+                           einen schickt: INVALID_X_REQUESTED_WITH,
+                           BAG_NO_WRITE_PERMISSION, und so weiter. */
+                        const e = new Error(daten.error || ('HTTP ' + antwort.status));
+                        e.status = antwort.status;
+                        throw e;
+                    }
+                    return daten;
                 });
             }).catch(function (e) {
                 if (e && e.sperre) {
                     selbst.nurLesenMelden();
                     return null;
                 }
-                throw e;
+                selbst.fehlerMelden(e && e.message ? e.message : 'unbekannter Fehler');
+                return null;
+            });
+        };
+
+        /* Der Weg zu einer Fehlermeldung in der Oberflaeche. Der Speicher
+           kennt die Oberflaeche nicht - er sagt nur, was passiert ist. */
+        MwsStore.prototype.fehlerMelden = function (grund) {
+            try {
+                document.dispatchEvent(new CustomEvent('simplewiki:fehler', {
+                    detail: String(grund == null ? '' : grund)
+                }));
+            } catch (e) { /* älterer Browser: dann eben ohne Hinweis */ }
+        };
+
+        /* Alle Tiddler des Wikis holen.
+
+           Der Normalfall braucht das nicht: der Server steckt sie in den
+           Marker. Der Aufruf ist hier, weil die Schnittstelle ihn kennt -
+           zum Nachsehen, was der Server gerade hat. */
+        MwsStore.prototype.alleTiddlerLesen = function () {
+            return this.ruf('list', {}).then(function (daten) {
+                return Array.isArray(daten) ? daten : [];
+            });
+        };
+
+        /* Einen bestimmten Tiddler holen. */
+        MwsStore.prototype.tiddlerLesen = function (titel) {
+            return this.ruf('read', { titles: [String(titel)] }).then(function (daten) {
+                return Array.isArray(daten) ? (daten[0] || null) : null;
             });
         };
 
@@ -2869,6 +2931,9 @@ showToc: false,
                 /* Sagt der Server, dass hier nicht geschrieben werden
                    darf, wird das Bearbeiten abgeschaltet - mit Grund. */
                 document.addEventListener('simplewiki:nurlesen', this.nurLesenMerken);
+                /* Hat der Server etwas abgelehnt, das nichts mit den
+                   Rechten zu tun hat, steht der Grund unten im Bild. */
+                document.addEventListener('simplewiki:fehler', this.speicherFehlerMerken);
                 window.addEventListener('beforeprint', this.vorDemDruck);
                 window.addEventListener('afterprint', this.nachDemDruck);
                 window.addEventListener('keydown', this.onKeydown);
@@ -3779,6 +3844,15 @@ showToc: false,
                    darf: das Bearbeiten abstellen. */
                 nurLesenMerken() {
                     this.nurLesen = true;
+                },
+
+                /* Ein Schreibfehler, der nichts mit den Rechten zu tun
+                   hat. Der Hinweis steht unten und verschwindet wieder -
+                   im Gegensatz zum Fall, dass gar nicht geschrieben
+                   werden darf. */
+                speicherFehlerMerken(e) {
+                    this.hinweis(this.t('speicherFehler')
+                        .replace('{grund}', (e && e.detail) || '?'));
                 },
 
                 createNewPage() {

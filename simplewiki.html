@@ -779,6 +779,32 @@
             color: var(--accent-color);
         }
 
+        /* Der Fluss-Knopf im Kopf sieht anders aus als die runden
+           Symbolknoepfe - er ist eine Aktion, keine Schaltflaeche. Im
+           Fluss selbst leuchtet er, damit man ihn wieder findet. */
+        .header .kopf-fluss {
+            margin-left: 2px;
+            font-size: 0.9rem;
+        }
+
+        .header .kopf-fluss[aria-pressed='true'] {
+            background: var(--accent-hover);
+            box-shadow: inset 0 0 0 2px var(--bg-primary);
+        }
+
+        /* Auf schmalen Fenstern bleibt das Symbol, der Text verschwindet -
+           sonst passt der Kopf nicht mehr nebeneinander. */
+        @media (max-width: 560px) {
+            .header .kopf-fluss .kopf-text {
+                display: none;
+            }
+
+            .header .kopf-fluss {
+                padding: 8px 12px;
+                font-size: 1.1rem;
+            }
+        }
+
         /* ---------- Verweis-Panel ---------- */
 
         .refs-toggle {
@@ -1273,7 +1299,45 @@
             }
         }
 
+        /* Sehr schmale Fenster: noch weniger Luft, damit alle Knoepfe
+           in eine Reihe passen statt einzeln umzubrechen. */
+        @media (max-width: 420px) {
+            .header {
+                gap: 4px;
+                padding: 10px 12px;
+            }
+
+            .header .menu-toggle,
+            .header .refs-toggle,
+            .header .settings-toggle,
+            .header .theme-toggle,
+            .header .kopf-fluss {
+                padding: 5px 7px;
+            }
+
+            .header h1 {
+                font-size: 0.9rem;
+            }
+        }
+
         @media (max-width: 480px) {
+            /* Der Kopf muss in eine Reihe passen. Ohne kleinere
+               Abstaende und Raender rueckt der letzte Knopf aus dem
+               Bild - das war schon vorher so, mit dem Fluss-Knopf
+               nur um einen Platz schlimmer. */
+            .header {
+                gap: 6px;
+            }
+
+            .header .menu-toggle,
+            .header .refs-toggle,
+            .header .settings-toggle,
+            .header .theme-toggle,
+            .header .kopf-fluss {
+                padding: 6px 9px;
+                font-size: 1.05rem;
+            }
+
             .header h1 {
                 font-size: 1rem;
             }
@@ -1376,6 +1440,13 @@
                 <input type="text" class="search-box" :placeholder="t('search')" v-model="searchQuery" @input="onSearchInput">
                 <button v-if="searchQuery" class="clear-search" :title="t('searchReset')" @click="clearSearch">✕</button>
                 <button class="menu-toggle" @click="openToc" :title="t('tocTitle')">☰</button>
+                <button
+                    class="new-page-btn kopf-fluss"
+                    @click="flussUmschalten"
+                    :title="fluss ? t('riverClose') : t('riverOpen')"
+                    :aria-label="fluss ? t('riverClose') : t('riverOpen')"
+                    :aria-pressed="fluss"
+                >🌊 <span class="kopf-text">{{ t('riverButton') }}</span></button>
                 <button class="refs-toggle" :class="{ 'is-leer': refCount === 0 }" @click="openRefs" :title="t('refsButton')" :aria-label="t('refsButton')">
                     🔗
                     <span v-if="refCount" class="menu-badge">{{ refCount }}</span>
@@ -1716,6 +1787,8 @@
                     "riverButton": "Fluss",
                     "riverCount": "{zahl} hintereinander",
                     "riverBack": "Zurück zur Seite",
+                    "riverOpen": "Fluss öffnen: alle Seiten hintereinander",
+                    "riverClose": "Fluss schließen",
                     "riverPrint": "Drucken",
                     "riverNoText": "(Seite ohne Text)",
                     "riverEmpty": "Keine Seite passt zur Suche.",
@@ -1798,6 +1871,8 @@
                     "riverButton": "River",
                     "riverCount": "{zahl} one after another",
                     "riverBack": "Back to the page",
+                    "riverOpen": "Open river: all pages one after another",
+                    "riverClose": "Close river",
                     "riverPrint": "Print",
                     "riverNoText": "(page without text)",
                     "riverEmpty": "No page matches the search.",
@@ -2238,6 +2313,13 @@ showToc: false,
 
                 flussSchliessen() {
                     this.fluss = false;
+                },
+
+                /* Knopf im Kopf: einmal druecken zeigt den Fluss, nochmal
+                   druecken holt die Seite zurueck. */
+                flussUmschalten() {
+                    if (this.fluss) this.flussSchliessen();
+                    else this.flussOeffnen();
                 },
 
                 /* Drucken: der Fluss ist die Lesesicht, die sich auf

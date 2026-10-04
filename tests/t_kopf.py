@@ -1,0 +1,120 @@
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mkcopy
+from mkcopy import build
+from _hilfe import pruefe
+
+seiten = [
+    {"id": "1", "title": "Alpha", "content": "# Alpha\n\nText", "links": ["Beta"], "tags": [], "created": "x", "updated": "x"},
+    {"id": "2", "title": "Beta", "content": "# Beta", "links": ["Alpha"], "tags": [], "created": "x", "updated": "x"},
+]
+
+# ---------------------------------------------------------------- Teil 1
+# Der Knopf im Kopf: vorhanden, beschriftet, schaltet den Fluss um
+script1 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function head(m) { log.push('--- ' + m); out(); }
+      function knopf() { return q('.kopf-fluss'); }
+      function ende() {
+        log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+        out();
+      }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+
+      setTimeout(function () {
+        head('Knopf im Kopf');
+        ok(!!knopf(), 'Knopf vorhanden');
+        ok(knopf() && /🌊/.test(knopf().textContent), 'mit Fluss-Symbol: ' + (knopf() ? knopf().textContent.trim() : '-'));
+        ok(knopf() && /Fluss|River/.test(knopf().textContent), 'mit Text');
+        ok(knopf() && knopf().closest('.header') !== null, 'er sitzt im Kopf');
+        ok(knopf() && knopf().getAttribute('aria-pressed') === 'false', 'nicht gedrueckt: ' + (knopf() ? knopf().getAttribute('aria-pressed') : '-'));
+        ok(knopf() && /öffnen|open/i.test(knopf().getAttribute('title')), 'Hinweis: ' + (knopf() ? knopf().getAttribute('title') : '-'));
+
+        head('Reihenfolge der Knoepfe im Kopf');
+        var reihenfolge = all('.header .btn, .header button').map(function (b) {
+          if (b.className.indexOf('menu-toggle') >= 0) return 'toc';
+          if (b.className.indexOf('kopf-fluss') >= 0) return 'fluss';
+          if (b.className.indexOf('refs-toggle') >= 0) return 'refs';
+          if (b.className.indexOf('settings-toggle') >= 0) return 'settings';
+          if (b.className.indexOf('theme-toggle') >= 0) return 'thema';
+          return '?';
+        }).join(' ');
+        ok(reihenfolge === 'toc fluss refs settings thema', 'Reihenfolge: ' + reihenfolge);
+
+        head('Einmal druecken: Fluss');
+        knopf().click();
+        setTimeout(function () {
+          ok(!!q('.fluss'), 'Fluss erscheint');
+          ok(q('.content-title') === null, 'Seitenansicht ist weg');
+          ok(knopf().getAttribute('aria-pressed') === 'true', 'Knopf ist gedrueckt');
+          ok(/schlie|close/i.test(knopf().getAttribute('title')), 'Hinweis wechselt: ' + knopf().getAttribute('title'));
+          ok(all('.fluss-eintrag').length === 2, 'beide Seiten im Fluss: ' + all('.fluss-eintrag').length);
+
+          head('Nochmal druecken: zurueck zur Seite');
+          knopf().click();
+          setTimeout(function () {
+            ok(!q('.fluss'), 'Fluss ist zu');
+            ok(!!q('.content-title'), 'Seitenansicht ist da: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+            ok(knopf().getAttribute('aria-pressed') === 'false', 'Knopf wieder aus');
+            ok(!!q('.footer .btn'), 'Fussleiste bedienbar');
+            ende();
+          }, 700);
+        }, 700);
+      }, 1500);
+    })();
+    </script>
+"""
+kopie1 = build('_kopf1.html', script1, seiten, startpage='1')
+
+# ---------------------------------------------------------------- Teil 2
+# Scharfes Fenster: der Text verschwindet, der Knopf bleibt bedienbar
+script2 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+      setTimeout(function () {
+        ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth);
+        var k = q('.kopf-fluss');
+        ok(!!k, 'Knopf da');
+        ok(k && getComputedStyle(k.querySelector('.kopf-text')).display === 'none', 'Text ist ausgeblendet');
+        ok(k && k.getBoundingClientRect().width > 20, 'Knopf ist noch da: ' + Math.round(k.getBoundingClientRect().width) + 'px breit');
+        var kopf = q('.header').getBoundingClientRect();
+        var letzte = all('.header button').pop().getBoundingClientRect();
+        ok(letzte.right <= kopf.right + 1, 'alle Knoepfe passen in den Kopf: ' + Math.round(letzte.right) + ' von ' + Math.round(kopf.right));
+        k.click();
+        setTimeout(function () {
+          ok(!!q('.fluss'), 'Fluss laesst sich auch schmal oeffnen');
+          log.push(''); log.push('>>> ' + (log.filter(function (l) { return /^FAIL/.test(l); }).length + ' FEHLGESCHLAGEN' || 'ALLE BESTANDEN'));
+          out();
+        }, 700);
+      }, 1500);
+    })();
+    </script>
+"""
+kopie2 = build('_kopf2.html', script2, seiten, startpage='1')
+
+# Teil 2 braucht ein schmales Fenster - pruefe() startet immer mit dem
+# Standardfenster, darum laeuft diese Kopie hier gesondert.
+from _hilfe import dumpdom, bericht
+import re as _re
+text = bericht(dumpdom('_kopf2.html', fenster='380,700', budget=60000))
+print('_kopf2.html (Fenster 380x700)')
+print(text if text else 'KEIN REPORT')
+schlecht = len(_re.findall(r'(?m)^FAIL ', text))
+if not text:
+    schlecht += 1
+
+pruefe(kopie1)
+_ende = sys.exit
+sys.exit(1 if schlecht else 0)

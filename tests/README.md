@@ -39,6 +39,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_dupen.py` | dasselbe in englischer Oberfläche |
 | `t_wikisyn.py` | `[[Seite]]` und `[[Text\|Seite]]`, Code bleibt Code |
 | `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
+| `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge, schmale Fenster |
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |

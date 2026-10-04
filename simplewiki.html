@@ -57,10 +57,21 @@
         ============================ Betrieb mit MWS ============================
 
         Das Element steht schon in dieser Datei, direkt nach </head>, und
-        ist leer. MWS sucht woertlich nach genau dieser Zeichenkette und
-        schreibt die Tiddler des Wikis an ihre Stelle:
+        ist leer: ein script mit der Klasse tiddlywiki-tiddler-store, dem
+        Typ application/json und einem leeren Array als Inhalt.
 
-          <script class="tiddlywiki-tiddler-store" type="application/json">[]</script>
+        MWS sucht nicht nach der Klasse und nicht nach dem Typ, sondern
+        woertlich nach genau diesem Element und schreibt die Tiddler des
+        Wikis an seine Stelle.
+
+        Diese Beschreibung nennt die Zeichenkette absichtlich nicht. Ein
+        Kommentar, der sie zitiert, ist fuer MWS kein Kommentar, sondern
+        der erste Fundort im Dokument: indexOf trifft die Abschrift hier
+        oben, die Tiddler landen im Kommentar, und das echte Element
+        bleibt leer - die Wiki sieht dann aus wie eine ohne Inhalt, und
+        jede Eingabe landet im Browser und ist beim naechsten Aufruf
+        weg. Die Regel ist deshalb ohne Ausnahme: die Roh-Datei enthaelt
+        diese Zeichenkette genau einmal.
 
         Eine Zeile, kein Umbruch, genau ein Leerzeichen zwischen den
         Attributen, class zuerst und type danach. Bricht ein Server die

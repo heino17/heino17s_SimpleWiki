@@ -211,15 +211,32 @@ kopien = [
           marker_keiner=True),
 ]
 
-# Beim letzten muss der Marker wieder weg - dort wird geprueft, dass eine
-# Datei ohne Marker im Browser bleibt.
-import io                                        # noqa: E402
-h = io.open(kopien[3], encoding='utf-8').read()
-head_at = mkcopy._echte_tags(h)[0]
-i = h.rfind('<script class="tiddlywiki-tiddler-store"', 0, head_at)
-j = h.find('</' + 'script>', i)
-h = h[:i] + h[j + len('</' + 'script>') + 1:]
-io.open(kopien[3], 'w', encoding='utf-8').write(h)
+# Beim letzten ist der Marker schon weg, und zwar durch die Fixture
+# oben: marker_keuner=True. Ein zweites, handgeschnittenes Entfernen
+# gab es hier früher - es hat aber nichts entfernt, sondern die Datei
+# verdoppelt.
+#
+# Gesucht wurde nach '<script class="tiddlywiki-tiddler-store"' vor dem
+# ersten echten Tag. Diese Zeichenkette stand im Dokumentationskommentar
+# - dieselbe Abschrift, die jetzt aus dem Kommentar rausmusste. Also
+# fand die Suche immer die Abschrift, schnitt sie heraus und liess die
+# echte Datei unangetastet: zwei Kills, der zweite davon ein No-op.
+#
+# Kaum war die Abschrift weg, fand die Suche nichts, i war -1, und aus
+# h[:i] + h[j+9:] wurde h[:-1] + h[8:] - die komplette Datei nochmal
+# hinterher. Der Browser zeigt das erste Dokument und ignoriert den Rest,
+# also sind fast alle Pruefungen weiterhin gruen gewesen, und nur eine
+# ist gescheitert.
+#
+# Genau deshalb wird jetzt geprueft, dass jede Kopie genau ein Dokument
+# enthaelt. Das ist derselbe Fehler wie beim Marker: eine Pruefung, die
+# das Wegzaehlen ueberlaesst, sieht genau das nicht.
+for pfad in kopien:
+    ist, passt = mkcopy.groesse_waechter(os.path.basename(pfad))
+    if not passt:
+        print('FEHLER: %s ist %d Bytes gross - das Dokument steht '
+              'wahrscheinlich doppelt darin' % (os.path.basename(pfad), ist))
+        sys.exit(1)
 
 fehler = 0
 for pfad in kopien:

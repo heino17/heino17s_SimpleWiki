@@ -93,6 +93,28 @@ def _echte_tags(h):
     return head, body_tag_ende, body
 
 
+def groesse_waechter(name):
+    """Passt die Kopie zu simplewiki.html?
+
+    Eine Kopie ist die Quelle plus ein Testskript, ein paar Marken und
+    ein localStorage-Eintrag - nicht das Doppelte. Diese Grenze faengt
+    Kopien, in denen das ganze Dokument zweimal hintereinander steht:
+    so etwas sieht ein Browser nicht, er zeigt das erste Dokument und
+    ignoriert den Rest, also sind fast alle Pruefungen weiter gruen.
+
+    Bewusst ueber die Bytegrösse und nicht ueber Tags. Ein Zaehler fuer
+    '<!DOCTYPE html>' zaehlt die Abschriften in den eingebetteten
+    Bibliotheken mit, und ein Zaehler fuer echte Tags braucht einen
+    Scanner, der Kommentare und Skript-Inhalte sauber trennt - der
+    vorhandene verliert bei einem '<!--' mitten im JavaScript den
+    Takt.
+    """
+    pfad = os.path.join(KOPIEN, name)
+    ist = os.path.getsize(pfad)
+    soll = os.path.getsize(SRC)
+    return ist, ist < soll * 1.5
+
+
 def build_roh(name, html):
     """Fertigen HTML-Text in die Kopien legen und den Pfad zurueckgeben."""
     if not os.path.isdir(KOPIEN):

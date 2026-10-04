@@ -71,12 +71,22 @@ melde('Bilder stecken als data: drin', daten_bilder > 0, True)
 # einem Fehler. Im Browser faellt das nicht auf - man sieht einen
 # fehlenden Marker nur, wenn ein fremder Server die Datei zu fassen
 # versucht. Deshalb steht es hier.
+#
+# Gezählt wird auf den Roh-Bytes, ohne die Kommentare vorher zu
+# entfernen. MWS kennt kein HTML und keinen Parser, sondern macht ein
+# schlichtes indexOf auf der ganzen Datei. Ein Kommentar, der die
+# Zeichenkette zitiert, ist deshalb kein Kommentar, sondern der erste
+# Fundort im Dokument: der Server schreibt die Tiddler in den
+# Kommentar, das echte Element bleibt leer, die Wiki sieht fuer
+# SimpleWiki aus wie eine ohne Inhalt - und jede Eingabe landet im
+# Browser und ist beim naechsten Aufruf weg. Genau dieser Fehler ist
+# durch einen Zaehler entstanden, der die Kommentare vorher wegwarf,
+# denn damit wurde genau das weggezaehlt, woran MWS scheitert.
 LITERAL = '<script class="tiddlywiki-tiddler-store" type="application/json">['
-melde('die Literalzeichenkette kommt genau einmal vor',
-      re.sub(r'<!--[\s\S]*?-->', '', quelle).count(LITERAL), 1)
-zeilen = [i + 1 for i, z in enumerate(quelle.split('\n')) if LITERAL in z]
-print('     (gefunden in Zeile %s; das Kommentar-Beispiel zaehlt nicht mit)'
-      % ', '.join(str(z) for z in zeilen))
+roh = quelle
+melde('die Literalzeichenkette kommt genau einmal vor', roh.count(LITERAL), 1)
+zeilen = [i + 1 for i, z in enumerate(roh.split('\n')) if LITERAL in z]
+print('     (gefunden in Zeile %s)' % ', '.join(str(z) for z in zeilen))
 
 # Nur zur Kenntnis, nicht als Pruefung: Adressen als Text im Code.
 print('     (zur Kenntnis: %d Adressen als Zeichenkette im eingebetteten Code,'

@@ -34,18 +34,21 @@ def url(name):
     return 'file://' + ziel(name)
 
 
-def dumpdom(name, fenster=None, budget=120000):
+def dumpdom(name, fenster=None, budget=120000, zusatz=None):
     """Seite in Chromium oeffnen und das fertige HTML zurueckgeben."""
-    return dumpdom_url(url(name), fenster, budget)
+    return dumpdom_url(url(name), fenster, budget, zusatz)
 
 
-def dumpdom_url(url, fenster=None, budget=120000):
+def dumpdom_url(url, fenster=None, budget=120000, zusatz=None):
     """Wie dumpdom, aber mit einer fertigen Adresse.
 
     Fuer den MWS-Test: der laeuft ueber einen eigenen kleinen Server,
-    nicht ueber eine Datei.
+    nicht ueber eine Datei. 'zusatz' sind zusaetzliche Schalter fuer
+    Chromium - die Abnahme braucht einen Lauf, in dem kein Name
+    aufgeloest werden kann.
     """
     befehl = [CHROMIUM, '--headless', '--disable-gpu', '--no-sandbox']
+    befehl += list(zusatz or [])
     if fenster:
         befehl.append('--window-size=' + fenster)
     befehl += ['--virtual-time-budget=%d' % budget, '--dump-dom', url]

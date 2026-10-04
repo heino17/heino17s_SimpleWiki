@@ -31,6 +31,7 @@ REIHENFOLGE = [
     't_mwsmode.py',    # Betrieb auf einem MWS-Server: Marker, Speicher, 403
     't_speicher.py',   # Eine Abstraktion, zwei Auspraegungen
     't_mwsdatei.py',   # MWS-Modus an einer Datei: Auswahl am Marker, Verweise
+    't_abnahme.py',    # Abnahme: ohne Netz, mit Marker, nach dem Neuladen
     't_leerwiki.py',   # Leere Wiki-Datei, Vorlage fuellen und oeffnen
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_fluss.py',      # Fluss und Druckansicht
@@ -52,6 +53,7 @@ BESCHRIEBUNG = {
     't_mwsmode.py': 'Serverbetrieb: Marker, Speicher, Schreiben, 403, leerer Marker',
     't_speicher.py': 'Speicherabstraktion: gleicher Vertrag, Browser und Server',
     't_mwsdatei.py': 'MWS an einer Datei: Auswahl am Marker, Verweise, kein Schreiben',
+    't_abnahme.py': 'Abnahme: kein Nachladen, Doppelklick ohne Netz, Aenderung bleibt',
     't_leerwiki.py': 'Leere Wiki-Datei als Vorlage, Angaben oben, der Weg zurueck',
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_fluss.py': 'Fluss und Druckansicht',

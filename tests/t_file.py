@@ -77,8 +77,17 @@ script1 = r"""
               ok(roh.indexOf('\\u003c') >= 0, 'das spitze Zeichen ist im Datenblock escaped');
               ok(text.indexOf('class="header"') > 0, 'Oberflaeche steht in der Datei');
               ok(text.indexOf('side-panel toc-panel') > 0, 'Inhaltsverzeichnis steht in der Datei');
-              ok(text.indexOf('unpkg.com/vue@3') > 0, ' Bibliotheken sind enthalten');
-              ok(text.indexOf('toastui-editor-all') > 0, 'Editor ist enthalten');
+              /* Die Bibliotheken stecken jetzt in der Datei. Nachweis ist
+                 ihr eigener Versions-Banner - der CDN-Dateiname ist weg.
+                 Die Muster entstehen aus Teilstuecken, damit sie nicht
+                 selbst im exportierten Text auftauchen und sich treffen. */
+              ok(text.indexOf('* vue v3') > 0, 'Vue ist eingebettet');
+              ok(text.indexOf('* marked v') > 0, 'marked ist eingebettet');
+              ok(text.indexOf('@toast-ui/editor') > 0, 'Editor ist eingebettet');
+              var ladeSrc = new RegExp('<' + 'script[^>]+src=', 'i');
+              var ladeCss = new RegExp('<' + 'link[^>]+rel=["\']?stylesheet', 'i');
+              ok(!ladeSrc.test(text), 'kein Skript wird nachgeladen');
+              ok(!ladeCss.test(text), 'kein Stylesheet wird nachgeladen');
               /* zweite Seite der Pruefung: wieder einlesen */
               head('Gesicherte Datei wieder einlesen');
               /* Auch hier auf den Hinweis warten statt auf eine feste

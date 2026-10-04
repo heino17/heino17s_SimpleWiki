@@ -242,7 +242,8 @@ pruefskript = r"""
     <script>try { localStorage.clear(); } catch (e) {}</script>
 """
 with open(ziel('_weg_fertig.html'), 'w', encoding='utf-8') as fh:
-    fh.write(fertig.replace('<body>', '<body>\n' + pruefskript, 1))
+    # An das echte <body>, nicht an das erste im Text (siehe mkcopy).
+    fh.write(mkcopy.hauptskripte(fertig, pre=pruefskript))
 
 print('\n--- Gefuellte Vorlage geoeffnet (der Weg, den ein Kind geht) ---')
 dom2 = dumpdom('_weg_fertig.html', budget=60000)

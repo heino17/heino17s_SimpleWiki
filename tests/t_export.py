@@ -149,8 +149,9 @@ pruefskript = r"""
 """
 with io.open(ziel('_exportiert.html'), encoding='utf-8') as fh:
     h = fh.read()
-h = h.replace('<body>', '<body>\n' + teil2, 1)
-h = h.replace('</body>', pruefskript + '</body>', 1)
+# An die echten Tags haengen, nicht an das erste '<body>' im Text -
+# das steckt inzwischen mehrfach im eingebetteten Editor-Code.
+h = mkcopy.hauptskripte(h, pre=teil2, script=pruefskript)
 with io.open(ziel('_exportiert.html'), 'w', encoding='utf-8') as fh:
     fh.write(h)
 

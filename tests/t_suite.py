@@ -146,14 +146,24 @@ script = r"""
                                         head('Dunkelmodus');
                                         q('.theme-toggle').click();
                                         setTimeout(function () {
-                                          ok(!document.getElementById('mdEditorDarkTheme').disabled, 'dunkles Editor-Stylesheet aktiv');
+                                          /* Das dunkle Stylesheet steckt inline in der Datei und wird ueber
+                                             media geschaltet - 'disabled' gibt es bei
+                                             einem <style>-Element nicht. */
+                                             var ds = document.getElementById('mdEditorDarkTheme');
+                                             ok(!!ds && ds.tagName === 'STYLE' && ds.media === 'all',
+                                                'dunkles Editor-Stylesheet aktiv: media=' + (ds ? ds.media : 'fehlt'));
                                           ok(!!q('.toc-item-start'), 'Stern weiterhin sichtbar');
                                           q('.theme-toggle').click();
 
                                           head('Seite löschen');
                                           q('.menu-toggle').click();
-                                          setTimeout(function () {
-                                            all('.toc-item')[0].querySelector('.toc-item-delete').click();
+setTimeout(function () {
+                                                 /* und wieder zurueck - sonst prueft der
+                                                    Test nur die eine Richtung */
+                                                 var ds2 = document.getElementById('mdEditorDarkTheme');
+                                                 ok(!!ds2 && ds2.media === 'not all',
+                                                    'heller Modus: media=' + (ds2 ? ds2.media : 'fehlt'));
+                                                 all('.toc-item')[0].querySelector('.toc-item-delete').click();
                                             setTimeout(function () {
                                               ok(!!q('.modal-overlay'), 'Löschen-Dialog');
                                               all('.modal .btn').filter(function (b) { return /Delete|Delete|öschen/.test(b.textContent); })[0].click();

@@ -37,6 +37,69 @@ _SEED_VORHAGE = ('<script>try{localStorage.setItem("simplewiki_pages",%s);'
 
 _DATENBLOCK = r'<script id="simplewiki-daten"[^>]*>[\s\S]*?</script>'
 
+# Alles, was beim Suchen nach echten Tags beachtet werden muss:
+# script- und style-Bloecke stehen im Rohtext, ihr Inhalt ist kein HTML.
+_SCAN = re.compile(r'<script\b[^>]*>|</script\s*>|<style\b[^>]*>|</style\s*>'
+                   r'|</head>|<body[^>]*>', re.I)
+
+
+def _echte_tags(h):
+    """Positionen der echten </head>, <body ...> und </body>.
+
+    Die eingebetteten Bibliotheken enthalten die Zeichenkette
+    '<head></head><body>' mehrfach - Toast UI baut damit Druckseiten.
+    Ein blosses replace() landet dort also mitten im JavaScript und
+    zerschiesst die Testkopie. Deshalb wird der Dokumenttext ueber
+    script- und style-Bloecke hinweg gescannt und nur Tags ausserhalb
+    deren Inhalt verwendet.
+
+    Liefert (ende_von_head, ende_vom_body_tag, beginn_vom_/body).
+    """
+    roh = False
+    head = body_tag_ende = body = None
+    for m in _SCAN.finditer(h):
+        t = m.group(0).lower()
+        if t.startswith('<script') or t.startswith('<style'):
+            roh = True
+            continue
+        if t.startswith('</script') or t.startswith('</style'):
+            roh = False
+            continue
+        if roh:
+            continue
+        if t.startswith('</head>'):
+            head = m.start()
+        elif t.startswith('<body'):
+            body_tag_ende = m.end()
+            if body is None:
+                body = h.rfind('</body>')
+    if head is None or body_tag_ende is None or body < 0:
+        raise AssertionError('Head-/Body-Grenze in simplewiki.html nicht gefunden')
+    return head, body_tag_ende, body
+
+
+def hauptskripte(h, seed='', pre='', script=''):
+    """Seed und Testskripte an die echten Head-/Body-Tags haengen.
+
+    'seed' landet vor </head>, 'pre' direkt hinter <body ...> und
+    'script' vor </body>. Die Positionen kommen von hinten nach vorn
+    dran, damit die uebrigen gueltig bleiben.
+
+    Wichtig: nicht einfach replace('<body>', ...) - die eingebetteten
+    Bibliotheken enthalten die Zeichenkette '<head></head><body>' selbst.
+    """
+    head_at, body_tag_ende, body_at = _echte_tags(h)
+    teile = []
+    if script:
+        teile.append((body_at, script))
+    if seed:
+        teile.append((head_at, seed))
+    if pre:
+        teile.append((body_tag_ende, pre))
+    for pos, text in sorted(teile, key=lambda t: -t[0]):
+        h = h[:pos] + text + h[pos:]
+    return h
+
 
 def _maskieren(text):
     """'<' als '\\u003c' - sonst koennte ein </script> im Testtext
@@ -69,16 +132,13 @@ def build(out_name, script, pages, theme='light', lang='de', startpage='1',
     for a, b in EXTRA_REPLACEMENTS:
         h = h.replace(a, b)
 
-    if PRE_SCRIPT:
-        h = h.replace('<body>', '<body>\n' + PRE_SCRIPT, 1)
-
     # Testhaken: Editor-Instanz erreichbar machen
     h = h.replace("                        usageStatistics: false\n                    });",
                   "                        usageStatistics: false\n                    });\n"
                   "                    window.__ed = this.mdEditor;   /* Testhaken */")
 
-    h = h.replace('</head>', seed_block + '</head>')
-    h = h.replace('</body>', script + '</body>')
+    # Einfuegungen an den echten Tags
+    h = hauptskripte(h, seed=seed_block, pre=PRE_SCRIPT, script=script)
 
     pfad = os.path.join(KOPIEN, out_name)
     with io.open(pfad, 'w', encoding='utf-8') as fh:

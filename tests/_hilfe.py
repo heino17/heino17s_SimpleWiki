@@ -62,6 +62,16 @@ def zahlen(text):
     return bestanden, fehlgeschlagen
 
 
+def vollstaendig(text):
+    """Traegt der Bericht einen Abschluss?
+
+    Jedes Testskript schreibt zum Schluss eine Zeile mit '>>>'. Fehlt sie,
+    ist der Lauf mittendrin abgebrochen - dann waere '0 fehlgeschlagen'
+    ein falsches Gruen, weil die restlichen Pruefungen nie stattfanden.
+    """
+    return any(l.startswith('>>>') for l in text.split('\n'))
+
+
 def pruefe(*dateien):
     """Kopien in Chromium oeffnen, Berichte ausgeben, Programmcode setzen.
 
@@ -88,11 +98,13 @@ def pruefe(*dateien):
         # unter Last mehrerer Browser laeuft die nicht mit der Uhr des
         # Testskripts. Erst ein zweimaliger Fehlschlag zaehlt als Fehler -
         # sonst ist ein roter Lauf eine Aussage ueber die Maschine und
-        # nicht ueber das Programm.
-        if not text or zahlen(text)[1] > 0:
+        # nicht ueber das Programm. Ein abgebrochener Lauf (Bericht ohne
+        # Abschlusszeile) zaehlt genauso als zweiter Versuch.
+        if not text or not vollstaendig(text) or zahlen(text)[1] > 0:
             dom = lauf_budget(doppelt=True)
             text2 = bericht(dom)
-            if text2 and (not text or zahlen(text2)[1] == 0):
+            if (text2 and vollstaendig(text2)
+                    and (not text or not vollstaendig(text) or zahlen(text2)[1] == 0)):
                 text = text2
                 notiz = ' (Wiederholung, beim ersten Lauf unter Last gescheitert)'
 
@@ -103,6 +115,12 @@ def pruefe(*dateien):
                 zeilen.append('%-22s KEIN REPORT - die App kam nicht' % name)
             else:
                 zeilen.append('%-22s KEIN REPORT - Testskript zu frueh' % name)
+            gesamt_fehler += 1
+            continue
+        if not vollstaendig(text):
+            ok, fehler = zahlen(text)
+            zeilen.append('%-22s UNVOLLSTAENDIG - %d Pruefungen, Lauf vorzeitig beendet'
+                          % (name, ok + fehler))
             gesamt_fehler += 1
             continue
         ok, fehler = zahlen(text)

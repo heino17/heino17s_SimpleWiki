@@ -51,15 +51,25 @@ s1 = r"""
 s2 = r"""
     <script>
     (function(){
-      var log=[];
+      var log=[], fails=0;
       function q(s){return document.querySelector(s);}
       function all(s){return [].slice.call(document.querySelectorAll(s));}
+      function out(){var p=document.getElementById('report'); if(!p){p=document.createElement('pre');p.id='report';document.body.appendChild(p);} p.textContent=log.join('\n');}
+      function ok(c,m){if(!c)fails++;log.push((c?'OK   ':'FAIL ')+m);out();}
+      window.addEventListener('error',function(e){ok(false,'JS-Fehler: '+e.message);});
       setTimeout(function(){
-        log.push('Leer-Zustand sichtbar: '+!!q('.empty-state'));
-        log.push('Text: '+(q('.empty-state h2')?q('.empty-state h2').textContent.trim():'-'));
-        log.push('Fussleiste-Knoepfe: '+all('.footer .btn').length);
-        log.push('Inhaltsverzeichnis: '+all('.toc-item-title').map(function(e){return e.textContent.trim();}).join('|'));
-        var p=document.createElement('pre'); p.id='report'; p.textContent=log.join('\n'); document.body.appendChild(p);
+        /* Wiki ganz ohne Seiten: Begruessung statt Seitenanzeige und ein
+           leeres Verzeichnis mit Hinweis.
+           Bewusst nicht geprueft: wie man die erste Seite anlegt - da
+           gibt es im Leer-Zustand noch keinen Knopf (siehe Bericht). */
+        ok(!!q('.empty-state'),'Leer-Zustand sichtbar');
+        ok(!!q('.empty-state h2') && /Willkommen/.test(q('.empty-state h2').textContent),
+           'Begruessung: '+(q('.empty-state h2')?q('.empty-state h2').textContent.trim():'-'));
+        ok(all('.toc-item-title').length===0,'Verzeichnis leer');
+        ok(!!q('.toc-empty'),'Hinweis im Verzeichnis: '+(q('.toc-empty')?q('.toc-empty').textContent.trim():'-'));
+        ok(!q('.content-title'),'keine Seitenanzeige');
+        log.push('');log.push('>>> '+(fails?fails+' FEHLGESCHLAGEN':'ALLE '+log.filter(function(l){return /^OK|^FAIL/.test(l);}).length+' BESTANDEN'));
+        out();
       },3000);
     })();
     </script>

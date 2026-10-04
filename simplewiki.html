@@ -690,7 +690,10 @@
                weil .main-content alles abschneidet. */
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 40px;
+            /* Seitlich derselbe Abstand wie in der Seitenansicht. Ohne
+               ihn stossen die Seiten bei Fenstern unter 860px direkt an
+               den Rand, weil die Spalte dann genau Fensterbreite hat. */
+            padding: 0 20px 40px;
         }
 
         /* Die Spalte bleibt mittig, der Scrollbalken am Fenster. */
@@ -706,6 +709,9 @@
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
+            /* Auf schmalen Fenstern kommen die Knoepfe unter die
+               Ueberschrift, statt den Titel zu zerreissen. */
+            flex-wrap: wrap;
             gap: 12px;
             /* Seitlich kein Polster: die Spalte ist schon begrenzt und
                mittig, ein zweites Pollster machen den Text schmaler als
@@ -1283,6 +1289,10 @@
 
             .content-body {
                 padding: 15px;
+            }
+
+            .fluss {
+                padding: 0 15px 30px;
             }
 
         .footer {

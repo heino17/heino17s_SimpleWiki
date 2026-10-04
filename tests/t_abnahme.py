@@ -219,11 +219,11 @@ kopie3 = bauen('_abnahme_ohne_net.html', [], skript=skript3, vorab=VORAB_ALT,
 
 # --- 4: injizierter Store
 TIDDLER = [
-    {'title': 'i1', 'caption': 'Injizierte Seite',
+    {'title': 'Injizierte Seite', 'sw-id': 'i1',
      'text': '# Injizierte Seite\n\nDer Inhalt kam vom Server.',
      'tags': '[[abnahme]]', 'created': '20260203000000000',
      'modified': '20260203000000000', 'reihenfolge': '0000'},
-    {'title': '$:/DefaultTiddlers', 'text': 'i1'},
+    {'title': '$:/DefaultTiddlers', 'text': 'Injizierte Seite'},
 ]
 
 skript4 = abnahme_durchgang("""

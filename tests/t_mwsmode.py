@@ -12,18 +12,27 @@ from _hilfe import dumpdom_url, bericht
 def zw(jahr, monat, tag, stunde, minute, sekunde, ms):
     return '%d%02d%02d%02d%02d%02d%03d' % (jahr, monat, tag, stunde, minute, sekunde, ms)
 
+# Die Konvention aus §102: der Tiddler heisst wie die Seite, die
+# Kennung wandert als sw-id mit. Genau so schreibt MWS es.
 ALPHA = {
-    'title': 'a1', 'caption': 'Alpha', 'text': '# Alpha\n\nText mit [[Beta]].',
+    'title': 'Alpha', 'sw-id': 'a1', 'text': '# Alpha\n\nText mit [[Beta]].',
     'tags': '[[wichtig]] [[test]]', 'created': zw(2026, 2, 3, 10, 0, 0, 0),
     'modified': zw(2026, 2, 3, 11, 30, 45, 678), 'reihenfolge': '0001',
     'thema': 'dark', 'sprache': 'en',
 }
 BETA = {
-    'title': 'b2', 'caption': 'Beta', 'text': '# Beta\n\nNur Inhalt.',
+    'title': 'Beta', 'sw-id': 'b2', 'text': '# Beta\n\nNur Inhalt.',
     'tags': '', 'created': zw(2026, 2, 3, 10, 5, 0, 0),
     'modified': zw(2026, 2, 3, 12, 0, 0, 0), 'reihenfolge': '0000',
 }
-STANDARD = {'title': '$:/DefaultTiddlers', 'text': 'a1'}
+# Ein Tiddler ganz ohne sw-id - so etwas hat ein Mensch oder MWS
+# angelegt. Er muss sich laden lassen.
+OHNE_KENNUNG = {
+    'title': 'Ohne Kennung', 'text': '# Ohne Kennung\n\nKein sw-id am Tiddler.',
+    'tags': '', 'created': zw(2026, 2, 3, 10, 6, 0, 0),
+    'modified': zw(2026, 2, 3, 12, 1, 0, 0), 'reihenfolge': '0002',
+}
+STANDARD = {'title': '$:/DefaultTiddlers', 'text': 'Alpha'}
 NURLEBEN = {'title': '$:/nurlesen', 'text': '1'}
 
 # Was im Browser liegt, bevor die App startet. Der Marker dieses Wikis
@@ -43,24 +52,23 @@ VORAB = ('<script>try{localStorage.setItem("simplewiki_pages",' + BROWSER_SEITEN
 # ohne Namen, doppelte Schlagworte, eine Zeit ohne Millisekunden und
 # Systemtiddler, die keine Seiten sind.
 KRAUS = [
-    {'title': 'k1', 'caption': 'Ärzte & Söhne 🎉',
-     'text': '# Ä\n\n[[k2]] und [Text](wiki:k3)',
+    {'title': 'Ärzte & Söhne 🎉', 'sw-id': 'k1',
+     'text': '# Ä\n\n[[Dritte]] und [Text](wiki:Dritte)',
      'tags': '[[mit leerzeichen]] [[emoji 🎉]]',
      'created': zw(2026, 7, 4, 12, 34, 56, 789), 'modified': zw(2026, 7, 4, 12, 34, 56, 789),
      'reihenfolge': '0000', 'thema': 'light', 'sprache': 'de'},
-    {'title': 'k2', 'text': 'ohne Namen, ohne Zeit'},          # kein caption
-    {'title': 'k3', 'caption': 'Dritte', 'tags': '[[doppelt]] [[doppelt]]'},
-    {'title': 'k4', 'caption': 'Ohne Millisekunden',
+    {'title': 'Dritte', 'sw-id': 'k3', 'tags': '[[doppelt]] [[doppelt]]'},
+    {'title': 'Ohne Millisekunden', 'sw-id': 'k4',
      'created': '20260203100000', 'modified': '20260203100000'},   # nur 14 Stellen
     {'title': '$:/bag-info', 'text': '{"bag":"default"}'},
     {'title': '$:/recipe-info', 'text': '{"recipe":"default"}'},
     {'title': '$:/EigeneSystemSache', 'text': 'nicht eine Seite'},
     {'title': '$:/SiteTitle', 'text': 'Krauses Wiki'},
-    {'title': '$:/DefaultTiddlers', 'text': 'k1'},
+    {'title': '$:/DefaultTiddlers', 'text': 'Ärzte & Söhne 🎉'},
 ]
 
 wikis = {
-    'alpha': Wiki('alpha', [BETA, ALPHA, STANDARD], titel='Alpha-Wiki'),
+    'alpha': Wiki('alpha', [BETA, ALPHA, OHNE_KENNUNG, STANDARD], titel='Alpha-Wiki'),
     'nurlesen': Wiki('nurlesen', [ALPHA, BETA, STANDARD, NURLEBEN], nurLesen=True,
                      titel='Fremdes Wiki'),
     'leer': Wiki('leer', []),          # Marker mit Inhalt, aber ohne Seiten
@@ -69,6 +77,18 @@ wikis = {
     'kaputt': Wiki('kaputt', [ALPHA, BETA, STANDARD],
                    fehler={'save': 500}),   # der Server faellt aus
     'kraus': Wiki('kraus', KRAUS, titel='Krauses Wiki'),
+    # Fuer das Umbenennen: zwei Seiten, von denen eine auf die andere
+    # verweist - in beiden Schreibweisen und mit Leerzeichen.
+    'umbenannt': Wiki('umbenannt', [
+        {'title': 'Alpha', 'sw-id': 'u1', 'text': '# Alpha\n\nIch verweise auf [[Beta]] '
+         'und auf [Text](wiki:Beta).', 'tags': '',
+         'created': zw(2026, 5, 1, 9, 0, 0, 0), 'modified': zw(2026, 5, 1, 9, 0, 0, 0),
+         'reihenfolge': '0000'},
+        {'title': 'Beta', 'sw-id': 'u2', 'text': '# Beta\n\nZurueck auf [[Alpha]].',
+         'tags': '', 'created': zw(2026, 5, 1, 9, 1, 0, 0),
+         'modified': zw(2026, 5, 1, 9, 1, 0, 0), 'reihenfolge': '0001'},
+        {'title': '$:/DefaultTiddlers', 'text': 'Alpha'},
+    ], titel='Umbenennungs-Wiki'),
 }
 
 
@@ -92,9 +112,12 @@ teil1 = r"""
 
       setTimeout(function () {
         log.push('--- Seiten kommen vom Server');
-        ok(titel().join('|') === 'Beta|Alpha', 'Reihenfolge aus reihenfolge: ' + titel().join('|'));
+        ok(titel().join('|') === 'Beta|Alpha|Ohne Kennung',
+           'Reihenfolge aus reihenfolge: ' + titel().join('|'));
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Alpha',
            'Startseite aus $:/DefaultTiddlers: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+        ok(titel().join('|') === 'Beta|Alpha|Ohne Kennung',
+           'auch der Tiddler ohne sw-id ist eine Seite: ' + titel().join('|'));
         ok(q('.preview h1') && q('.preview h1').textContent.trim() === 'Alpha', 'Inhalt der Startseite');
         ok(q('.preview').textContent.indexOf('Nur Inhalt') < 0, 'nur die Startseite ist offen');
 
@@ -192,7 +215,7 @@ teil2 = r"""
                     var speichern = knopf(/Speichern|Save/);
                     if (speichern) speichern.click();
                     setTimeout(function () {
-                      ok(titel().length === 3, 'drei Seiten: ' + titel().join('|'));
+                      ok(titel().length === 4, 'vier Seiten: ' + titel().join('|'));
                       ende();
                     }, 1200);
                   }, 2600);
@@ -466,10 +489,9 @@ teil9 = r"""
 
       setTimeout(function () {
         log.push('--- Was als Seite ankommt');
-        ok(titel().length === 4, 'genau vier Seiten, kein Systemtiddler: ' + titel().length + ' (' + titel().join('|') + ')');
+        ok(titel().length === 3, 'genau drei Seiten, kein Systemtiddler: ' + titel().length + ' (' + titel().join('|') + ')');
         ok(titel()[0] === 'Ärzte & Söhne 🎉', 'Name mit Umlauten, kaufmaenischem Und und Emoji: ' + titel()[0]);
-        ok(titel()[1] === 'Neue Seite', 'ein Tiddler ohne Namen bekommt den Namen einer neuen Seite: ' + titel()[1]);
-        ok(titel()[2] === 'Dritte' && titel()[3] === 'Ohne Millisekunden', 'die beiden anderen: ' + titel().slice(2).join('|'));
+        ok(titel()[1] === 'Dritte' && titel()[2] === 'Ohne Millisekunden', 'die beiden anderen: ' + titel().slice(1).join('|'));
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Ärzte & Söhne 🎉',
            'Startseite aus $:/DefaultTiddlers: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
 
@@ -477,20 +499,21 @@ teil9 = r"""
           if (!d) { ende(); return; }
           var seiten = {};
           d.seiten.forEach(function (x) { seiten[x.id] = x; });
-          ok(d.seiten.length === 4, 'die App fuehrt ' + d.seiten.length + ' Seiten: ' +
+          ok(d.seiten.length === 3, 'die App fuehrt ' + d.seiten.length + ' Seiten: ' +
              d.seiten.map(function (x) { return x.id; }).join('|'));
 
           log.push('--- Inhalt und Schlagworte');
           /* Achtung App-Feld gegen Tiddler-Feld: die Seite in der App
              heisst content, im Tiddler heisst es text. */
-          ok(seiten.k1.content.indexOf('(wiki:k3)') > 0,
-             'der wiki:-Link im Inhalt bleibt unangetastet: ' + JSON.stringify(seiten.k1.content));
+          ok(seiten.k1.content.indexOf('(wiki:Dritte)') > 0,
+             'der wiki:-Link im Inhalt zeigt auf den Seitennamen: ' + JSON.stringify(seiten.k1.content));
           ok(JSON.stringify(seiten.k1.tags) === '["mit leerzeichen","emoji 🎉"]',
              'Schlagworte aus [[..]]: ' + JSON.stringify(seiten.k1.tags));
           ok(JSON.stringify(seiten.k3.tags) === '["doppelt"]',
              'doppelte Schlagworte einmal: ' + JSON.stringify(seiten.k3.tags));
-          ok(seiten.k1.title === 'Ärzte & Söhne 🎉', 'caption wurde zum Namen: ' + seiten.k1.title);
-          ok(seiten.k2.title === 'Neue Seite', 'ohne caption: ' + seiten.k2.title);
+          ok(seiten.k1.title === 'Ärzte & Söhne 🎉', 'der Tiddler-Titel ist der Name: ' + seiten.k1.title);
+          ok(seiten.k1.id === 'k1', 'die Kennung kommt aus sw-id: ' + seiten.k1.id);
+          ok(!('caption' in seiten.k1), 'kein caption-Feld mehr');
 
           log.push('--- Zeitstempel');
           ok(seiten.k1.created === '2026-07-04T12:34:56.789Z',
@@ -529,6 +552,54 @@ teil9 = r"""
 """
 
 
+# ---------------------------------------------------------------- Teil 10
+# Umbenennen: der Tiddler wandert, der alte wird geloescht, und die
+# Verweise der anderen Seiten werden mitgezogen und gespeichert
+teil10 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function knopf(re) { return all('.footer .btn').filter(function (b) { return re.test(b.textContent); })[0]; }
+      function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+      window.addEventListener('unhandledrejection', function (e) {
+        ok(false, 'Fehler in einer Zusage: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+      });
+
+      setTimeout(function () {
+        ok(q('.content-title') && q('.content-title').textContent.trim() === 'Alpha',
+           'geoeffnet ist Alpha');
+        log.push('--- Alpha umbenennen');
+        knopf(/Bearbeiten|Edit/).click();
+        setTimeout(function () {
+          q('.title-editor').value = 'Alpha zwei';
+          q('.title-editor').dispatchEvent(new Event('input', { bubbles: true }));
+          setTimeout(function () {
+            knopf(/Speichern|Save/).click();
+            setTimeout(function () {
+              ok(q('.content-title') && q('.content-title').textContent.trim() === 'Alpha zwei',
+                 'im Bild heisst sie jetzt: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+              log.push('--- Der Text der anderen Seite');
+              all('.toc-item-title').filter(function (t) { return t.textContent.trim() === 'Beta'; })[0].click();
+              setTimeout(function () {
+                var text = q('.preview').textContent;
+                ok(text.indexOf('Alpha zwei') >= 0, 'der Verweis zeigt auf den neuen Namen: ' + JSON.stringify(text.slice(0, 120)));
+                ok(text.indexOf('[[Alpha]]') < 0, 'der alte Name ist weg');
+                ende();
+              }, 900);
+            }, 1500);
+          }, 700);
+        }, 2800);
+      }, 2500);
+    })();
+    </script>
+"""
+
+
 def lauf(name, skript, pfad, fenster=None):
     leeren()
     wikis[pfad.strip('/').split('/')[-1]].skript = skript
@@ -561,6 +632,8 @@ try:
     print()
     text9, ruf9 = lauf('_mws_kraus', teil9, '/wiki/kraus')
     print()
+    text10, ruf10 = lauf('_mws_umbenannt', teil10, '/wiki/umbenannt')
+    print()
     # ---- Der Kopf ist Pflicht: ohne ihn 400 INVALID_X_REQUESTED_WITH
     import urllib.request, urllib.error
     def roh_ruf(op, nutzlast, mit_kopf):
@@ -587,17 +660,18 @@ try:
         if a.get('op') == 'save':
             for t in (a['nutzlast'].get('tiddlers') or []):
                 gesendet[t.get('title')] = t
-    k1 = gesendet.get('k1') or {}
-    k4 = gesendet.get('k4') or {}
+    k1 = gesendet.get('Ärzte & Söhne 🎉') or {}
+    k4 = gesendet.get('Ohne Millisekunden') or {}
     print('--- Was beim Speichern rausgeht (Tiddler k1) ---')
-    print('title ist die Kennung, nicht der Name: %r' % k1.get('title'))
-    print('caption traegt den Namen: %r' % k1.get('caption'))
+    print('title ist der Name der Seite: %r' % k1.get('title'))
+    print('sw-id traegt die Kennung: %r' % k1.get('sw-id'))
+    print('kein caption mehr: %s' % ('caption' not in k1))
     print('tags als Listenformat, kein JSON-Array: %r' % k1.get('tags'))
     print('created 17 Stellen: %r' % k1.get('created'))
     print('unbekannte Zeit unangetastet (k4): %r' % k4.get('created'))
 
     # ---- Zeitstempel: 17 Stellen hin und zurueck, ohne Verlust
-    alpha = wikis['alpha'].tiddler.get('a1', {})
+    alpha = wikis['alpha'].tiddler.get('Alpha', {})
     print('created unveraendert: %s (17 Stellen: %s)' % (alpha.get('created'),
                                                          len(str(alpha.get('created'))) == 17))
     print('modified 17 Stellen: %s' % (len(str(alpha.get('modified'))) == 17))
@@ -613,7 +687,7 @@ finally:
 
 # ------------------------------------------------------------------ Auswertung
 ok = fail = 0
-for t in (text1, text2, text3, text4, text5, text6, text7, text8, text9):
+for t in (text1, text2, text3, text4, text5, text6, text7, text8, text9, text10):
     import re
     ok += len(re.findall(r'(?m)^OK\s', t))
     fail += len(re.findall(r'(?m)^FAIL\s', t))
@@ -627,10 +701,10 @@ saves = [a for a in post if a.get('op') == 'save']
 print('save-Aufrufe: %d' % len(saves))
 print('davon einzelne Tiddler: %s'
       % ('ja' if all(len(a['nutzlast'].get('tiddlers') or []) == 1 for a in saves) else 'nein'))
-print('Reihenfolge geschrieben: %s'
+print('Reihenfolge geschrieben (Seiten): %s'
       % sorted(set(str((a['nutzlast']['tiddlers'][0] or {}).get('reihenfolge'))
                   for a in saves if (a['nutzlast'].get('tiddlers') or [{}])[0])))
-alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8 + ruf9
+alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8 + ruf9 + ruf10
 print('updates abgerufen: %s'
       % ('ja' if any('updates' in (a.get('pfad') or '') for a in alle_rufe) else 'nein'))
 post5 = [a for a in ruf5 if a.get('weg') == 'POST']
@@ -651,9 +725,17 @@ print('Tiddler: %s' % sorted(k for k in wiki if k[:2] != '$:'))
 start = [a for a in ruf1 + ruf2 if a.get('op') == 'save'
          and (a['nutzlast'].get('tiddlers') or [{}])[0].get('title') == '$:/DefaultTiddlers']
 print('Startseite geschrieben: %s' % ('ja' if start else 'nein'))
-alpha = wiki.get('a1', {})
-print('a1 caption: %r  tags: %r  modified: %r'
-      % (alpha.get('caption'), alpha.get('tags'), alpha.get('modified')))
+alpha = wiki.get('Alpha', {})
+print('Tiddler "Alpha": sw-id=%r  tags=%r  modified=%r  caption-da=%r'
+       % (alpha.get('sw-id'), alpha.get('tags'), alpha.get('modified'), 'caption' in alpha))
+print('--- Umbenennen: was der Server bekommen hat ---')
+umb_saves = [a for a in ruf10 if a.get('op') == 'save']
+umb_del = [a for a in ruf10 if a.get('op') == 'delete']
+print('gespeicherte Tiddler: %s' % [(a['nutzlast']['tiddlers'][0].get('title'),
+                                       a['nutzlast']['tiddlers'][0].get('sw-id'))
+                                      for a in umb_saves])
+print('geloeschte Titel: %s' % [a['nutzlast'].get('titles') for a in umb_del])
+print('im Wiki danach: %s' % sorted(k for k in wikis['umbenannt'].tiddler if k[:2] != '$:'))
 print('Schreibversuch im Wiki ohne Schivrecht: %s'
       % ([('%s -> %s' % (a.get('op'), a.get('antwort'))) for a in ruf3 if a.get('weg') == 'POST']
          or 'keiner'))

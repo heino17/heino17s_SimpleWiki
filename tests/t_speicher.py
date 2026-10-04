@@ -165,23 +165,46 @@ teil2 = r"""
            'ohne sprache und thema auf der Startseite: ' + g.thema + '/' + g.sprache);
         ok(g.wikiTitel === 'Vertrag', 'wikiTitel: ' + g.wikiTitel);
         ok(g.nurLesen === false, 'nurLesen: ' + g.nurLesen);
-        ok(g.startseite === 'a1', 'startseite: ' + g.startseite);
+        ok(g.startseite === 'a1',
+           'startseite als Kennung aufgeloest: ' + g.startseite);
+        ok(g.seiten[0].id === 'a1' && g.seiten[0].title === 'Alpha',
+           'die Seite: id=' + g.seiten[0].id + ' title=' + g.seiten[0].title);
+
+
+        log.push('--- Kennung und Name werden auseinander gehalten');
+        ok(sp.SPEICHER.titelVon('a1') === 'Alpha',
+           'titelVon: der Tiddler heisst wie die Seite: ' + sp.SPEICHER.titelVon('a1'));
+        ok(sp.SPEICHER.idVonTitel('Alpha') === 'a1',
+           'idVonTitel: und die Kennung kommt aus sw-id: ' + sp.SPEICHER.idVonTitel('Alpha'));
+        ok(sp.SPEICHER.idVonTitel('gibtsnicht') === '',
+           'idVonTitel von einem unbekannten Namen: "' + sp.SPEICHER.idVonTitel('gibtsnicht') + '"');
 
         log.push('--- list und read spricht der Serverspeicher an');
         sp.SPEICHER.alleTiddlerLesen().then(function (alle) {
           ok(Array.isArray(alle), 'list liefert eine Liste: ' + typeof alle);
           var namen = alle.map(function (t) { return t.title; });
-          ok(namen.indexOf('a1') >= 0 && namen.indexOf('b2') >= 0 &&
+          ok(namen.indexOf('Alpha') >= 0 && namen.indexOf('Beta') >= 0 &&
              namen.indexOf('$:/DefaultTiddlers') >= 0,
              'list liefert die Seiten und den Systemtiddler: ' + namen.join('|'));
+          /* read fragt nach dem Namen des Tiddlers - nach der Kennung
+             gibt es nichts, denn die heisst nicht so. */
+          return sp.SPEICHER.tiddlerLesen('Alpha');
+        }).then(function (t) {
+          ok(!!t && t['sw-id'] === 'a1',
+             'read liefert den Tiddler mit sw-id: ' + JSON.stringify(t && t['sw-id']));
           return sp.SPEICHER.tiddlerLesen('a1');
         }).then(function (t) {
-          ok(!!t && t.caption === 'Alpha', 'read liefert den Tiddler: ' + JSON.stringify(t));
+          ok(t === null, 'read nach der Kennung findet nichts: ' + JSON.stringify(t));
           return sp.SPEICHER.tiddlerLesen('gibtsnicht');
         }).then(function (t) {
           ok(t === null, 'read von etwas, das es nicht gibt: ' + JSON.stringify(t));
           ok(typeof sp.LocalStore.alleTiddlerLesen !== 'function',
              'der Browserspeicher hat kein list - es gibt nichts zu fragen');
+          /* Zuletzt, damit die beiden Abfragen oben noch etwas zu lesen
+             finden: geloescht wird der Tiddler mit dem Namen der Seite. */
+          log.push('--- Loeschen geht den Tiddler-Namen, nicht die Kennung');
+          return sp.SPEICHER.seiteLoeschen('a1');
+        }).then(function () {
           ende();
         }).catch(function (e) { ok(false, 'Fehler bei list oder read: ' + e.message); ende(); });
       }, 2500);
@@ -200,14 +223,16 @@ mkcopy.EXTRA_REPLACEMENTS = [(WAHL, HAKEN)]
 kopie = build('_vertrag.html', teil1, seiten, startpage='a')
 
 # --- Teil 2 braucht einen Server, weil nur dort der Server-Speicher läuft
-from mwsserver import Wiki, starten, beenden
+from mwsserver import Wiki, starten, beenden, anfragen, leeren
 
+# Die Konvention aus §102: der Tiddler heisst wie die Seite, die
+# Kennung wandert als sw-id mit.
 TIDDLER = [
-    {'title': 'a1', 'caption': 'Alpha', 'text': '# Alpha', 'tags': '',
+    {'title': 'Alpha', 'sw-id': 'a1', 'text': '# Alpha', 'tags': '',
      'created': '20260203100000000', 'modified': '20260203100000000', 'reihenfolge': '0000'},
-    {'title': 'b2', 'caption': 'Beta', 'text': '# Beta', 'tags': '',
+    {'title': 'Beta', 'sw-id': 'b2', 'text': '# Beta', 'tags': '',
      'created': '20260203100500000', 'modified': '20260203100500000', 'reihenfolge': '0001'},
-    {'title': '$:/DefaultTiddlers', 'text': 'a1'},
+    {'title': '$:/DefaultTiddlers', 'text': 'Alpha'},
 ]
 wikis = {'vertrag': Wiki('vertrag', TIDDLER, titel='Vertrag', skript=teil2,
                          ersetzungen=[(WAHL, HAKEN)])}
@@ -222,6 +247,7 @@ try:
             print('    ' + z)
             fehler_gesamt += 1
     print()
+    leeren()
     text2 = bericht(dumpdom_url('http://127.0.0.1:%d/wiki/vertrag/' % port, None, 120000))
     print('%-22s %s' % ('_vertrag_server.html', text2.split('\n')[-1] if text2 else 'KEIN REPORT'))
     for z in text2.split('\n'):
@@ -230,6 +256,9 @@ try:
             fehler_gesamt += 1
 finally:
     beenden(server)
+
+geloescht = [a for a in anfragen() if a.get('op') == 'delete']
+print('delete beim Server: %s' % [a['nutzlast'].get('titles') for a in geloescht])
 
 print()
 print('GESAMT: %d bestanden, %d fehlgeschlagen'

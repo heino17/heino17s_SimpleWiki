@@ -72,10 +72,16 @@
         vorher. Die Entscheidung fällt an genau einer Stelle im Programm.
 
         Wie eine Seite im Tiddler steht
-          title        die Kennung der Seite (das id aus dieser Datei), nicht
-                       ihr Name - der Name steht in caption. So bleibt ein
-                       Tiddler beim Umbenennen derselbe.
-          caption      der Seitentitel, wie er im Inhaltsverzeichnis steht
+          title        der Name der Seite, genau wie er im Inhaltsverzeichnis
+                       steht. Das ist die TiddlyWiki-Konvention: ein Tiddler
+                       heisst nach seinem Inhalt, und [[Alpha]] loest dort
+                       auf.
+          sw-id        die stabile Kennung der Seite. Sie wandert beim
+                       Umbenennen mit, damit die Seite dieselbe bleibt.
+                       Ein Tiddler ohne sw-id - von MWS oder von einem
+                       Menschen angelegt - liefert seine Kennung aus dem
+                                       Titel; ohne diesen Rueckfall waere genau
+                       diese Wiki leer.
           text         der Seiteninhalt, Markdown wie in dieser Datei
           tags         Schlagworte im Listenformat: [[foo]] [[bar]]
           created      Zeitstempel als YYYYMMDDHHMMSSmmm
@@ -86,10 +92,24 @@
                        Feld wäre sie nach dem Neuladen verloren. Im
                        TiddlyWiki-Editor stört das Feld nicht.
 
+          Ein caption gibt es nicht mehr. Zwei Felder für denselben Titel
+          waeren zwei Quellen der Wahrheit fuer denselben Titel, und eine von
+          beiden waere still die falsche.
+
+        Umbenennen
+          Weil der Tiddler nach dem Namen heisst, ist ein Umbenennen ein
+          neuer Tiddler plus das Löschen des alten - in dieser Reihenfolge.
+          Die Verweise der anderen Seiten auf den alten Namen werden
+          mitgezogen, und die betroffenen Seiten werden mitgespeichert.
+          Eine Umbenennung, die das nur lokal täte, ließe auf dem Server
+          Texte stehen, die auf einen Namen zeigen, den es dort nicht gibt.
+
         Zwei Systemtiddler
-          $:/DefaultTiddlers   die Kennung der Startseite. TiddlyWiki
-                               schreibt dort eine Liste in [[ ]]; beides wird
-                               gelesen.
+          $:/DefaultTiddlers   der Name der Startseite. TiddlyWiki schreibt
+                               dort eine Liste in [[ ]]; beides wird gelest.
+                               Steht dort eine Kennung, wird sie als solche
+                               genommen - so bleibt ein Wiki lesbar, das nach
+                               der aelteren Fassung geschrieben wurde.
           $:/SiteTitle         der Name des Wikis.
 
         Sprache und Farbe
@@ -2267,8 +2287,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         function zwAusListe(text) {
             const s = String(text == null ? '' : text).trim();
             if (!s) return '';
+            /* TiddlyWiki schreibt hier eine Liste in [[ ]]. Fehlt die
+               Klammer, ist es genau ein Name - und der kann Leerzeichen
+               enthalten. An dem ersten Wort abzuschneiden wuerde jede
+               Seite namens "Alpha zwei" zur falschen machen. */
             const m = s.match(/\[\[([^\]]+)\]\]/);
-            return String(m ? m[1] : (s.split(/\s+/)[0] || '')).trim();
+            return String(m ? m[1] : s).trim();
         }
 
         /* ---------- Seite und Tiddler ----------
@@ -2310,8 +2334,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            dem Neuladen verloren. Das Feld stört TiddlyWiki nicht. */
         function seiteZuTiddler(seite, felder) {
             const t = Object.assign({}, felder || {});
-            t.title = String(seite.id);
-            t.caption = String(seite.title == null ? '' : seite.title);
+            /* Der Tiddler heisst wie die Seite. Das ist TiddlyWiki-nativ
+               und loest [[Alpha]] dort auf. Die stabile Kennung wandert
+               mit nach sw-id; ein Umbenennen aendert nur den Titel,
+               nicht die Identitaet der Seite. */
+            delete t.caption;
+            t.title = String(seite.title == null ? '' : seite.title);
+            t['sw-id'] = String(seite.id == null ? '' : seite.id);
             t.text = String(seite.content == null ? '' : seite.content);
             t.tags = zwTagsSchreiben(seite.tags);
             if (seite.created) t.created = isoNachZw(seite.created);
@@ -2321,8 +2350,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         function tiddlerZuSeite(t) {
             return {
-                id: String(t.title == null ? '' : t.title),
-                title: t.caption ? String(t.caption) : '',
+                /* Der Rueckfall ist wichtig: ein Tiddler, den MWS oder
+                   ein Mensch angelegt hat, hat kein sw-id. Ohne ihn
+                   waere genau diese Wiki leer. */
+                id: t['sw-id'] ? String(t['sw-id']) : String(t.title == null ? '' : t.title),
+                title: t.title == null ? '' : String(t.title),
                 content: t.text ? String(t.text) : '',
                 links: [],
                 tags: zwTagsLesen(t.tags),
@@ -2606,18 +2638,41 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             } catch (e) { /* älterer Browser: nur die Merkvariable zählt */ }
         };
 
+        /* Der Tiddler einer Seite heisst wie die Seite. Diese beiden
+           Wege werden gebraucht, weil this.felder nach Tiddler-Titel
+           geordnet ist, die App aber nach Kennungen arbeitet. */
+        MwsStore.prototype.titelVon = function (id) {
+            const seite = this.seiten.filter(s => String(s.id) === String(id))[0];
+            if (seite) return seite.title;
+            /* Ist die Seite schon aus der Liste (beim Loeschen ist das
+               der Fall), hilft nur der Blick in die Felder: der Tiddler
+               mit dieser sw-id traegt den Namen. Ohne das wuerde ein
+               Loeschen die Kennung schicken - und der Server haelt
+               dann einen Tiddler, den es nicht gibt. */
+            const kennung = String(id == null ? '' : id);
+            if (!kennung) return '';
+            const titel = Object.keys(this.felder).filter(t =>
+                String((this.felder[t] || {})['sw-id'] || '') === kennung)[0];
+            return titel || '';
+        };
+
+        MwsStore.prototype.idVonTitel = function (titel) {
+            const seite = this.seiten.filter(s => s.title === String(titel))[0];
+            return seite ? seite.id : '';
+        };
+
         /* Sprache und Farbe stehen an den Feldern des Tiddlers, der die
            Startseite ist. Beim Start kommt die Startseite aus
-           $:/DefaultTiddlers; fehlt sie, trägt die erste Seite. */
+           $:/DefaultTiddlers - als Name der Seite, nicht als Kennung. */
         MwsStore.prototype.startseitenFelder = function () {
-            const felder = this.felder[this.startId];
-            return felder || {};
+            const titel = this.titelVon(this.startId);
+            return this.felder[titel] || {};
         };
 
         MwsStore.prototype.einstellungenSchreiben = function () {
-            const id = this.startId;
-            const felder = this.felder[id];
-            if (!id || !felder) return Promise.resolve(null);
+            const titel = this.titelVon(this.startId);
+            const felder = this.felder[titel];
+            if (!titel || !felder) return Promise.resolve(null);
             if (this.einstellungen.thema) felder.thema = this.einstellungen.thema;
             if (this.einstellungen.sprache) felder.sprache = this.einstellungen.sprache;
             return this.ruf('save', { tiddlers: [felder] });
@@ -2646,13 +2701,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                mitgeschickt hat. Ohne das Feld gilt die Reihenfolge, in der
                die Tiddler kommen. */
             const mitReihenfolge = seiten.some(function (s) {
-                const f = this.felder[s.id] || {};
+                const f = this.felder[s.title] || {};
                 return f.reihenfolge != null && f.reihenfolge !== '';
             }, this);
             if (mitReihenfolge) {
                 seiten.sort(function (a, b) {
-                    const fa = this.felder[a.id] || {};
-                    const fb = this.felder[b.id] || {};
+                    const fa = this.felder[a.title] || {};
+                    const fb = this.felder[b.title] || {};
                     const na = parseInt(fa.reihenfolge, 10);
                     const nb = parseInt(fb.reihenfolge, 10);
                     if (isNaN(na) && isNaN(nb)) return 0;
@@ -2663,11 +2718,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             }
 
             this.seiten = seiten;
-            this.startId = startseite;
+            /* $:/DefaultTiddlers nennt den Namen der Startseite. Gesucht
+               wird zuerst nach dem Namen; steht dort eine Kennung, wird
+               sie als solche genommen - so bleibt ein Wiki lesbar, das
+               nach der aelteren Fassung geschrieben wurde. */
+            this.startId = this.idVonTitel(startseite) ||
+                (seiten.some(function (s) { return s.id === startseite; }) ? startseite : '');
 
             /* Sprache und Farbe von der Seite holen, die sie trägt. */
             const traeger = this.startseitenFelder() ||
-                (seiten.length ? this.felder[seiten[0].id] : null) || {};
+                (seiten.length ? this.felder[seiten[0].title] : null) || {};
             this.einstellungen = {
                 thema: traeger.thema === 'dark' ? 'dark' : (traeger.thema === 'light' ? 'light' : ''),
                 sprache: traeger.sprache ? String(traeger.sprache) : ''
@@ -2680,7 +2740,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                    in einem fremden Wiki wird nichts erfunden. */
                 vorhanden: true,
                 verweise: SimpleWikiStore.get('simplewiki_refs') === '1',
-                startseite: startseite,
+                /* Die Kennung, nicht der Name aus $:/DefaultTiddlers:
+                   die App arbeitet mit Kennungen, und ein Name, den sie
+                   nicht findet, wuerde sie durch die erste Seite ersetzen
+                   und den Server damit ueberschreiben. */
+                startseite: this.startId,
                 sprache: this.einstellungen.sprache,
                 thema: this.einstellungen.thema,
                 nurLesen: this.nurLesen,
@@ -2695,8 +2759,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             return this;
         };
 
-        MwsStore.prototype.seiteSichern = function (seite) {
-            const felder = this.felder[seite.id] || {};
+        /* 'alterTitel' nur beim Umbenennen: der Tiddler mit dem alten
+           Namen wird mitgesendet geloescht. Sonst bliebe er als zweite
+           Seite mit dem alten Namen im Wiki stehen. */
+        MwsStore.prototype.seiteSichern = function (seite, alterTitel) {
+            const felder = this.felder[seite.title] || this.felder[alterTitel] || {};
             const t = seiteZuTiddler(seite, felder);
             /* Nur die Startseite trägt Sprache und Farbe. */
             if (String(seite.id) === String(this.startId)) {
@@ -2709,12 +2776,22 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 t.reihenfolge = ('000' + pos).slice(-4);
             }
             this.felder[t.title] = t;
+            if (alterTitel && alterTitel !== t.title) {
+                delete this.felder[alterTitel];
+                /* Erst den neuen Tiddler schreiben, dann den alten
+                   loeschen - sonst gibt es zwischen den beiden Schritten
+                   keine Seite mit diesem Inhalt. */
+                return this.ruf('save', { tiddlers: [t] }).then(() =>
+                    this.ruf('delete', { titles: [String(alterTitel)] }));
+            }
             return this.ruf('save', { tiddlers: [t] });
         };
 
         MwsStore.prototype.seiteLoeschen = function (id) {
-            delete this.felder[id];
-            return this.ruf('delete', { titles: [String(id)] });
+            /* Geloescht wird der Tiddler, und der heisst wie die Seite. */
+            const titel = this.titelVon(id) || String(id);
+            delete this.felder[titel];
+            return this.ruf('delete', { titles: [String(titel)] });
         };
 
         /* Die Startseite wandert nach $:/DefaultTiddlers. Sprache und
@@ -2722,7 +2799,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            Startseite. */
         MwsStore.prototype.startseiteSetzen = function (id) {
             this.startId = id == null ? '' : String(id);
-            const eintrag = { title: '$:/DefaultTiddlers', text: this.startId };
+            /* Nach $:/DefaultTiddlers wandert der Name der Seite, nicht
+               ihre Kennung - TiddlyWiki kennt keine Kennungen. */
+            const eintrag = {
+                title: '$:/DefaultTiddlers',
+                text: this.titelVon(this.startId) || this.startId
+            };
             this.felder[eintrag.title] = eintrag;
             return this.ruf('save', { tiddlers: [eintrag] })
                 .then(() => this.einstellungenSchreiben());
@@ -3897,9 +3979,63 @@ showToc: false,
 
                 /* Eine Seite dem Speicher geben. Im Browser ist das ein
                    Schreibvorgang für die ganze Liste, auf dem Server
-                   genau ein Tiddler. */
-                seiteSichern(seite) {
-                    SPEICHER.seiteSichern(seite);
+                   genau ein Tiddler.
+
+                   'alterTitel' nur beim Umbenennen: auf dem Server trägt
+                   der Tiddler den Namen der Seite, ein Umbenennen ist
+                   deshalb ein neuer Tiddler plus das Löschen des alten.
+                   Im Browser wird es ignoriert - dort kennt die
+                   localStorage keinen Tiddler. */
+                seiteSichern(seite, alterTitel) {
+                    SPEICHER.seiteSichern(seite, alterTitel);
+                },
+
+                /* Alle Verweise auf einen Seitennamen auf einen neuen
+                   Namen ziehen - im Text und in der Liste der
+                   Verknüpfungen. Gibt die Seiten zurück, die sich
+                   geändert haben; die müssen gespeichert werden.
+
+                   Warum das nötig ist: im MWS-Betrieb ist der Text
+                   Teil des Tiddlers. Eine Umbenennung, die nur lokal
+                   nachzieht, ließe auf dem Server Texte stehen, die
+                   auf einen Namen zeigen, den es dort nicht mehr gibt -
+                   stiller Datenverlust. */
+                verweiseUmbenennen(alterTitel, neuerTitel) {
+                    if (!alterTitel || !neuerTitel || alterTitel === neuerTitel) return [];
+                    const geaendert = [];
+                    this.pages.forEach((seite) => {
+                        if (seite.title === neuerTitel) return;      /* die Seite selbst */
+                        const vorher = seite.content || '';
+                        const nachher = this.verweisZielErsetzen(vorher, alterTitel, neuerTitel);
+                        const links = Array.isArray(seite.links) ? seite.links : [];
+                        let neuLinks = false;
+                        links.forEach((l, i) => {
+                            if (l === alterTitel) { links[i] = neuerTitel; neuLinks = true; }
+                        });
+                        if (nachher !== vorher || neuLinks) {
+                            seite.content = nachher;
+                            seite.updated = new Date().toISOString();
+                            geaendert.push(seite);
+                        }
+                    });
+                    return geaendert;
+                },
+
+                /* Ein Verweisziel im Text ersetzen. Beide Schreibweisen
+                   und beide Kodierungen, weil der Text aus einem
+                   TiddlyWiki-Wiki kommen kann, das die Leerzeichen
+                   kodiert hat. */
+                verweisZielErsetzen(text, alt, neu) {
+                    let raus = String(text == null ? '' : text);
+                    const paare = [[alt, neu], [encodeURIComponent(alt), encodeURIComponent(neu)]];
+                    paare.forEach(([a, n]) => {
+                        if (!a || a === n) return;
+                        raus = raus.split('[[' + a + ']]').join('[[' + n + ']]');
+                        raus = raus.split('|' + a + ']]').join('|' + n + ']]');
+                        raus = raus.split('(wiki:' + a + ')').join('(wiki:' + n + ')');
+                        raus = raus.split('(<wiki:' + a + '>)').join('(<wiki:' + n + '>)');
+                    });
+                    return raus;
                 },
 
                 /* Sagt der Server, dass hier nicht geschrieben werden
@@ -4022,11 +4158,19 @@ showToc: false,
 
                 savePage() {
                     if (this.currentPage) {
+                        /* Ohne Namen kann kein Tiddler entstehen - der
+                           Name ist sein Titel. Also wird nichts
+                           gespeichert und der Grund gesagt, statt
+                           still einen einzubauen. */
+                        const titel = (this.editTitle || '').trim();
+                        if (!titel) {
+                            this.hinweis(this.t('noticeTitleFrei').replace('{title}', this.t('untitled')));
+                            return;
+                        }
                         /* Beim Anlegen wird ein freier Name gesucht; beim
                            Umbenennen nicht - da wäre stilles Aendern
                            überraschend, also wird abgelehnt und der Grund
                            genannt. */
-                        const titel = (this.editTitle || '').trim() || this.t('untitled');
                         if (this.titelVergeben(titel, this.currentPage.id)) {
                             this.hinweis(this.t('noticeTitleFrei').replace('{title}', titel));
                             return;
@@ -4034,12 +4178,31 @@ showToc: false,
                         if (this.mdEditor) {
                             this.editContent = this.mdEditor.getMarkdown();
                         }
+                        const alterTitel = this.currentPage.title;
+                        const umbenannt = !!alterTitel && alterTitel !== titel;
+
+                        /* Erst die Verweise ziehen, dann den Text der
+                           Seite selbst - sonst zaehlt die Seite, auf der
+                           gerade geschrieben wird, mit. */
+                        const mitgezogen = umbenannt
+                            ? this.verweiseUmbenennen(alterTitel, titel)
+                            : [];
                         this.currentPage.title = titel;
                         this.currentPage.content = this.editContent;
                         this.currentPage.updated = new Date().toISOString();
                         this.isEditing = false;
                         this.destroyEditor();
-                        this.seiteSichern(this.currentPage);
+                        this.seiteSichern(this.currentPage, umbenannt ? alterTitel : null);
+                        /* Die mitveraenderten Seiten gehoeren auf dem
+                           Server mitgespeichert, sonst stehen dort die
+                           alten Namen. */
+                        mitgezogen.forEach((s) => this.seiteSichern(s));
+
+                        /* War die umbenannte Seite die Startseite, wandert
+                           ihr Name in $:/DefaultTiddlers mit. */
+                        if (umbenannt && String(this.startPageId) === String(this.currentPage.id)) {
+                            SPEICHER.startseiteSetzen(this.startPageId);
+                        }
                     }
                 },
 

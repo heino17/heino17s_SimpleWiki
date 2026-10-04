@@ -10,8 +10,10 @@ from _hilfe import dumpdom, bericht, zahlen
 def zw(jahr, monat, tag, stunde, minute, sekunde, ms):
     return '%d%02d%02d%02d%02d%02d%03d' % (jahr, monat, tag, stunde, minute, sekunde, ms)
 
+# Konvention §102: der Tiddler heisst wie die Seite, die Kennung
+# wandert als sw-id mit.
 ERSTE = {
-    'title': 'b1', 'caption': 'Erste Seite',
+    'title': 'Erste Seite', 'sw-id': 'b1',
     # beide Schreibweisen, beide Richtungen: hin zur zweiten und
     # zurueck zur ersten
     'text': '# Erste\n\nSiehe [[Zweite Seite]] und [Text](wiki:Zweite Seite).',
@@ -22,14 +24,14 @@ ERSTE = {
     'thema': 'dark', 'sprache': 'de',
 }
 ZWEITE = {
-    'title': 'b2', 'caption': 'Zweite Seite',
-    'text': '# Zweite\n\nZurueck mit [Text](wiki:b1) und [[Erste Seite]].',
+    'title': 'Zweite Seite', 'sw-id': 'b2',
+    'text': '# Zweite\n\nZurueck mit [Text](wiki:Erste Seite) und [[Erste Seite]].',
     'tags': '',
     'created': zw(2026, 7, 4, 12, 1, 0, 0),
     'modified': zw(2026, 7, 4, 12, 1, 0, 0),
     'reihenfolge': '0000',
 }
-STANDARD = {'title': '$:/DefaultTiddlers', 'text': 'b1'}
+STANDARD = {'title': '$:/DefaultTiddlers', 'text': 'Erste Seite'}
 BAG = {'title': '$:/bag-info', 'text': '{"bag":"default"}'}
 
 # ---------------------------------------------------------------- Teil 1

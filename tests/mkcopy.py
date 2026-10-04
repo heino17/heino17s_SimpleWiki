@@ -37,6 +37,13 @@ _SEED_VORHAGE = ('<script>try{localStorage.setItem("simplewiki_pages",%s);'
 
 _DATENBLOCK = r'<script id="simplewiki-daten"[^>]*>[\s\S]*?</script>'
 
+# Der Platzhalter-Marker, den simplewiki.html mitbringt. MWS sucht
+# woertlich danach, deshalb steht die Klasse hier und nicht in
+# mehreren Dateien.
+MARKER_KLASSE = 'tiddlywiki-tiddler-store'
+MARKER_ELEMENT = ('<script class="' + MARKER_KLASSE + '" '
+                  'type="application/json">[]</' + 'script>')
+
 # Alles, was beim Suchen nach echten Tags beachtet werden muss:
 # script- und style-Bloecke stehen im Rohtext, ihr Inhalt ist kein HTML.
 # Kommentare ebenso: der Vertrag im Kopf nennt </head> und <body>, ohne

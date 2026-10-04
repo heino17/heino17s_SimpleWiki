@@ -56,11 +56,16 @@
     <!--
         ============================ Betrieb mit MWS ============================
 
-        Ein Server, der SimpleWiki ausliefert, setzt als erstes Element nach
-        </head> einen Marker mit den Tiddlern, die schon im Wiki stehen:
+        Das Element steht schon in dieser Datei, direkt nach </head>, und
+        ist leer. MWS sucht woertlich nach genau dieser Zeichenkette und
+        schreibt die Tiddler des Wikis an ihre Stelle:
 
-          <script class="tiddlywiki-tiddler-store"
-                  type="application/json">[ …Tiddler… ]</script>
+          <script class="tiddlywiki-tiddler-store" type="application/json">[]</script>
+
+        Eine Zeile, kein Umbruch, genau ein Leerzeichen zwischen den
+        Attributen, class zuerst und type danach. Bricht ein Server die
+        Zeile um, findet er nichts und antwortet mit einem Fehler - die
+        Wiki waere dann gar nicht erreichbar.
 
         Steht der Marker nicht da, oder ist das Array leer, bleibt alles im
         Browser: eine per Doppelklick geöffnete Datei verhält sich genau wie
@@ -1670,6 +1675,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         }
     </style>
 </head>
+    <script class="tiddlywiki-tiddler-store" type="application/json">[]</script>
 <body>
     <div id="app">
         <div class="app">
@@ -3684,13 +3690,16 @@ showToc: false,
                        wuerde den Inhalt sogar veraendern. */
                     const inhalt = JSON.stringify(daten || this.bauDaten()).replace(/</g, '\\u003c');
 
-                    /* Der Marker gehört zum Server, nicht in die Datei:
-                       eine gesicherte Wiki ist eine eigenständige Datei und
-                       benutzt den Browser-Speicher. Ihre Seiten stehen
-                       vollständig im Datenblock. */
+                    /* Der Marker wird geleert, nicht entfernt. Er gehört
+                       zur Vorlage - ohne ihn könnte ein Server die
+                       gesicherte Datei nicht fassen. Steht er mit den
+                       Tiddlern des Servers drin, waere die gesicherte
+                       Wiki eine Serverdatei, deren Schreibversuche ins
+                       Leere liefen. Ihre Seiten stehen vollständig im
+                       Datenblock. */
                     const markierung = doc.querySelector('script.tiddlywiki-tiddler-store');
-                    if (markierung && markierung.parentNode) {
-                        markierung.parentNode.removeChild(markierung);
+                    if (markierung) {
+                        markierung.textContent = '[]';
                     }
 
                     let halter = doc.getElementById('simplewiki-daten');

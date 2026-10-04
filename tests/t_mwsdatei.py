@@ -206,7 +206,7 @@ kopien = [
     bauen('_datei_schreiben.html', TIDDLER, skript=teil2),
     bauen('_datei_markerleer.html', TIDDLER, skript=teil3, vorab=VORAB, marker_leer=True),
     bauen('_datei_ohne.html', TIDDLER, skript=teil4, vorab=VORAB2,
-          ersetzungen=[]),
+          marker_keiner=True),
 ]
 
 # Beim letzten muss der Marker wieder weg - dort wird geprueft, dass eine

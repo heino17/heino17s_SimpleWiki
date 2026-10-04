@@ -66,6 +66,18 @@ melde('jedes url() im CSS zeigt auf data:', len(url_ohne_data), 0)
 daten_bilder = len(re.findall(r'url\(\s*["\']?data:', quelle))
 melde('Bilder stecken als data: drin', daten_bilder > 0, True)
 
+# ---- Der Marker ----------------------------------------------------
+# Ohne dieses Element findet MWS die Datei nicht und antwortet mit
+# einem Fehler. Im Browser faellt das nicht auf - man sieht einen
+# fehlenden Marker nur, wenn ein fremder Server die Datei zu fassen
+# versucht. Deshalb steht es hier.
+LITERAL = '<script class="tiddlywiki-tiddler-store" type="application/json">['
+melde('die Literalzeichenkette kommt genau einmal vor',
+      re.sub(r'<!--[\s\S]*?-->', '', quelle).count(LITERAL), 1)
+zeilen = [i + 1 for i, z in enumerate(quelle.split('\n')) if LITERAL in z]
+print('     (gefunden in Zeile %s; das Kommentar-Beispiel zaehlt nicht mit)'
+      % ', '.join(str(z) for z in zeilen))
+
 # Nur zur Kenntnis, nicht als Pruefung: Adressen als Text im Code.
 print('     (zur Kenntnis: %d Adressen als Zeichenkette im eingebetteten Code,'
       ' Hosts: %s)'
@@ -188,6 +200,20 @@ skript3 = abnahme_durchgang("""
 
 # Ohne Marker und mit altem Stand im Browser: die gewoehnliche Datei,
 # per Doppelklick geoeffnet.
+skript_marker = abnahme_durchgang("""
+        log.push('--- Der Marker im Dokument');
+        var el = document.querySelector('script.tiddlywiki-tiddler-store');
+        ok(!!el && el.tagName === 'SCRIPT', 'querySelector zeigt auf ein Element: ' + (el ? el.tagName : 'nichts'));
+        ok(!!el && el.textContent === '[]', 'der Inhalt ist "[]": ' + JSON.stringify(el ? el.textContent : null));
+        ok(document.querySelectorAll('script.tiddlywiki-tiddler-store').length === 1,
+           'nur ein Marker: ' + document.querySelectorAll('script.tiddlywiki-tiddler-store').length);
+        ok(!document.querySelector('.mws-hinweis'),
+           'ein leerer Marker laesst den Browser die Seiten nehmen');
+        ende();
+""")
+kopie_marker = bauen('_abnahme_marker.html', [], skript=skript_marker,
+                     marker_keiner=False)
+
 kopie3 = bauen('_abnahme_ohne_net.html', [], skript=skript3, vorab=VORAB_ALT,
                marker_keiner=True)
 
@@ -233,6 +259,16 @@ skript4 = abnahme_durchgang("""
 kopie4 = bauen('_abnahme_store.html', TIDDLER, skript=skript4)
 
 # ---------------------------------------------------------------- Ausfuehren
+print('=== 1b. Chromium findet den Marker ===')
+textm = bericht(dumpdom('_abnahme_marker.html', budget=120000))
+print(textm.split('\n')[-1] if textm else 'KEIN REPORT')
+for z in textm.split('\n'):
+    if z.startswith('FAIL') or z.startswith('--- '):
+        print('    ' + z)
+bestanden_gesamt += zahlen(textm)[0]
+fehler_gesamt += zahlen(textm)[1]
+print()
+
 print('=== 3. Doppelklick ohne Netz, mit altem localStorage ===')
 text3 = bericht(dumpdom('_abnahme_ohne_net.html', budget=120000, zusatz=OHNE_NETZ))
 print(text3.split('\n')[-1] if text3 else 'KEIN REPORT')

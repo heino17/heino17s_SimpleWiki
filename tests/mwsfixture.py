@@ -27,6 +27,7 @@ auch geschrieben werden kann.
 
 import io
 import json
+import re
 import os
 import sys
 
@@ -37,11 +38,33 @@ HIN = os.path.dirname(os.path.abspath(__file__))
 PROJEKT = os.path.dirname(HIN)
 QUELLE = os.path.join(PROJEKT, 'simplewiki.html')
 
-MARKER_KLASSE = 'tiddlywiki-tiddler-store'
+MARKER_KLASSE = mkcopy.MARKER_KLASSE
+
+
+def _marker_tauschen(html, marker):
+    """Das Element direkt nach </head> durch 'marker' ersetzen.
+
+    'marker' ist der ganze Element-Text oder None, um es zu entfernen.
+    Gesucht wird nicht nach dem Klassennamen - der steht auch im
+    Kommentar -, sondern nach dem Element, das dort wirklich steht.
+    """
+    head_at = mkcopy._echte_tags(html)[0] + len('</head>')
+    vorhanden = re.match(r'\s*<script class="' + re.escape(MARKER_KLASSE) +
+                         r'"[^>]*>[\s\S]*?</' + 'script>', html[head_at:])
+    if not vorhanden:
+        return (html[:head_at] + '\n' + marker + html[head_at:]) if marker else html
+    a = head_at + vorhanden.start()
+    b = head_at + vorhanden.end()
+    return html[:a] + (marker + '\n' if marker else '') + html[b:]
 
 
 def einsetzen(html, tiddler, marker_leer=False):
-    """Den Marker als erstes Element nach </head> setzen.
+    """Den leeren Platzhalter-Marker durch die Tiddler ersetzen.
+
+    simplewiki.html bringt den Marker schon mit - leer, als erstes
+    Element nach </head>. MWS schreibt die Tiddler an seine Stelle; hier
+    wird genauso verfahren. Wuerde der Marker nur davor gesetzt, stuende
+    er zweimal im Dokument, und querySelector naehme den falschen.
 
     Die echte Head-Grenze wird gesucht, nicht die erste Zeichenkette
     "</head>": im Dokument steht das Wort auch im Kommentar, und dort
@@ -49,10 +72,13 @@ def einsetzen(html, tiddler, marker_leer=False):
     """
     inhalt = [] if marker_leer else list(tiddler or [])
     koerper = json.dumps(inhalt, ensure_ascii=False).replace('<', '\\u003c')
-    marker = ('<script class="' + MARKER_KLASSE + '" '
-              'type="application/json">' + koerper + '</' + 'script>\n')
-    head_at = mkcopy._echte_tags(html)[0]
-    return html[:head_at] + marker + html[head_at:]
+    return _marker_tauschen(html, '<script class="' + MARKER_KLASSE + '" '
+                                 'type="application/json">' + koerper + '</' + 'script>')
+
+
+def entfernen(html):
+    """Den Marker ganz rausnehmen - die Datei, wie man sie oeffnet."""
+    return _marker_tauschen(html, None)
 
 
 def bauen(name, tiddler, skript='', vorab='', marker_leer=False,
@@ -67,14 +93,7 @@ def bauen(name, tiddler, skript='', vorab='', marker_leer=False,
         html = fh.read()
     for a, b in (ersetzungen or []):
         html = html.replace(a, b)
-    if marker_keiner:
-        head_at = mkcopy._echte_tags(html)[0]
-        i = html.rfind('<script class="' + MARKER_KLASSE + '"', 0, head_at)
-        if i >= 0:
-            j = html.find('</' + 'script>', i)
-            html = html[:i] + html[j + len('</' + 'script>') + 1:]
-    else:
-        html = einsetzen(html, tiddler, marker_leer)
+    html = entfernen(html) if marker_keiner else einsetzen(html, tiddler, marker_leer)
     html = mkcopy.hauptskripte(html, pre=vorab, script=skript)
     return mkcopy.build_roh(name, html)
 

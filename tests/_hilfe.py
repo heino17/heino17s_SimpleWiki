@@ -1,0 +1,111 @@
+"""Gemeinsame Hilfen fuer die Tests.
+
+Die Tests bauen eine instrumentierte Kopie von simplewiki.html,
+oeffnen sie in Chromium und lesen danach den Bericht aus, den
+das Testskript in der Seite selbst ablegt.
+
+Wichtig: Alle Kopien und Ausgaben landen in tests/_kopien/ und
+werden nicht committet.
+"""
+
+import os
+import re
+import subprocess
+import sys
+import html as htmlmod
+
+HIN = os.path.dirname(os.path.abspath(__file__))
+PROJEKT = os.path.dirname(HIN)
+KOPIEN = os.path.join(HIN, '_kopien')
+PROJEKTDATEI = os.path.join(PROJEKT, 'simplewiki.html')
+
+CHROMIUM = 'chromium'
+
+
+def ziel(name):
+    """Pfad fuer eine Kopie im Testordner."""
+    if not os.path.isdir(KOPIEN):
+        os.makedirs(KOPIEN)
+    return os.path.join(KOPIEN, name)
+
+
+def url(name):
+    """file://-Adresse fuer eine Kopie - so, wie ein Browser sie braucht."""
+    return 'file://' + ziel(name)
+
+
+def dumpdom(name, fenster=None, budget=120000):
+    """Seite in Chromium oeffnen und das fertige HTML zurueckgeben."""
+    befehl = [CHROMIUM, '--headless', '--disable-gpu', '--no-sandbox']
+    if fenster:
+        befehl.append('--window-size=' + fenster)
+    befehl += ['--virtual-time-budget=%d' % budget, '--dump-dom', url(name)]
+    ergebnis = subprocess.run(befehl, capture_output=True, timeout=budget / 1000 + 120)
+    return ergebnis.stdout.decode('utf-8', 'replace')
+
+
+def bericht(dom):
+    """Den Bericht aus der Testseite holen."""
+    m = re.search(r'<pre id="report">(.*?)</pre>', dom, re.S)
+    return htmlmod.unescape(m.group(1)) if m else ''
+
+
+def app_da(dom):
+    """Hat die App sich ueberhaupt gerendert? Sonst ist alles weitere sinnlos."""
+    return '<div class="app">' in dom
+
+
+def zahlen(text):
+    """Wie viele Pruefungen bestanden, wie viele nicht."""
+    bestanden = len(re.findall(r'(?m)^OK\s', text))
+    fehlgeschlagen = len(re.findall(r'(?m)^FAIL\s', text))
+    return bestanden, fehlgeschlagen
+
+
+def pruefe(*dateien):
+    """Kopien in Chromium oeffnen, Berichte ausgeben, Programmcode setzen.
+
+    Die Berichte sehen so aus:
+        OK   ...
+        FAIL ...
+        >>> ALLE 12 BESTANDEN
+    """
+    gesamt_ok = 0
+    gesamt_fehler = 0
+    zeilen = []
+    for pfad in dateien:
+        name = os.path.basename(pfad)
+        dom = dumpdom(name)
+        text = bericht(dom)
+        if not text:
+            # Kein Bericht: entweder ist die App nicht gekommen, oder
+            # das Testskript ist zu frueh. Beides ist ein Fehler.
+            if not app_da(dom):
+                zeilen.append('%-22s KEIN REPORT – die App kam nicht' % name)
+            else:
+                zeilen.append('%-22s KEIN REPORT – Testskript zu frueh' % name)
+            gesamt_fehler += 1
+            continue
+        ok, fehler = zahlen(text)
+        gesamt_ok += ok
+        gesamt_fehler += fehler
+        abschluss = [l for l in text.split('\n') if l.startswith('>>>')]
+        zeilen.append('%-22s %s' % (name, (abschluss[-1] if abschluss else
+                                           '%d bestanden, %d fehlgeschlagen' % (ok, fehler))))
+        if fehler:
+            for l in text.split('\n'):
+                if l.startswith('FAIL'):
+                    zeilen.append('    ' + l)
+    for z in zeilen:
+        print(z)
+    print()
+    print('GESAMT: %d bestanden, %d fehlgeschlagen' % (gesamt_ok, gesamt_fehler))
+    sys.exit(1 if gesamt_fehler else 0)
+
+
+def ende(fails):
+    """Testende: Bericht abschliessen und den Programmcode setzen."""
+    print()
+    print('>>> ' + ('%d FEHLGESCHLAGEN' % fails if fails else
+                   'ALLE BESTANDEN'))
+    sys.exit(1 if fails else 0)

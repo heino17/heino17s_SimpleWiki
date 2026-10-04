@@ -16,3 +16,6 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+# Vom Testlauf erzeugte Kopien, PDFs und Bilder
+tests/_kopien/
+tests/__pycache__/

@@ -39,6 +39,26 @@ VORAB = ('<script>try{localStorage.setItem("simplewiki_pages",' + BROWSER_SEITEN
          'localStorage.setItem("simplewiki_startpage","x1");'
          'localStorage.setItem("simplewiki_theme","light");}catch(e){}</' + 'script>')
 
+# Was das Mapping aushalten muss: Umlaute, Sonderzeichen, ein Tiddler
+# ohne Namen, doppelte Schlagworte, eine Zeit ohne Millisekunden und
+# Systemtiddler, die keine Seiten sind.
+KRAUS = [
+    {'title': 'k1', 'caption': 'Ärzte & Söhne 🎉',
+     'text': '# Ä\n\n[[k2]] und [Text](wiki:k3)',
+     'tags': '[[mit leerzeichen]] [[emoji 🎉]]',
+     'created': zw(2026, 7, 4, 12, 34, 56, 789), 'modified': zw(2026, 7, 4, 12, 34, 56, 789),
+     'reihenfolge': '0000', 'thema': 'light', 'sprache': 'de'},
+    {'title': 'k2', 'text': 'ohne Namen, ohne Zeit'},          # kein caption
+    {'title': 'k3', 'caption': 'Dritte', 'tags': '[[doppelt]] [[doppelt]]'},
+    {'title': 'k4', 'caption': 'Ohne Millisekunden',
+     'created': '20260203100000', 'modified': '20260203100000'},   # nur 14 Stellen
+    {'title': '$:/bag-info', 'text': '{"bag":"default"}'},
+    {'title': '$:/recipe-info', 'text': '{"recipe":"default"}'},
+    {'title': '$:/EigeneSystemSache', 'text': 'nicht eine Seite'},
+    {'title': '$:/SiteTitle', 'text': 'Krauses Wiki'},
+    {'title': '$:/DefaultTiddlers', 'text': 'k1'},
+]
+
 wikis = {
     'alpha': Wiki('alpha', [BETA, ALPHA, STANDARD], titel='Alpha-Wiki'),
     'nurlesen': Wiki('nurlesen', [ALPHA, BETA, STANDARD, NURLEBEN], nurLesen=True,
@@ -48,7 +68,10 @@ wikis = {
                  vorab=VORAB),        # Marker leer: der Browser soll her
     'kaputt': Wiki('kaputt', [ALPHA, BETA, STANDARD],
                    fehler={'save': 500}),   # der Server faellt aus
+    'kraus': Wiki('kraus', KRAUS, titel='Krauses Wiki'),
 }
+
+
 
 server, thread, port = starten(wikis)
 basis = 'http://127.0.0.1:%d' % port
@@ -403,6 +426,109 @@ teil8 = r"""
 """
 
 
+# ---------------------------------------------------------------- Teil 9
+# Das Mapping an seinen Ecken: Sonderzeichen, fehlender Name, doppelte
+# Schlagworte, eine Zeit ohne Millisekunden, Systemtiddler
+teil9 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+      /* Ein Fehler in einem then() landet in einer unbehandelten
+         Zusage und feuert kein error-Ereignis - ohne diesen Zuhaenger
+         verschwaende er spurlos. */
+      window.addEventListener('unhandledrejection', function (e) {
+        ok(false, 'Fehler in einer Zusage: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+      });
+
+      /* Die Daten holt der JSON-Export: er zeigt, was wirklich in der
+         App steht, und geht dabei durch denselben Weg wie das Lesen. */
+      function ueberJson(dann) {
+        window.__blob = null;
+        var echtesErzeugen = URL.createObjectURL;
+        URL.createObjectURL = function (b) { window.__blob = b; return echtesErzeugen.call(URL, b); };
+        HTMLAnchorElement.prototype.click = function () {};
+        q('.settings-toggle').click();
+        setTimeout(function () {
+          all('.settings-btn').filter(function (b) { return /JSON/.test(b.textContent); })[0].click();
+          setTimeout(function () {
+            if (!window.__blob) { ok(false, 'JSON nicht erzeugt'); dann(null); return; }
+            window.__blob.text().then(function (t) { dann(JSON.parse(t)); });
+          }, 700);
+        }, 700);
+      }
+
+      setTimeout(function () {
+        log.push('--- Was als Seite ankommt');
+        ok(titel().length === 4, 'genau vier Seiten, kein Systemtiddler: ' + titel().length + ' (' + titel().join('|') + ')');
+        ok(titel()[0] === 'Ärzte & Söhne 🎉', 'Name mit Umlauten, kaufmaenischem Und und Emoji: ' + titel()[0]);
+        ok(titel()[1] === 'Neue Seite', 'ein Tiddler ohne Namen bekommt den Namen einer neuen Seite: ' + titel()[1]);
+        ok(titel()[2] === 'Dritte' && titel()[3] === 'Ohne Millisekunden', 'die beiden anderen: ' + titel().slice(2).join('|'));
+        ok(q('.content-title') && q('.content-title').textContent.trim() === 'Ärzte & Söhne 🎉',
+           'Startseite aus $:/DefaultTiddlers: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+
+        ueberJson(function (d) {
+          if (!d) { ende(); return; }
+          var seiten = {};
+          d.seiten.forEach(function (x) { seiten[x.id] = x; });
+          ok(d.seiten.length === 4, 'die App fuehrt ' + d.seiten.length + ' Seiten: ' +
+             d.seiten.map(function (x) { return x.id; }).join('|'));
+
+          log.push('--- Inhalt und Schlagworte');
+          /* Achtung App-Feld gegen Tiddler-Feld: die Seite in der App
+             heisst content, im Tiddler heisst es text. */
+          ok(seiten.k1.content.indexOf('(wiki:k3)') > 0,
+             'der wiki:-Link im Inhalt bleibt unangetastet: ' + JSON.stringify(seiten.k1.content));
+          ok(JSON.stringify(seiten.k1.tags) === '["mit leerzeichen","emoji 🎉"]',
+             'Schlagworte aus [[..]]: ' + JSON.stringify(seiten.k1.tags));
+          ok(JSON.stringify(seiten.k3.tags) === '["doppelt"]',
+             'doppelte Schlagworte einmal: ' + JSON.stringify(seiten.k3.tags));
+          ok(seiten.k1.title === 'Ärzte & Söhne 🎉', 'caption wurde zum Namen: ' + seiten.k1.title);
+          ok(seiten.k2.title === 'Neue Seite', 'ohne caption: ' + seiten.k2.title);
+
+          log.push('--- Zeitstempel');
+          ok(seiten.k1.created === '2026-07-04T12:34:56.789Z',
+             'created aus 17 Stellen: ' + seiten.k1.created);
+          ok(seiten.k1.updated === '2026-07-04T12:34:56.789Z',
+             'modified aus 17 Stellen: ' + seiten.k1.updated);
+          ok(seiten.k4.created === '', 'eine Zeit mit 14 Stellen wird nicht gelesen: ' + JSON.stringify(seiten.k4.created));
+
+          log.push('--- Beim Schreiben: nichts zerstoeren, nichts erfinden');
+
+          /* Einmal speichern: die Seite mit Umlauten und Schlagworten,
+             damit am Anfragetext zu sehen ist, was hinausgeht. */
+          function speichern(name, text, fertig) {
+            all('.toc-item-title').filter(function (t) { return t.textContent.trim() === name; })[0].click();
+            setTimeout(function () {
+              all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0].click();
+              setTimeout(function () {
+                if (window.__ed) window.__ed.setMarkdown(text);
+                setTimeout(function () {
+                  all('.footer .btn').filter(function (b) { return /Speichern|Save/.test(b.textContent); })[0].click();
+                  setTimeout(fertig, 1200);
+                }, 700);
+              }, 2800);
+            }, 900);
+          }
+
+          speichern('Ärzte & Söhne 🎉', '# Ä\n\n[[k2]] und [Text](wiki:k3) - neu.', function () {
+            /* Und die Seite mit der unbekannten Zeit: der Wert im
+               Tiddler muss unangetastet bleiben. */
+            speichern('Ohne Millisekunden', 'Ohne Millisekunden\n\nNeu.', function () { ende(); });
+          });
+        });
+      }, 2500);
+    })();
+    </script>
+"""
+
+
 def lauf(name, skript, pfad, fenster=None):
     leeren()
     wikis[pfad.strip('/').split('/')[-1]].skript = skript
@@ -433,6 +559,8 @@ try:
     print()
     text8, ruf8 = lauf('_mws_ausfall', teil8, '/wiki/kaputt')
     print()
+    text9, ruf9 = lauf('_mws_kraus', teil9, '/wiki/kraus')
+    print()
     # ---- Der Kopf ist Pflicht: ohne ihn 400 INVALID_X_REQUESTED_WITH
     import urllib.request, urllib.error
     def roh_ruf(op, nutzlast, mit_kopf):
@@ -453,6 +581,21 @@ try:
     print('ohne X-Requested-With: %s %s' % (code_ohne, koerper_ohne.get('error')))
     print('mit  X-Requested-With: %s' % code_mit)
 
+    # ---- Was beim Speichern wirklich rausgeht
+    gesendet = {}
+    for a in ruf1 + ruf2 + ruf5 + ruf9:
+        if a.get('op') == 'save':
+            for t in (a['nutzlast'].get('tiddlers') or []):
+                gesendet[t.get('title')] = t
+    k1 = gesendet.get('k1') or {}
+    k4 = gesendet.get('k4') or {}
+    print('--- Was beim Speichern rausgeht (Tiddler k1) ---')
+    print('title ist die Kennung, nicht der Name: %r' % k1.get('title'))
+    print('caption traegt den Namen: %r' % k1.get('caption'))
+    print('tags als Listenformat, kein JSON-Array: %r' % k1.get('tags'))
+    print('created 17 Stellen: %r' % k1.get('created'))
+    print('unbekannte Zeit unangetastet (k4): %r' % k4.get('created'))
+
     # ---- Zeitstempel: 17 Stellen hin und zurueck, ohne Verlust
     alpha = wikis['alpha'].tiddler.get('a1', {})
     print('created unveraendert: %s (17 Stellen: %s)' % (alpha.get('created'),
@@ -470,7 +613,7 @@ finally:
 
 # ------------------------------------------------------------------ Auswertung
 ok = fail = 0
-for t in (text1, text2, text3, text4, text5, text6, text7, text8):
+for t in (text1, text2, text3, text4, text5, text6, text7, text8, text9):
     import re
     ok += len(re.findall(r'(?m)^OK\s', t))
     fail += len(re.findall(r'(?m)^FAIL\s', t))
@@ -487,7 +630,7 @@ print('davon einzelne Tiddler: %s'
 print('Reihenfolge geschrieben: %s'
       % sorted(set(str((a['nutzlast']['tiddlers'][0] or {}).get('reihenfolge'))
                   for a in saves if (a['nutzlast'].get('tiddlers') or [{}])[0])))
-alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8
+alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8 + ruf9
 print('updates abgerufen: %s'
       % ('ja' if any('updates' in (a.get('pfad') or '') for a in alle_rufe) else 'nein'))
 post5 = [a for a in ruf5 if a.get('weg') == 'POST']

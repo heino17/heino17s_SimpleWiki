@@ -2226,7 +2226,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             const m = String(iso == null ? '' : iso)
                 .match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?/);
             if (!m) return '';
-            return m[1] + m[2] + m[3] + m[4] + m[5] + m[6] + (m[7] || '000');
+            /* Die Millisekunden auf genau drei Stellen bringen. Ohne das
+               wird aus "…:00.5Z" eine 15-stellige Zahl, und die ist
+               keine Zeit mehr. */
+            const ms = m[7] ? ('00' + m[7]).slice(-3) : '000';
+            return m[1] + m[2] + m[3] + m[4] + m[5] + m[6] + ms;
         }
 
         /* Schlagworte: TiddlyWiki erwartet eine Liste im Listenformat
@@ -2262,6 +2266,33 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         }
 
         /* ---------- Seite und Tiddler ----------
+
+           Lesen (das, was der Server schickt):
+             title     -> die Kennung der Seite
+             caption   -> ihr Name; fehlt er, bekommt die Seite den
+                          Namen fuer eine neue Seite
+             text      -> der Inhalt, Markdown mit wiki:-Links
+             tags      -> [[foo]] [[bar]] wird zu einer Liste von Namen
+             created, modified -> 17 Stellen, gelesen als ISO-8601
+             Alles mit "$:/" vorn ist kein Seiteninhalt und wird
+             uebersprungen - auch $:/bag-info und $:/recipe-info, die der
+             Server zusaetzlich anlegt. Nur $:/DefaultTiddlers
+             (Startseite) und $:/SiteTitle (Wiki-Titel) werden gelesen.
+
+           Schreiben (das, was zurueckgeht):
+             title     die Kennung, caption der Name, text der Inhalt,
+             tags als [[foo]] [[bar]], created und modified als
+             17 Stellen. Unbekannte Felder des Tiddlers kommen wieder
+             mit, damit sie einen Hin-und-Her-Weg ueberstehen.
+
+           Zwei Grenzen, die man kennen sollte:
+             - Eine Zeit, die keine 17 Stellen hat, wird nicht gelesen.
+               Sie bleibt im Tiddler stehen, wird aber beim Schreiben
+               nicht ueberschrieben - ein Wert, den wir nicht kennen,
+               wird nicht zerstoert.
+             - Ein Schlagwort mit "[" oder "]" laesst sich im
+               Listenformat nicht darstellen und geht verloren. Die
+               Klammern sind die Form, nicht eine Konvention.
 
            title ist die Kennung der Seite, nicht ihr Name: der Name steht
            in caption. So bleibt ein Tiddler beim Umbenennen derselbe, und
@@ -2830,8 +2861,6 @@ showToc: false,
                 fremdeDaten: {},
                 /* Der Server hat kein Schreiben erlaubt. */
                 nurLesen: false,
-                /* Name des Wikis, wenn der Server einen schickt. */
-                mwsTitel: '',
                 /* Kommt der Inhalt vom Server statt aus dem Browser? */
                 mwsModus: false,
                 dragIndex: null,
@@ -3758,7 +3787,6 @@ showToc: false,
                 loadPages() {
                     const geladen = SPEICHER.laden();
                     this.mwsModus = SPEICHER.art === 'mws';
-                    this.mwsTitel = geladen.wikiTitel || '';
                     this.nurLesen = !!geladen.nurLesen;
                     this.showRefs = !!geladen.verweise;
 

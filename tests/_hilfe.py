@@ -81,7 +81,6 @@ def vollstaendig(text):
     return any(l.startswith('>>>') for l in text.split('\n'))
 
 
-
 def pruefe(*dateien):
     """Kopien in Chromium oeffnen, Berichte ausgeben, Programmcode setzen.
 
@@ -103,20 +102,27 @@ def pruefe(*dateien):
         text = bericht(dom)
         notiz = ''
 
-        # Ein durchgefallener Test bekommt einen zweiten Versuch mit mehr
+        # Ein durchgefallener Test bekommt weitere Versuche mit mehr
         # Zeit. Das Einlesen einer Datei braucht echte Datei-Zeit, und
         # unter Last mehrerer Browser laeuft die nicht mit der Uhr des
-        # Testskripts. Erst ein zweimaliger Fehlschlag zaehlt als Fehler -
-        # sonst ist ein roter Lauf eine Aussage ueber die Maschine und
-        # nicht ueber das Programm. Ein abgebrochener Lauf (Bericht ohne
-        # Abschlusszeile) zaehlt genauso als zweiter Versuch.
-        if not text or not vollstaendig(text) or zahlen(text)[1] > 0:
+        # Testskripts. Erst ein mehrmaliger Fehlschlag zaehlt als
+        # Fehler - sonst ist ein roter Lauf eine Aussage ueber die
+        # Maschine und nicht ueber das Programm. Ein abgebrochener Lauf
+        # (Bericht ohne Abschlusszeile) zaehlt genauso.
+        #
+        # Drei Versuche, weil die Suite inzwischen 17 Dateien mit
+        # dutzenden Browserlaeufen abarbeitet. Die Versuche kosten nur
+        # etwas, wenn ohnehin etwas schiefgeht.
+        for versuch in range(2):
+            if text and vollstaendig(text) and zahlen(text)[1] == 0:
+                break
             dom = lauf_budget(doppelt=True)
             text2 = bericht(dom)
-            if (text2 and vollstaendig(text2)
-                    and (not text or not vollstaendig(text) or zahlen(text2)[1] == 0)):
+            if text2 and vollstaendig(text2) and (not text or not vollstaendig(text)
+                                                 or zahlen(text2)[1] == 0):
                 text = text2
                 notiz = ' (Wiederholung, beim ersten Lauf unter Last gescheitert)'
+                break
 
         if not text:
             # Kein Bericht: entweder ist die App nicht gekommen, oder

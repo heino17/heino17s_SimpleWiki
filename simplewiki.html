@@ -3081,7 +3081,32 @@ showToc: false,
                 ersetzeWikiSyntax(text) {
                     const code = this.quelltextAusblenden(text);
 
-                    const s = code.text.replace(/\[\[([^\]\n]+)\]\]/g, (treffer, inhalt) => {
+                    /* Beide Schreibweisen auf die Form bringen, die
+                       marked sicher als Link erkennt:
+                         [[Ziel]]                    -> [Text](wiki:Ziel)
+                         [Text](wiki:Ziel)           -> [Text](wiki:Ziel)
+
+                       Das zweite ist nicht nur Kosmetik. marked lässt
+                       eine URL mit Leerzeichen nicht als Link gelten -
+                       "wiki:Zweite Seite" bleibt reiner Text. Der
+                       Verweiszähler erkennt sie aber sehr wohl, weil
+                       seine Suche auch Leerzeichen zulässt. Die App
+                       widersprach sich also selbst: im Verweispanel
+                       stand der Link, in der Seite stand Text.
+
+                       Deshalb wird auch die schon geschriebene Form
+                       hier noch einmal durch das properte Verfahren
+                       gezogen - mit encodeURIComponent, damit der
+                       Leerzeichenfall verschwindet. */
+                    const muster = /\[[^\]\n]*\]\(\s*<?\s*wiki:([^)>]*?)\s*>?\s*\)/g;
+                    const s1 = code.text.replace(muster, (treffer, ziel) => {
+                        const frei = ziel.trim();
+                        if (!frei) return treffer;
+                        return '[' + this.escapeMarkdown(frei) +
+                            '](wiki:' + encodeURIComponent(frei) + ')';
+                    });
+
+                    const s2 = s1.replace(/\[\[([^\]\n]+)\]\]/g, (treffer, inhalt) => {
                         const teile = inhalt.split('|');
                         const ziel = (teile.length > 1 ? teile[1] : teile[0]).trim();
                         if (!ziel) return treffer;               /* [[]] ist kein Link */
@@ -3090,7 +3115,7 @@ showToc: false,
                             '](wiki:' + encodeURIComponent(ziel) + ')';
                     });
 
-                    return code.wiederherstellen(s);
+                    return code.wiederherstellen(s2);
                 },
 
                 /* Sonderzeichen im Linktext escaped Markdown, damit aus

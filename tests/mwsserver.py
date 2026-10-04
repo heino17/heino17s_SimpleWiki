@@ -30,6 +30,7 @@ except ImportError:                                    # pragma: no cover
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mkcopy                                             # noqa: E402
+import mwsfixture                                         # noqa: E402
 
 PROJEKT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUELLE = os.path.join(PROJEKT, 'simplewiki.html')
@@ -180,16 +181,15 @@ class Handler(BaseHTTPRequestHandler):
         """simplewiki.html mit dem Marker als erstes Element nach dem Kopf."""
         with io.open(QUELLE, encoding='utf-8') as fh:
             html = fh.read()
-        inhalt = [] if wiki.marker_leer else wiki.alle()
-        koerper = json.dumps(inhalt, ensure_ascii=False).replace('<', '\\u003c')
-        marker = ('<script class="tiddlywiki-tiddler-store" '
-                  'type="application/json">' + koerper + '</' + 'script>\n')
+        inhalt = wiki.alle()
         # Die echte Head-Grenze suchen: im Dokument steht </head> auch
         # im Kommentar, und dort gehoert der Marker nicht hin.
         for a, b in wiki.ersetzungen:
             html = html.replace(a, b)
-        head_at = mkcopy._echte_tags(html)[0]
-        html = html[:head_at] + marker + html[head_at:]
+        # Der Aufbau ist derselbe wie in der Datei-Fixture: erst der
+        # Marker an die echte Head-Grenze, dann die Testskripte. So gibt
+        # es nur eine Stelle, die weiss, wie ein Server auszusehen hat.
+        html = mwsfixture.einsetzen(html, inhalt, wiki.marker_leer)
         html = mkcopy.hauptskripte(html, pre=wiki.vorab, script=wiki.skript)
         return html
 

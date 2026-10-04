@@ -86,6 +86,16 @@ def _echte_tags(h):
     return head, body_tag_ende, body
 
 
+def build_roh(name, html):
+    """Fertigen HTML-Text in die Kopien legen und den Pfad zurueckgeben."""
+    if not os.path.isdir(KOPIEN):
+        os.makedirs(KOPIEN)
+    pfad = os.path.join(KOPIEN, name)
+    with io.open(pfad, 'w', encoding='utf-8') as fh:
+        fh.write(html)
+    return pfad
+
+
 def hauptskripte(h, seed='', pre='', script=''):
     """Seed und Testskripte an die echten Head-/Body-Tags haengen.
 

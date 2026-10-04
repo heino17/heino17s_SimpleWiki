@@ -2296,10 +2296,63 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            gespeicherte Wiki-Datei und ein altes Wiki im Browser gleich
            bleiben. */
 
-        const LocalStore = {
-            /* Die App und der Speicher arbeiten auf derselben Liste
-               (siehe seitenUebernehmen). Deshalb wird hier nichts
-               nachgeführt, sondern nur geschrieben. */
+        /* ---------- Der Vertrag ----------
+
+           Ein Speicher, sieben Methoden. Beide Ausprägungen hier -
+           LocalStore im Browser und MwsStore auf dem Server - bieten
+           genau diese an, und der Rest des Programms benutzt keine
+           andere. Wird eine Ausprägung unvollständig, sagt es beim
+           Start laut, statt dass später irgendwo still nichts
+           gespeichert wird.
+
+             laden()
+               -> { seiten, vorhanden, verweise, startseite, sprache,
+                    thema, nurLesen, wikiTitel, art }
+                  seiten      die Seitenliste, die der Speicher verwaltet
+                  vorhanden   true, wenn es etwas zu laden gab. Wichtig
+                              für den Unterschied zwischen einem leeren
+                              Wiki (das leer bleiben will) und gar keinem
+                              (für das eine Willkommensseite entsteht).
+                  verweise    ob die Verweisleiste offen war - eine
+                              Ansichtseinstellung, deshalb steht sie in
+                              beiden Ausprägungen im Browser
+                  nurLesen    true, wenn geschrieben verboten ist
+                  wikiTitel   Name des Wikis, '' wenn keiner da ist
+                  art         'browser' oder 'mws'
+
+             uebernehmen(seiten)
+                  Die Seitenliste der App übernehmen. Ab dann zeigt der
+                  Speicher auf dieselbe Liste. Wichtig: die Liste wird
+                  nie ersetzt, nur geändert - sonst wären App und
+                  Speicher nach dem ersten Speichern auseinander.
+
+             seiteSichern(seite)    diese Seite speichern
+             seiteLoeschen(id)      diese Seite entfernen
+             startseiteSetzen(id)   id zur Startseite machen
+             themaSetzen(thema)     'light' oder 'dark'
+             spracheSetzen(sprache) 'de' oder 'en'
+        */
+
+        const SPEICHER_METHODEN = ['laden', 'uebernehmen', 'seiteSichern',
+            'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'spracheSetzen'];
+
+        function pruefeSpeicher(speicher, name) {
+            const fehlt = SPEICHER_METHODEN.filter(m => typeof speicher[m] !== 'function');
+            if (fehlt.length) {
+                throw new Error('SimpleWiki: ' + name +
+                    ' kann nicht speichern, ihm fehlen: ' + fehlt.join(', '));
+            }
+            return speicher;
+        }
+
+        /* ---------- Ausprägung 1: der Browser ---------- */
+
+        /* Schlüssel und Verhalten bleiben unverändert, damit eine
+           gespeicherte Wiki-Datei und ein altes Wiki im Browser gleich
+           bleiben. */
+
+        const LocalStore = pruefeSpeicher({
+            art: 'browser',
             seiten: [],
             startId: '',
             einstellungen: {},
@@ -2324,24 +2377,37 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                        die leere sehen und keine Willkommensseite
                        dazubekommen. */
                     vorhanden: roh !== null && roh !== undefined,
-                    /* Die Verweisleiste ist eine Ansichtseinstellung
-                       dieses Browsers, keine Angabe des Wikis - darum
-                       steht sie in beiden Speichern hier. */
                     verweise: SimpleWikiStore.get('simplewiki_refs') === '1',
                     startseite: this.startId,
                     sprache: SimpleWikiStore.get('simplewiki_lang') || '',
-                    thema: SimpleWikiStore.get('simplewiki_theme') || ''
+                    thema: SimpleWikiStore.get('simplewiki_theme') || '',
+                    nurLesen: false,
+                    wikiTitel: ''
                 };
             },
 
-            seiteSichern: function () {
-                SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.seiten));
+            uebernehmen: function (seiten) {
+                this.seiten = seiten;
+                return this;
+            },
+
+            /* Auch hier zählt das übergebene Blatt: eine bekannte
+               Kennung wird ersetzt, nicht angehängt. Sonst stünde beim
+               zweiten Speichern derselben Seite eine Kopie daneben. */
+            seiteSichern: function (seite) {
+                const i = this.seiten.findIndex(p => String(p.id) === String(seite.id));
+                if (i >= 0) this.seiten[i] = seite;
+                else this.seiten.push(seite);
+                this.schreiben();
                 return true;
             },
 
+            /* An Ort und Stelle entfernen, damit App und Speicher
+               dieselbe Liste behalten. */
             seiteLoeschen: function (id) {
-                this.seiten = this.seiten.filter(p => String(p.id) !== String(id));
-                SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.seiten));
+                const i = this.seiten.findIndex(p => String(p.id) === String(id));
+                if (i >= 0) this.seiten.splice(i, 1);
+                this.schreiben();
                 return true;
             },
 
@@ -2361,10 +2427,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 this.einstellungen.sprache = sprache;
                 SimpleWikiStore.set('simplewiki_lang', sprache == null ? '' : String(sprache));
                 return true;
-            }
-        };
+            },
 
-        /* ---------- MWS: die Seiten liegen auf dem Server ---------- */
+            schreiben: function () {
+                SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.seiten));
+            }
+        }, 'der Browserspeicher');
+
+        /* ---------- Ausprägung 2: der Server ---------- */
 
         /* Der Name des Wikis steht im Pfad: /wiki/<name>/ */
         function mwsSlug() {
@@ -2373,6 +2443,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         }
 
         function MwsStore(tiddler) {
+            this.art = 'mws';
             this.tiddler = Array.isArray(tiddler) ? tiddler : [];
             this.slug = mwsSlug();
             /* Die Felder, wie sie kamen. Beim Schreiben werden sie
@@ -2518,6 +2589,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             };
         };
 
+        /* Wie beim Browser: danach zeigt der Speicher auf die Liste der
+           App, und er ersetzt sie nie. */
+        MwsStore.prototype.uebernehmen = function (seiten) {
+            this.seiten = seiten;
+            return this;
+        };
+
         MwsStore.prototype.seiteSichern = function (seite) {
             const felder = this.felder[seite.id] || {};
             const t = seiteZuTiddler(seite, felder);
@@ -2561,11 +2639,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             return this.einstellungenSchreiben();
         };
 
+                /* Erst jetzt sind alle Methoden da - deshalb wird hier geprueft
+           und nicht direkt nach dem Konstruktor. */
+        pruefeSpeicher(MwsStore.prototype, 'der Serverspeicher');
+
         /* ---------- Und hier wird entschieden ----------
 
            Marker mit Inhalt: der Server liefert die Seiten mit, das Wiki
            schreibt dorthin zurück. Marker fehlt oder leer: alles bleibt
-           im Browser. */
+           im Browser. Das ist die einzige Stelle im Programm, an der
+           zwischen den beiden Ausprägungen gewählt wird. */
         const MWS_TIDDLER = mwsTiddlerLesen();
         const SPEICHER = (MWS_TIDDLER && MWS_TIDDLER.length)
             ? new MwsStore(MWS_TIDDLER)
@@ -3197,17 +3280,16 @@ showToc: false,
                    beziehen sich immer auf die Liste vor dem Verschieben. */
                 movePage(von, nach) {
                     if (von < 0 || von >= this.pages.length) return;
-                    const liste = this.pages.slice();
-                    const seite = liste.splice(von, 1)[0];
                     let ziel = nach;
                     if (von < nach) ziel = nach - 1;   /* der Rest rutscht eins vor */
-                    ziel = Math.max(0, Math.min(ziel, liste.length));
+                    /* Die Zahl der Seiten minus die, die gerade rausgeht:
+                       das ist die groesste moegliche Stelle danach. */
+                    ziel = Math.max(0, Math.min(ziel, this.pages.length - 1));
                     if (ziel === von) return;
-                    liste.splice(ziel, 0, seite);
-                    this.pages = liste;
-                    /* Die neue Liste dem Speicher geben: er schreibt daraus
-                       die Reihenfolge in die Seiten. */
-                    this.seitenUebernehmen();
+                    /* Umstellen an Ort und Stelle, nicht ueber eine neue
+                       Liste: der Speicher zeigt auf dieselbe. */
+                    const seite = this.pages.splice(von, 1)[0];
+                    this.pages.splice(ziel, 0, seite);
                     this.seitenSichern();
                 },
 
@@ -3610,7 +3692,7 @@ showToc: false,
                    ob er aus dem Browser oder vom Server kommt. */
                 loadPages() {
                     const geladen = SPEICHER.laden();
-                    this.mwsModus = SPEICHER instanceof MwsStore;
+                    this.mwsModus = SPEICHER.art === 'mws';
                     this.mwsTitel = geladen.wikiTitel || '';
                     this.nurLesen = !!geladen.nurLesen;
                     this.showRefs = !!geladen.verweise;
@@ -3674,7 +3756,7 @@ showToc: false,
                    was die App danach an der Liste ändert, sieht der
                    Speicher sofort. */
                 seitenUebernehmen() {
-                    SPEICHER.seiten = this.pages;
+                    SPEICHER.uebernehmen(this.pages);
                 },
 
                 /* Alle Seiten dem Speicher geben. Wird beim Einlesen
@@ -3906,7 +3988,10 @@ showToc: false,
                     const deleted = this.pageToDelete;
                     if (!deleted) return;
 
-                    this.pages = this.pages.filter(p => p.id !== deleted.id);
+                    /* An Ort und Stelle entfernen, nicht durch eine neue
+                       Liste ersetzen: der Speicher zeigt auf dieselbe. */
+                    const i = this.pages.findIndex(p => p.id === deleted.id);
+                    if (i >= 0) this.pages.splice(i, 1);
 
                     /* War die gelöschte Seite die Startseite, eine neue
                        bestimmen – sonst zeigt das Wiki ins Leere. */

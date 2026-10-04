@@ -39,7 +39,7 @@ class Wiki:
     """Der Inhalt eines Wikis: Titel -> Felder."""
 
     def __init__(self, slug, tiddler, nurLesen=False, titel='Testwiki',
-                 skript='', vorab='', marker_leer=False):
+                 skript='', vorab='', marker_leer=False, ersetzungen=None):
         self.slug = slug
         self.nurLesen = nurLesen
         # Was die Testfigur in die ausgelieferte Seite einhaengt - so
@@ -49,6 +49,9 @@ class Wiki:
         # Ein Marker ohne Inhalt: so sieht eine Seite aus, die der
         # Browser bedienen soll, obwohl sie vom Server kommt.
         self.marker_leer = marker_leer
+        # Eingriffe in die Datei, bevor sie ausgeliefert wird - damit
+        # kommen Testhaaken an dieselbe Stelle wie bei Dateikopien.
+        self.ersetzungen = list(ersetzungen or [])
         self.tiddler = {}
         for t in tiddler:
             self.tiddler[t['title']] = dict(t)
@@ -167,6 +170,8 @@ class Handler(BaseHTTPRequestHandler):
                   'type="application/json">' + koerper + '</' + 'script>\n')
         # Die echte Head-Grenze suchen: im Dokument steht </head> auch
         # im Kommentar, und dort gehoert der Marker nicht hin.
+        for a, b in wiki.ersetzungen:
+            html = html.replace(a, b)
         head_at = mkcopy._echte_tags(html)[0]
         html = html[:head_at] + marker + html[head_at:]
         html = mkcopy.hauptskripte(html, pre=wiki.vorab, script=wiki.skript)

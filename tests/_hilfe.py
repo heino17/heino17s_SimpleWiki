@@ -81,6 +81,7 @@ def vollstaendig(text):
     return any(l.startswith('>>>') for l in text.split('\n'))
 
 
+
 def pruefe(*dateien):
     """Kopien in Chromium oeffnen, Berichte ausgeben, Programmcode setzen.
 

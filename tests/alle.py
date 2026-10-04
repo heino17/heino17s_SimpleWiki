@@ -29,6 +29,7 @@ REIHENFOLGE = [
     't_file.py',       # Als Datei sichern und laden
     't_mws.py',        # Austausch mit MWS: JSON, Version, Fremdfelder
     't_mwsmode.py',    # Betrieb auf einem MWS-Server: Marker, Speicher, 403
+    't_speicher.py',   # Eine Abstraktion, zwei Auspraegungen
     't_leerwiki.py',   # Leere Wiki-Datei, Vorlage fuellen und oeffnen
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_fluss.py',      # Fluss und Druckansicht
@@ -48,6 +49,7 @@ BESCHRIEBUNG = {
     't_file.py': 'Wiki als Datei sichern und laden',
     't_mws.py': 'Austauschformat: JSON, Version, fremde Felder, doppelte Titel',
     't_mwsmode.py': 'Serverbetrieb: Marker, Speicher, Schreiben, 403, leerer Marker',
+    't_speicher.py': 'Speicherabstraktion: gleicher Vertrag, Browser und Server',
     't_leerwiki.py': 'Leere Wiki-Datei als Vorlage, Angaben oben, der Weg zurueck',
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_fluss.py': 'Fluss und Druckansicht',

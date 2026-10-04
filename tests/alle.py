@@ -26,6 +26,7 @@ REIHENFOLGE = [
     't_refs.py',       # Verweis-Panel
     't_order.py',      # Reihenfolge per Ziehen
     't_file.py',       # Als Datei sichern und laden
+    't_mws.py',         # Austausch mit MWS: JSON, Version, Fremdfelder
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_fluss.py',      # Fluss und Druckansicht
     't_scroll.py',     # Scrollen und Druck ueber Blaetter
@@ -41,6 +42,7 @@ BESCHRIEBUNG = {
     't_refs.py': 'Verweis-Panel mit Zaehler und Speichern',
     't_order.py': 'Reihenfolge per Ziehen und Alt + Pfeil',
     't_file.py': 'Wiki als Datei sichern und laden',
+    't_mws.py': 'Austauschformat: JSON, Version, fremde Felder, doppelte Titel',
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_fluss.py': 'Fluss und Druckansicht',
     't_scroll.py': 'Scrollen im Fluss, Druck ueber Blaetter',

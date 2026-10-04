@@ -41,6 +41,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
+| `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |
 | `t_scroll.py` | Scrollen im Fluss bei kurzem Fenster, Druck über mehrere Seiten |
@@ -67,3 +68,43 @@ im ausgedruckten HTML:
 python3 tests/alle.py            # zeigt an, welcher Test und welche Prüfung
 chromium --headless --dump-dom "file://$PWD/tests/_kopien/_order1.html"
 ```
+
+## Austauschformat
+
+SimpleWiki und MWS sprechen dasselbe Format. Es steckt im HTML in
+`<script id="simplewiki-daten">` und lässt sich als eigene `.json`-Datei
+schreiben und lesen:
+
+```json
+{
+  "version": 1,
+  "seiten": [
+    {"id": "…", "title": "…", "content": "Markdown mit [[Verweisen]]",
+     "links": ["Seitenname"], "tags": [], "created": "ISO-8601 mit Z",
+     "updated": "ISO-8601 mit Z"}
+  ],
+  "startseite": "id der Startseite",
+  "sprache": "de",
+  "thema": "light"
+}
+```
+
+Drei Zusagen, die `t_mws.py` prüft:
+
+1. **JSON und HTML sind gleichwertig.** Beim Einlesen wird JSON versucht
+   und nur akzeptiert, wenn ein `seiten`-Array drin ist; sonst greift der
+   Datenblock der HTML-Datei.
+2. **Fremde Felder bleiben.** `normiereSeiten` normalisiert die bekannten
+   Felder und nimmt alles andere unverändert mit – ein Hin-und-Her-Weg
+   über ein Werkzeug verliert nichts.
+3. **Zu neue Dateien werden ganz abgelehnt.** Fehlt `version` oder ist sie
+   größer als die eigene, wird nichts übernommen und der Grund genannt.
+
+Zwei Entscheidungen, die nicht in der Vorgabe standen (jeweils eine Zeile,
+wenn es anders sein soll):
+
+- Eine Datei **ohne Seiten** wird abgelehnt statt als leeres Wiki
+  übernommen: sonst ersetzt ein missglückter Export die ganze Wiki.
+- Beim **Anlegen** wird ein vergebener Name still eindeutig gemacht
+  („Neue Seite 2“), beim **Umbenennen** wird abgelehnt und der Name genannt
+  – stilles Umbenennen beim Speichern wäre überraschend.

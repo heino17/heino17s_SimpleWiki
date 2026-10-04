@@ -1318,7 +1318,7 @@
                     <div class="fluss-kopf">
                         <div>
                             <h2 class="fluss-titel">{{ t('riverTitle') }}</h2>
-                            <p class="fluss-zahl">{{ t('riverCount').replace('{n}', flussSeiten.length) }}</p>
+                            <p class="fluss-zahl">{{ t('riverCount').replace('{zahl}', seitenZahl(flussSeiten.length)) }}</p>
                         </div>
                         <div class="fluss-aktionen">
                             <button class="btn btn-secondary" @click="drucken">
@@ -1526,11 +1526,15 @@
                         💾 {{ t('fileSave') }}
                     </button>
                     <p class="settings-hint">{{ t('fileSaveHint') }}</p>
+                    <button class="settings-btn" @click="jsonExportieren">
+                        📄 {{ t('fileSaveJson') }}
+                    </button>
+                    <p class="settings-hint">{{ t('fileSaveJsonHint') }}</p>
                     <button class="settings-btn" @click="$refs.dateiFeld.click()">
                         📂 {{ t('fileLoad') }}
                     </button>
                     <p class="settings-hint">{{ t('fileLoadHint') }}</p>
-                    <input ref="dateiFeld" type="file" accept=".html,text/html" class="datei-feld" @change="dateiLaden">
+                    <input ref="dateiFeld" type="file" accept=".html,.json,text/html,application/json" class="datei-feld" @change="dateiLaden">
                 </div>
             </div>
         </div>
@@ -1606,18 +1610,28 @@
                     "linkNoPages": "Keine passende Seite gefunden – oben einen Namen eingeben.",
                                                             "dataSection": "Wiki-Daten",
                     "fileSave": "Als Datei sichern",
-                    "fileSaveHint": "Legt eine HTML-Datei mit allen Seiten in dieser Reihenfolge an – du kannst sie unter dem Namen simplewiki.html speichern und damit diese Datei ersetzen.",
+                                        "fileSaveJson": "JSON exportieren",
+                    "fileSaveJsonHint": "Schreibt nur die Daten als JSON – gleicher Aufbau wie beim Laden, ohne HTML-Hülle. Gedacht für Werkzeuge, die keine HTML-Datei bauen können.",
+                    "noticeJsonSaved": "JSON gesichert: simplewiki.json",
+                    "noticeNoPages": "Die Datei enthält keine Seiten – es wurde nichts ersetzt.",
+                    "noticeVersionFehlt": "Die Datei nennt keine Formatversion und wurde nicht gelesen – so geht keine Information verloren.",
+                    "noticeVersionUngueltig": "Die Datei nennt die Version „{version}“. Erlaubt ist eine Zahl ab 1.",
+                    "noticeVersionZuNeu": "Die Datei hat Version {version}, diese Wiki kommt bis Version {eigen}. Es wurde nichts übernommen.",
+                    "noticeTitleFrei": "Den Namen „{title}“ gibt es schon. Bitte einen anderen wählen.",
+"fileSaveHint": "Legt eine HTML-Datei mit allen Seiten in dieser Reihenfolge an – du kannst sie unter dem Namen simplewiki.html speichern und damit diese Datei ersetzen.",
                     "fileLoad": "Datei laden",
-                    "fileLoadHint": "Übernimmt die Seiten aus einer gesicherten Datei und ersetzt das aktuelle Wiki.",
+                    "fileLoadHint": "Übernimmt die Seiten aus einer gesicherten HTML- oder JSON-Datei und ersetzt das aktuelle Wiki.",
                     "noticeSaved": "Gesichert. Die Datei liegt jetzt im Download-Ordner.",
-                    "noticeLoaded": "Wiki übernommen – {n} Seiten in dieser Reihenfolge.",
+                    "noticeLoaded": "Wiki übernommen: {zahl} in dieser Reihenfolge.",
+                    "seite1": "1 Seite",
+                    "seitenN": "{n} Seiten",
                     "noticeError": "In dieser Datei steckt kein SimpleWiki.",
                     "noticeSaveError": "Das Sichern hat nicht geklappt.",
                     "reorderHint": "Reihenfolge: Zeile am ⠿ ziehen oder Alt + ↑/↓",
                     "reorderBlocked": "Zum Ändern der Reihenfolge die Suche leeren.",
                     "riverTitle": "Fluss – alle Seiten",
                     "riverButton": "Fluss",
-                    "riverCount": "{n} Seiten hintereinander",
+                    "riverCount": "{zahl} hintereinander",
                     "riverBack": "Zurück zur Seite",
                     "riverPrint": "Drucken",
                     "riverNoText": "(Seite ohne Text)",
@@ -1674,18 +1688,28 @@
                     "linkNoPages": "No matching page found – enter a name above.",
                                                             "dataSection": "Wiki data",
                     "fileSave": "Save as file",
-                    "fileSaveHint": "Creates an HTML file with all pages in this order – save it as simplewiki.html to replace this file.",
+                                        "fileSaveJson": "Export JSON",
+                    "fileSaveJsonHint": "Writes only the data as JSON – same structure as on import, without an HTML wrapper. Meant for tools that cannot build an HTML file.",
+                    "noticeJsonSaved": "JSON saved: simplewiki.json",
+                    "noticeNoPages": "The file contains no pages – nothing was replaced.",
+                    "noticeVersionFehlt": "The file names no format version and was not read – so no information is lost.",
+                    "noticeVersionUngueltig": "The file names version \u201e{version}\u201c. A number from 1 upwards is allowed.",
+                    "noticeVersionZuNeu": "The file has version {version}, this wiki goes up to version {eigen}. Nothing was taken over.",
+                    "noticeTitleFrei": "There is already a page named \u201e{title}\u201c. Please choose another one.",
+"fileSaveHint": "Creates an HTML file with all pages in this order – save it as simplewiki.html to replace this file.",
                     "fileLoad": "Load file",
-                    "fileLoadHint": "Takes over the pages from a previously saved file and replaces the current wiki.",
+                    "fileLoadHint": "Takes over the pages from a saved HTML or JSON file and replaces the current wiki.",
                     "noticeSaved": "Saved. The file is now in your download folder.",
-                    "noticeLoaded": "Wiki taken over – {n} pages in this order.",
+                    "noticeLoaded": "Wiki taken over: {zahl} in this order.",
+                    "seite1": "1 page",
+                    "seitenN": "{n} pages",
                     "noticeError": "This file does not contain a SimpleWiki.",
                     "noticeSaveError": "Saving did not work.",
                     "reorderHint": "Order: drag a row by ⠿ or press Alt + ↑/↓",
                     "reorderBlocked": "Clear the search to change the order.",
                     "riverTitle": "River – all pages",
                     "riverButton": "River",
-                    "riverCount": "{n} pages one after another",
+                    "riverCount": "{zahl} one after another",
                     "riverBack": "Back to the page",
                     "riverPrint": "Print",
                     "riverNoText": "(page without text)",
@@ -1802,6 +1826,19 @@
         };
 
         /* ---------- Start ---------- */
+
+        /* Version des Austauschformats.
+
+           SimpleWiki und MWS sprechen dasselbe Format:
+           {version, seiten:[{id,title,content,links,tags,created,updated}],
+            startseite, sprache, thema}
+
+           Diese Zahl wird beim Schreiben mitgegeben und beim Lesen
+           geprueft. Ist die Datei neuer als diese Version, wird sie
+           abgelehnt - und zwar ganz, nicht teilweise. Sonst koennte
+           ein Hin-und-Her-Weg Felder stillschweigend verlieren,
+           weil die aeltere Version sie nicht kennt. */
+        const SIMPLEWIKI_FORMAT_VERSION = 1;
 
         /* Kopie des Dokuments, BEVOR Vue startet.
 
@@ -2182,10 +2219,33 @@ showToc: false,
                     this.openLinkTarget(titel);
                 },
 
+                /* Ist der Name schon vergeben? Seiten werden über den
+                   Namen verknüpft - zwei Seiten mit demselben Namen
+                   machen den Linkgraphen kaputt, weil nicht mehr
+                   eindeutig ist, welche gemeint ist. */
+                titelVergeben(titel, ausserId) {
+                    const t = String(titel || '').trim().toLowerCase();
+                    if (!t) return false;
+                    return this.pages.some(p =>
+                        p.id !== ausserId &&
+                        String(p.title || '').trim().toLowerCase() === t
+                    );
+                },
+
+                /* Einen freien Namen finden: "Neue Seite" wird zu
+                   "Neue Seite 2", "Neue Seite 3" und so weiter. */
+                eindeutigerTitel(titel) {
+                    const basis = String(titel || '').trim() || this.t('untitled');
+                    if (!this.titelVergeben(basis)) return basis;
+                    let n = 2;
+                    while (this.titelVergeben(basis + ' ' + n)) n++;
+                    return basis + ' ' + n;
+                },
+
                 createPageWithTitle(titel) {
                     const neu = {
                         id: Date.now().toString(),
-                        title: titel,
+                        title: this.eindeutigerTitel(titel),
                         content: '',
                         links: [],
                         tags: [],
@@ -2390,18 +2450,101 @@ showToc: false,
 
                 /* ---------- Als Datei sichern und laden ---------- */
 
-                /* Seiten auf die Form bringen, die die App erwartet –
-                   beim Laden können fremde oder ältere Dateien kommen. */
+                /* Seiten auf die Form bringen, die die App erwartet.
+
+                   Wichtig für den Austausch mit anderen Werkzeugen:
+                   die bekannten Felder werden normalisiert, alles
+                   andere bleibt unangetastet. Wer eine Datei um den
+                   Weg hin und zurück schickt, darf daran nichts
+                   verlieren, nur weil SimpleWiki ein Feld nicht
+                   kennt. */
                 normiereSeiten(seiten) {
-                    return seiten.map((p, i) => ({
-                        id: p && p.id ? String(p.id) : 's' + i + '-' + (p && p.title ? p.title : 'seite'),
-                        title: p && p.title ? String(p.title) : this.t('untitled'),
-                        content: p && p.content ? String(p.content) : '',
-                        links: p && Array.isArray(p.links) ? p.links.slice() : [],
-                        tags: p && Array.isArray(p.tags) ? p.tags.slice() : [],
-                        created: p && p.created ? p.created : '',
-                        updated: p && p.updated ? p.updated : ''
-                    }));
+                    return seiten.map((p, i) => {
+                        const roh = (p && typeof p === 'object' && !Array.isArray(p)) ? p : {};
+                        const seite = Object.assign({}, roh);
+
+                        seite.id = roh.id ? String(roh.id) : 's' + i + '-' + (roh.title || 'seite');
+                        seite.title = roh.title ? String(roh.title) : this.t('untitled');
+                        seite.content = roh.content ? String(roh.content) : '';
+                        seite.tags = Array.isArray(roh.tags) ? roh.tags.slice() : [];
+                        seite.created = roh.created ? String(roh.created) : '';
+                        seite.updated = roh.updated ? String(roh.updated) : '';
+
+                        /* Verweise: die aus dem Text notierten Links
+                           kommen dazu. Sonst zeigt der 🔗-Knopf bei
+                           einer Datei von aussen den falschen Zustand,
+                           weil er nur page.links liest. */
+                        const eigene = Array.isArray(roh.links) ? roh.links.slice() : [];
+                        seite.links = eigene
+                            .concat(this.extractWikiLinks(seite.content))
+                            .filter((t, k, arr) => typeof t === 'string' && t && arr.indexOf(t) === k);
+
+                        return seite;
+                    });
+                },
+
+                /* Passt die Datei zu dem Format, das diese Version
+                   versteht? Gibt null zurück, wenn ja, sonst einen
+                   fertigen Ablehnungsgrund für den Hinweis. */
+                pruefeFormat(daten) {
+                    if (!daten || !Array.isArray(daten.seiten)) {
+                        return this.t('noticeError');
+                    }
+                    if (!daten.seiten.length) {
+                        /* Eine Datei ohne Seiten ist entweder ein
+                           Fehlschlag beim Export oder ein Versehen -
+                           beides soll die vorhandene Wiki nicht
+                           ersetzen. */
+                        return this.t('noticeNoPages');
+                    }
+                    if (daten.version === undefined || daten.version === null || daten.version === '') {
+                        return this.t('noticeVersionFehlt');
+                    }
+                    const v = Number(daten.version);
+                    if (!isFinite(v) || v < 1) {
+                        return this.t('noticeVersionUngueltig').replace('{version}', String(daten.version));
+                    }
+                    if (v > SIMPLEWIKI_FORMAT_VERSION) {
+                        return this.t('noticeVersionZuNeu')
+                            .replace('{version}', String(v))
+                            .replace('{eigen}', String(SIMPLEWIKI_FORMAT_VERSION));
+                    }
+                    return null;
+                },
+
+                /* Daten aus einem Text holen - entweder als JSON oder
+                   aus dem Datenblock einer HTML-Datei.
+
+                   Erkennung: JSON wird zuerst versucht, und es zählt
+                   nur, wenn ein "seiten"-Array drin ist. Sonst wird
+                   der HTML-Weg probiert. Eine kaputte JSON-Datei
+                   schließt den HTML-Weg nicht aus, weil eine
+                   HTML-Datei zufällig mit "{" beginnen könnte. */
+                datenAusText(roh) {
+                    let text = String(roh || '').trim();
+                    if (text.charAt(0) === '\uFEFF') text = text.slice(1);
+                    if (!text) return null;
+
+                    if (text.charAt(0) === '{') {
+                        try {
+                            const d = JSON.parse(text);
+                            if (d && Array.isArray(d.seiten)) return d;
+                        } catch (e) {
+                            /* weiterversuchen: ist es doch eine HTML-Datei? */
+                        }
+                    }
+
+                    const treffer = text.match(
+                        /<script[^>]*id="simplewiki-daten"[^>]*>([\s\S]*?)<\/script>/
+                    );
+                    if (treffer) {
+                        try {
+                            return JSON.parse(treffer[1].replace(/\\u003c/g, '<'));
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+                    return null;
                 },
 
                 /* Den Datenblock aus dem Dokument lesen. "<" steht dort
@@ -2410,33 +2553,69 @@ showToc: false,
                 readDatenAusDatei() {
                     const halter = document.getElementById('simplewiki-daten');
                     if (!halter) return null;
-                    const roh = (halter.textContent || '').trim();
-                    if (!roh) return null;
-                    try {
-                        return JSON.parse(roh.replace(/\\u003c/g, '<'));
-                    } catch (e) {
+                    const daten = this.datenAusText(halter.textContent || '');
+                    if (!daten) return null;
+                    /* Auch hier gilt: passt die Version nicht, wird nichts
+                       übernommen - auch nicht halb. */
+                    const grund = this.pruefeFormat(daten);
+                    if (grund) {
+                        this.hinweis(grund);
                         return null;
                     }
+                    return daten;
                 },
 
-                /* Startseite, Sprache und Farbe aus der Datei übernehmen,
-                   solange der Browser nichts dazu gespeichert hat. */
+                /* Startseite, Sprache und Farbe aus der Datei übernehmen.
+
+                   Bewusst ohne Bedingung: wer eine Datei einliest, will
+                   dass sie das Wiki ersetzt - auch die Startseite. Vorher
+                   blieb die Startseite stehen, wenn der Browser schon
+                   eine gespeichert hatte, und der Knopf "Ersetzen"
+                       versprach mehr, als er tat. */
                 uebernehmenAusDatei(daten) {
                     if (daten.startseite && this.pages.some(p => p.id === daten.startseite)) {
                         this.startPageId = daten.startseite;
                         SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
                     }
-                    if (daten.sprache && SIMPLEWIKI_LANGS[daten.sprache] &&
-                        !SimpleWikiStore.get('simplewiki_lang')) {
+                    if (daten.sprache && SIMPLEWIKI_LANGS[daten.sprache]) {
                         this.currentLang = daten.sprache;
                         this.applyLanguage();
                         SimpleWikiStore.set('simplewiki_lang', this.currentLang);
                     }
-                    if (daten.thema && !SimpleWikiStore.get('simplewiki_theme')) {
+                    if (daten.thema === 'dark' || daten.thema === 'light') {
                         this.isDarkMode = daten.thema === 'dark';
                         this.updateTheme();
-                        SimpleWikiStore.set('simplewiki_theme', this.isDarkMode ? 'dark' : 'light');
+                        SimpleWikiStore.set('simplewiki_theme', daten.thema);
                     }
+                },
+
+                /* "1 Seite" oder "3 Seiten" – für Hinweise und den Fluss. */
+                seitenZahl(n) {
+                    return n === 1 ? this.t('seite1') : this.t('seitenN').replace('{n}', n);
+                },
+
+                /* Die Daten des Wikis in der Austauschform. */
+                bauDaten() {
+                    return {
+                        version: SIMPLEWIKI_FORMAT_VERSION,
+                        seiten: this.pages,
+                        startseite: this.startPageId,
+                        sprache: this.currentLang,
+                        thema: this.isDarkMode ? 'dark' : 'light'
+                    };
+                },
+
+                /* Dem Browser eine Datei zum Herunterladen geben. */
+                dateiHerunterladen(text, name, mime) {
+                    const blob = new Blob([text], { type: mime + ';charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const knopf = document.createElement('a');
+                    knopf.href = url;
+                    knopf.download = name;
+                    document.body.appendChild(knopf);
+                    knopf.click();
+                    document.body.removeChild(knopf);
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
                 },
 
                 /* Das Wiki als HTML-Datei sichern.
@@ -2451,14 +2630,11 @@ showToc: false,
                    nur mit frischen Daten im Datenblock. */
                 bauExport() {
                     const doc = new DOMParser().parseFromString(VORLAGE_HTML, 'text/html');
-                    const daten = {
-                        version: 1,
-                        seiten: this.pages,
-                        startseite: this.startPageId,
-                        sprache: this.currentLang,
-                        thema: this.isDarkMode ? 'dark' : 'light'
-                    };
-                    const inhalt = JSON.stringify(daten).replace(/</g, '\\u003c');
+                    /* Nur hier wird "<" escaped: der Block steckt in einer
+                       HTML-Datei, und ein Script-Ende im Inhalt wuerde sie
+                       zerreissen. Als JSON-Datei ist das unnoetig und
+                       wuerde den Inhalt sogar veraendern. */
+                    const inhalt = JSON.stringify(this.bauDaten()).replace(/</g, '\\u003c');
 
                     let halter = doc.getElementById('simplewiki-daten');
                     if (!halter) {
@@ -2474,55 +2650,60 @@ showToc: false,
 
                 sichernAlsDatei() {
                     try {
-                        const blob = new Blob(
-                            [this.bauExport()],
-                            { type: 'text/html;charset=utf-8' }
-                        );
-                        const url = URL.createObjectURL(blob);
-                        const knopf = document.createElement('a');
-                        knopf.href = url;
-                        knopf.download = 'simplewiki.html';
-                        document.body.appendChild(knopf);
-                        knopf.click();
-                        document.body.removeChild(knopf);
-                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                        this.dateiHerunterladen(this.bauExport(), 'simplewiki.html', 'text/html');
                         this.hinweis(this.t('noticeSaved'));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
                     }
                 },
 
-                /* Eine gesicherte Datei einlesen und übernehmen. */
+                /* Nur die Daten, ohne HTML-Hülle: genau der Aufbau, den
+                   auch das Einlesen versteht - praktisch für Werkzeuge,
+                   die keine gültige HTML-Datei bauen können. */
+                jsonExportieren() {
+                    try {
+                        const text = JSON.stringify(this.bauDaten(), null, 2);
+                        this.dateiHerunterladen(text, 'simplewiki.json', 'application/json');
+                        this.hinweis(this.t('noticeJsonSaved'));
+                    } catch (e) {
+                        this.hinweis(this.t('noticeSaveError'));
+                    }
+                },
+
+                /* Eine gesicherte Datei einlesen und übernehmen.
+
+                   Gelesen wird beides: die HTML-Datei mit dem Datenblock
+                   und die reine JSON-Datei. Passt die Version nicht, wird
+                   gar nichts übernommen - so kann keine Information
+                   verloren gehen, nur weil die Datei aus einer neueren
+                   SimpleWiki stammt. */
                 dateiLaden(event) {
                     const datei = event.target.files && event.target.files[0];
                     event.target.value = '';
                     if (!datei) return;
                     const leser = new FileReader();
                     leser.onload = () => {
-                        const gefunden = String(leser.result || '').match(
-                            /<script[^>]*id="simplewiki-daten"[^>]*>([\s\S]*?)<\/script>/
-                        );
-                        if (!gefunden) {
+                        const daten = this.datenAusText(leser.result);
+                        if (!daten) {
                             this.hinweis(this.t('noticeError'));
                             return;
                         }
-                        let daten;
-                        try {
-                            daten = JSON.parse(gefunden[1].replace(/\\u003c/g, '<'));
-                        } catch (e) {
-                            daten = null;
-                        }
-                        if (!daten || !Array.isArray(daten.seiten) || !daten.seiten.length) {
-                            this.hinweis(this.t('noticeError'));
+                        const grund = this.pruefeFormat(daten);
+                        if (grund) {
+                            this.hinweis(grund);
                             return;
                         }
                         this.pages = this.normiereSeiten(daten.seiten);
                         this.savePages();
                         this.uebernehmenAusDatei(daten);
-                        if (this.currentPage) this.isEditing = false;
+                        /* Die bisher offene Seite existiert vielleicht
+                           nicht mehr - auf die Startseite gehen. */
+                        this.currentPage =
+                            this.pages.find(p => p.id === this.startPageId) || this.pages[0] || null;
+                        this.isEditing = false;
                         this.destroyEditor();
                         this.panelSetzen(null, false);
-                        this.hinweis(this.t('noticeLoaded').replace('{n}', this.pages.length));
+                        this.hinweis(this.t('noticeLoaded').replace('{zahl}', this.seitenZahl(this.pages.length)));
                     };
                     leser.onerror = () => this.hinweis(this.t('noticeError'));
                     leser.readAsText(datei);
@@ -2585,7 +2766,7 @@ showToc: false,
                 createNewPage() {
                     const newPage = {
                         id: Date.now().toString(),
-                        title: this.t('untitled'),
+                        title: this.eindeutigerTitel(this.t('untitled')),
                         content: '',
                         links: [],
                         tags: [],
@@ -2679,10 +2860,19 @@ showToc: false,
 
                 savePage() {
                     if (this.currentPage) {
+                        /* Beim Anlegen wird ein freier Name gesucht; beim
+                           Umbenennen nicht - da wäre stilles Aendern
+                           überraschend, also wird abgelehnt und der Grund
+                           genannt. */
+                        const titel = (this.editTitle || '').trim() || this.t('untitled');
+                        if (this.titelVergeben(titel, this.currentPage.id)) {
+                            this.hinweis(this.t('noticeTitleFrei').replace('{title}', titel));
+                            return;
+                        }
                         if (this.mdEditor) {
                             this.editContent = this.mdEditor.getMarkdown();
                         }
-                        this.currentPage.title = this.editTitle || this.t('untitled');
+                        this.currentPage.title = titel;
                         this.currentPage.content = this.editContent;
                         this.currentPage.updated = new Date().toISOString();
                         this.isEditing = false;

@@ -35,7 +35,7 @@ script1 = r"""
         q('.settings-toggle').click();
         setTimeout(function () {
           ok(!!q('.settings-panel.open'), 'Einstellungen offen');
-          ok(all('.settings-btn').length === 2, 'zwei Knöpfe: ' + all('.settings-btn').map(function (b) { return b.textContent.trim(); }).join(' / '));
+          ok(all('.settings-btn').length === 3, 'drei Knöpfe: ' + all('.settings-btn').map(function (b) { return b.textContent.trim(); }).join(' / '));
           ok(!!q('input.datei-feld'), 'unsichtbares Dateifeld vorhanden');
           var hinweise = all('.settings-hint').map(function (h) { return h.textContent; }).join(' || ');
           ok(hinweise.indexOf('simplewiki.html') >= 0, 'Hinweis nennt den Dateinamen');
@@ -102,13 +102,35 @@ script2 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      /* Jeder Hinweis wird notiert, statt auf eine Aenderung zu warten:
+         zweimal dieselbe Meldung waere sonst nicht von der vorigen zu
+         unterscheiden, und die Wartezeit wird zum Lotteriespiel. */
+      var hinweisLog = [];
+      new MutationObserver(function () {
+        var h = q('.hinweis');
+        if (h && h.textContent.trim()) {
+          var letzter = hinweisLog[hinweisLog.length - 1];
+          if (letzter !== h.textContent.trim() || hinweisLog.length === 0) hinweisLog.push(h.textContent.trim());
+          else hinweisLog.push('\u0000' + h.textContent.trim());
+        }
+      }).observe(document.body, { childList: true, subtree: true, characterData: true });
+
       function lade(text, dann) {
+        var vorher = hinweisLog.length;
         var feld = q('input.datei-feld');
         var dt = new DataTransfer();
         dt.items.add(new File([text], 'fremd.html', { type: 'text/html' }));
         feld.files = dt.files;
         feld.dispatchEvent(new Event('change', { bubbles: true }));
-        setTimeout(dann, 2500);
+        var versuche = 0;
+        (function warten() {
+          versuche++;
+          if (hinweisLog.length > vorher || versuche > 40) {
+            setTimeout(dann, 200);
+            return;
+          }
+          setTimeout(warten, 200);
+        })();
       }
       function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
@@ -117,10 +139,12 @@ script2 = r"""
         q('.settings-toggle').click();
         setTimeout(function () {
           lade('<html><body><h1>Fremde Datei</h1></body></html>', function () {
-            ok(!!q('.hinweis'), 'Hinweis bei fremder Datei: ' + (q('.hinweis') ? q('.hinweis').textContent.trim() : '-'));
-            ok(q('.hinweis').textContent.indexOf('SimpleWiki') >= 0, 'Hinweis erklaert es');
+            var gemeldet = hinweisLog.join(' || ').replace(/\u0000/g, ' || ');
+            ok(hinweisLog.length > 0, 'Hinweis bei fremder Datei: ' + gemeldet);
+            ok(gemeldet.indexOf('SimpleWiki') >= 0, 'Hinweis erklaert es');
+            var vorher2 = hinweisLog.length;
             lade('<scr' + 'ipt id="simplewiki-daten" type="application/json">{kaputt' + String.fromCharCode(60) + '/script>', function () {
-              ok(!!q('.hinweis'), 'Hinweis bei kaputtem Inhalt');
+              ok(hinweisLog.length > vorher2, 'Hinweis bei kaputtem Inhalt');
               ok(titel().join('|') === 'Alpha|Beta|Gamma', 'Seiten unveraendert: ' + titel().join('|'));
               log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
               out();

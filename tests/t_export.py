@@ -122,7 +122,7 @@ pruefskript = r"""
           ok(all('.toc-grip').length === 3, 'Griffe vorhanden: ' + all('.toc-grip').length);
           q('.settings-toggle').click();
           setTimeout(function () {
-            ok(all('.settings-btn').length === 2, 'Sichern/Laden vorhanden');
+            ok(all('.settings-btn').length === 3, 'Sichern, JSON und Laden vorhanden');
             ok(q('.refs-toggle') !== null, 'Verweis-Knopf vorhanden');
             all('.footer .btn').length;
             ok(!!q('.footer .btn'), 'Fusszeile bedienbar');

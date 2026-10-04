@@ -16,7 +16,7 @@
         der Text den Block verlassen. Der Export schreibt deshalb
         "<" als "\u003c".
     -->
-    <script id="simplewiki-daten" type="application/json">{"version":1,"seiten":[{"id":"1791071517638","title":"Seite 3-1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:51:57.638Z","updated":"2026-10-03T23:52:25.165Z"},{"id":"1","title":"Willkommen bei SimpleWiki! 🎉","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":[],"tags":[],"created":"2026-10-03T23:23:01.878Z","updated":"2026-10-03T23:46:27.593Z"},{"id":"1791069818658","title":"Seite 1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:23:38.658Z","updated":"2026-10-03T23:48:12.504Z"},{"id":"1791069858522","title":"Seite 2","content":"\\# Überschrift\n\nText...\n\n[[Seite 3]]","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:24:18.522Z","updated":"2026-10-03T23:48:28.594Z"},{"id":"1791069898378","title":"Seite 3","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:24:58.378Z","updated":"2026-10-03T23:48:48.796Z"},{"id":"1791071462035","title":"Neue Seite","content":"","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-03T23:51:02.035Z","updated":"2026-10-03T23:51:13.620Z"}],"startseite":"1","sprache":"de","thema":"light"}</script>
+    <script id="simplewiki-daten" type="application/json">{"version":1,"seiten":[{"id":"1","title":"Willkommen bei SimpleWiki! 🎉","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":[],"tags":[],"created":"2026-10-03T23:23:01.878Z","updated":"2026-10-03T23:46:27.593Z"},{"id":"1791069818658","title":"Seite 1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:23:38.658Z","updated":"2026-10-03T23:48:12.504Z"},{"id":"1791069858522","title":"Seite 2","content":"\\# Überschrift\n\nText...\n\n[[Seite 3]]","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:24:18.522Z","updated":"2026-10-03T23:48:28.594Z"},{"id":"1791069898378","title":"Seite 3","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:24:58.378Z","updated":"2026-10-03T23:48:48.796Z"},{"id":"1791071517638","title":"Seite 3-1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:51:57.638Z","updated":"2026-10-03T23:52:25.165Z"},{"id":"1791073464328","title":"Willkommen bei SimpleWiki! 🎉 (Kopie)","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-04T00:24:24.328Z","updated":"2026-10-04T00:24:43.098Z"},{"id":"1791071462035","title":"Neue Seite","content":"","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-03T23:51:02.035Z","updated":"2026-10-03T23:51:13.620Z"}],"startseite":"1","sprache":"de","thema":"light"}</script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -614,8 +614,21 @@
         /* ---------- Fluss: alle Seiten hintereinander ---------- */
 
         .fluss {
-            max-width: 820px;
-            margin: 0 auto;
+            /* Im Fluss gibt es kein .content-body - deshalb scrollt der
+               Fluss selbst. Sonst waere die Seite nicht erreichbar,
+               weil .main-content alles abschneidet. */
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+        }
+
+        /* Die Spalte bleibt mittig, der Scrollbalken am Fenster. */
+        .fluss-kopf,
+        .fluss-eintrag,
+        .fluss-leer {
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .fluss-kopf {
@@ -1223,18 +1236,47 @@
                 color: #000 !important;
             }
 
+            /* Die Oberflaeche ist auf die Bildschirmhoehe gebaut
+               (height: 100vh, overflow: hidden). Auf Papier darf das
+               nichts abschneiden - deshalb werden Hoehe und
+               Ueberlauf hier aufgehoben. */
+            html,
+            body,
+            .app,
+            .main-content,
+            .content-body,
+            .fluss {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                display: block !important;
+            }
+
             .main-content {
                 padding: 0 !important;
             }
 
             .fluss {
                 max-width: none;
+                padding-bottom: 0;
             }
 
+            /* Seiten duerfen ueber mehrere Blaetter laufen; nur die
+               Ueberschrift darf nicht allein am Seitenende stehen. */
             .fluss-eintrag {
-                page-break-inside: avoid;
+                page-break-inside: auto;
+                break-inside: auto;
                 border-bottom: 1px solid #999;
-                padding: 12pt 0;
+                padding: 10pt 0;
+            }
+
+            .fluss-eintrag-titel {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            @page {
+                margin: 16mm 14mm;
             }
 
             .fluss-titel-knopf {
@@ -1288,43 +1330,24 @@
                         </div>
                     </div>
 
-                    <article
-                        v-for="p in flussSeiten"
-                        :key="p.id"
-                        class="fluss-eintrag"
-                        :id="'fluss-' + p.id"
-                    >
+                    <article v-for="p in flussSeiten" :key="p.id" class="fluss-eintrag" :id="'fluss-' + p.id">
                         <h3 class="fluss-eintrag-titel">
                             <button class="fluss-titel-knopf" @click="seiteOeffnen(p)">
                                 {{ p.title || t('untitled') }}
                             </button>
                         </h3>
-                        <div
-                            v-if="(p.content || '').trim()"
-                            class="preview"
-                            @click="onPreviewClick"
-                            v-html="alsHtml(p.content)"
-                        ></div>
-                        <p v-else class="fluss-leer">{{ t('riverNoText') }}</p>
-                        <div
-                            v-if="verweiseVon(p).ausgehend.length"
-                            class="fluss-verweise"
-                        >
+                        <div v-if="(p.content || '').trim()" class="preview" @click="onPreviewClick" v-html="alsHtml(p.content)"></div>
+                        <p v-else="" class="fluss-leer">{{ t('riverNoText') }}</p>
+                        <div v-if="verweiseVon(p).ausgehend.length" class="fluss-verweise">
                             {{ t('outgoingTitle') }}:
-                            <a
-                                v-for="ziel in verweiseVon(p).ausgehend"
-                                :key="ziel"
-                                href="#"
-                                :class="pageExists(ziel) ? 'wiki-link' : 'wiki-link wiki-link-fehlt'"
-                                @click.prevent="openLinkTarget(ziel)"
-                            >{{ ziel }}</a>
+                            <a v-for="ziel in verweiseVon(p).ausgehend" :key="ziel" href="#" :class="pageExists(ziel) ? 'wiki-link' : 'wiki-link wiki-link-fehlt'" @click.prevent="openLinkTarget(ziel)">{{ ziel }}</a>
                         </div>
                     </article>
 
                     <p v-if="flussSeiten.length === 0" class="fluss-leer">{{ t('riverEmpty') }}</p>
                 </div>
 
-                <template v-else>
+                <template v-else="">
                 <div v-if="currentPage" class="content-header">
                     <input v-if="isEditing" type="text" class="title-editor" v-model="editTitle" :placeholder="t('titlePlaceholder')">
                     <h2 v-else="" class="content-title">{{ currentPage.title }}</h2>
@@ -1353,7 +1376,7 @@
                 </template>
             </main>
 
-            <footer v-if="currentPage && !zeigeFluss" class="footer">
+            <footer v-if="currentPage &amp;&amp; !zeigeFluss" class="footer">
                 <button v-if="!isEditing" class="btn btn-primary" @click="startEditing">
                     {{ t('edit') }}
                 </button>
@@ -2076,7 +2099,12 @@ showToc: false,
                 flussOeffnen() {
                     this.fluss = true;
                     this.panelSetzen(null, false);
-                    window.scrollTo(0, 0);
+                    this.$nextTick(() => {
+                        /* Der Fluss scrollt selbst, nicht das Fenster. */
+                        const el = document.querySelector('.fluss');
+                        if (el) el.scrollTop = 0;
+                        else window.scrollTo(0, 0);
+                    });
                 },
 
                 flussSchliessen() {

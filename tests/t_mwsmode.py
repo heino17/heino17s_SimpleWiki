@@ -77,6 +77,9 @@ wikis = {
     'kaputt': Wiki('kaputt', [ALPHA, BETA, STANDARD],
                    fehler={'save': 500}),   # der Server faellt aus
     'kraus': Wiki('kraus', KRAUS, titel='Krauses Wiki'),
+    # Leer, aber mit Inhalt im Marker: sonst wuerde der Browser die
+    # Seiten nehmen und es gaebe nichts zu retten.
+    'sackgasse': Wiki('sackgasse', [{'title': '$:/SiteTitle', 'text': 'Leeres Wiki'}]),
     # Fuer das Umbenennen: zwei Seiten, von denen eine auf die andere
     # verweist - in beiden Schreibweisen und mit Leerzeichen.
     'umbenannt': Wiki('umbenannt', [
@@ -302,6 +305,70 @@ teil4 = r"""
     </script>
 """
 
+
+# ---------------------------------------------------------------- Teil 11
+# Die leere Wiki war eine Sackgasse: kein Knopf, mit dem man hereinkommt
+teil11 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function knopf() { return q('.empty-state .empty-state-btn'); }
+      function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+      window.addEventListener('unhandledrejection', function (e) {
+        ok(false, 'Fehler in einer Zusage: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+      });
+
+      setTimeout(function () {
+        log.push('--- Ein Wiki ohne jede Seite');
+        ok(!!q('.empty-state'), 'der Leer-Zustand steht da');
+        var k = knopf();
+        ok(!!k, 'und es gibt einen Knopf: ' + (k ? k.textContent.trim() : 'KEINER'));
+        ok(!!q('.mws-hinweis'), 'es ist ein Wiki vom Server');
+        ok(localStorage.getItem('simplewiki_pages') === null, 'im Browser ist noch nichts');
+
+        log.push('--- Klick');
+        if (k) k.click();
+        setTimeout(function () {
+          var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+          ok(titel.length === 1, 'eine Seite ist da: ' + titel.join('|'));
+          ok(!q('.empty-state'), 'der Leer-Zustand ist vorbei');
+          ok(!!q('.md-host .toastui-editor-defaultUI') || !!q('.editor'),
+             'und man kann gleich reinschreiben');
+          ende();
+        }, 3000);
+      }, 2500);
+    })();
+    </script>
+"""
+
+# ---------------------------------------------------------------- Teil 12
+# ... und sie ist nach dem Neuladen noch da, samt Startseite
+teil12 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+      setTimeout(function () {
+        var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+        ok(titel.length === 1, 'die Seite vom Server ist wieder da: ' + titel.join('|'));
+        ok(!q('.empty-state'), 'kein Leer-Zustand mehr');
+        var stern = all('.toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); })[0];
+        ok(!!stern, 'und sie ist die Startseite');
+        log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+        out();
+      }, 2500);
+    })();
+    </script>
+"""
 
 # ---------------------------------------------------------------- Teil 5
 # Loeschen und Startseite wechseln
@@ -634,6 +701,10 @@ try:
     print()
     text10, ruf10 = lauf('_mws_umbenannt', teil10, '/wiki/umbenannt')
     print()
+    text11, ruf11 = lauf('_mws_sackgasse', teil11, '/wiki/sackgasse')
+    print()
+    text12, ruf12 = lauf('_mws_sackgasse_wieder', teil12, '/wiki/sackgasse')
+    print()
     # ---- Der Kopf ist Pflicht: ohne ihn 400 INVALID_X_REQUESTED_WITH
     import urllib.request, urllib.error
     def roh_ruf(op, nutzlast, mit_kopf):
@@ -687,7 +758,8 @@ finally:
 
 # ------------------------------------------------------------------ Auswertung
 ok = fail = 0
-for t in (text1, text2, text3, text4, text5, text6, text7, text8, text9, text10):
+for t in (text1, text2, text3, text4, text5, text6, text7, text8, text9,
+              text10, text11, text12):
     import re
     ok += len(re.findall(r'(?m)^OK\s', t))
     fail += len(re.findall(r'(?m)^FAIL\s', t))
@@ -704,7 +776,8 @@ print('davon einzelne Tiddler: %s'
 print('Reihenfolge geschrieben (Seiten): %s'
       % sorted(set(str((a['nutzlast']['tiddlers'][0] or {}).get('reihenfolge'))
                   for a in saves if (a['nutzlast'].get('tiddlers') or [{}])[0])))
-alle_rufe = ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8 + ruf9 + ruf10
+alle_rufe = (ruf1 + ruf2 + ruf3 + ruf4 + ruf5 + ruf6 + ruf7 + ruf8 + ruf9
+            + ruf10 + ruf11 + ruf12)
 print('updates abgerufen: %s'
       % ('ja' if any('updates' in (a.get('pfad') or '') for a in alle_rufe) else 'nein'))
 post5 = [a for a in ruf5 if a.get('weg') == 'POST']
@@ -736,6 +809,14 @@ print('gespeicherte Tiddler: %s' % [(a['nutzlast']['tiddlers'][0].get('title'),
                                       for a in umb_saves])
 print('geloeschte Titel: %s' % [a['nutzlast'].get('titles') for a in umb_del])
 print('im Wiki danach: %s' % sorted(k for k in wikis['umbenannt'].tiddler if k[:2] != '$:'))
+print('--- Aus der Sackgasse ---')
+sg_saves = [a for a in ruf11 if a.get('op') == 'save']
+print('gespeicherte Tiddler: %s' % [(a['nutzlast']['tiddlers'][0].get('title'),
+                                       a['nutzlast']['tiddlers'][0].get('sw-id'))
+                                      for a in sg_saves])
+print('Startseite gesetzt: %s' % [a['nutzlast']['tiddlers'][0].get('text') for a in sg_saves
+                                  if a['nutzlast']['tiddlers'][0].get('title') == '$:/DefaultTiddlers'])
+print('im Wiki danach: %s' % sorted(k for k in wikis['sackgasse'].tiddler if k[:2] != '$:'))
 print('Schreibversuch im Wiki ohne Schivrecht: %s'
       % ([('%s -> %s' % (a.get('op'), a.get('antwort'))) for a in ruf3 if a.get('weg') == 'POST']
          or 'keiner'))

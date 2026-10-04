@@ -94,13 +94,15 @@ script1 = r"""
                  Zeit: das Einlesen braucht unter Virtual Time je nach
                  Last eine bis drei Sekunden. */
               var gemeldet = [];
-              new MutationObserver(function () {
+              function merken() {
                 var h = q('.hinweis');
                 if (h) {
                   var t = h.textContent.trim();
                   if (t && gemeldet[gemeldet.length - 1] !== t) gemeldet.push(t);
                 }
-              }).observe(document.body, { childList: true, subtree: true, characterData: true });
+              }
+              new MutationObserver(merken)
+                .observe(document.body, { childList: true, subtree: true, characterData: true });
 
               var feld = q('input.datei-feld');
               var dt = new DataTransfer();
@@ -110,7 +112,13 @@ script1 = r"""
               var versuche = 0;
               (function warten() {
                 versuche++;
-                if (gemeldet.length || versuche > 60) {
+                /* Auch selbst nachsehen, nicht nur dem Beobachter
+                   vertrauen: der Hinweis verschwindet nach sechs
+                   Sekunden wieder, und unter Virtual Time ist das
+                   schnell. Zwischen zwei Beobachter-Meldungen kann er
+                   schon wieder weg sein. */
+                merken();
+                if (gemeldet.length || versuche > 90) {
                   var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
                   ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge nach dem Laden: ' + titel.join('|'));
                   ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich gespeichert');

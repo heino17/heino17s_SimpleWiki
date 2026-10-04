@@ -524,6 +524,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         /* Hinweis nach dem Sichern oder Laden */
         /* Nur-Lesen-Wiki und Serverbetrieb */
+        .empty-state .empty-state-btn {
+            margin-top: 14px;
+        }
+
         .nurlesen-hinweis,
         .mws-hinweis {
             margin: 0 0 14px;
@@ -1783,6 +1787,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 <div v-if="!currentPage" class="empty-state">
                     <h2>{{ t('welcomeTitle') }}</h2>
                     <p>{{ t('welcomeText') }}</p>
+                    <!-- Ohne diesen Knopf ist eine leere Wiki eine
+                         Sackgasse: nirgends waere ein Ausgang. -->
+                    <button class="btn btn-primary empty-state-btn"
+                            :disabled="nurLesen" @click="ersteSeiteAnlegen">
+                        {{ t('emptyCreate') }}
+                    </button>
                 </div>
                 </template>
             </main>
@@ -2086,6 +2096,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Sprache",
                     "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nurLesenKurz": "Nur lesen",
+                    "emptyCreate": "Erste Seite anlegen",
                     "speicherFehler": "Nicht auf dem Server gespeichert: {grund}. " +
                         "Die Änderung steht in dieser Seite, aber nicht beim Server.",
                     "mwsHinweis": "Die Seiten liegen auf dem Server. Jede Änderung geht sofort dorthin."
@@ -2174,6 +2185,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "untitled": "New Page",
                     "nurLesen": "This wiki cannot be written to. You can read everything, but not create, change or delete anything.",
                     "nurLesenKurz": "Read only",
+                    "emptyCreate": "Create the first page",
                     "speicherFehler": "Not saved on the server: {grund}. " +
                         "The change is in this page, but not on the server.",
                     "mwsHinweis": "The pages live on the server. Every change goes there right away."
@@ -4074,6 +4086,50 @@ showToc: false,
                     this.editTitle = newPage.title;
                     this.seiteSichern(newPage);
                     this.$nextTick(() => this.initEditor());
+                },
+
+                /* Die erste Seite anlegen.
+
+                   Eine leere Wiki war eine Sackgasse: es gab keinen
+                   Knopf, mit dem man hereinkommt. Das trifft den
+                   eigenen Betrieb genauso wie den MWS-Betrieb, wo es
+                   schlimmer ist - eine Ein-Klick-Wiki aus einer Vorlage
+                   ist leer, und wer sie zum ersten Mal oeffnet, steht
+                   auf einem Bildschirm ohne Ausgang.
+
+                   Der Knopf ist deshalb kein Sonderbaendchen fuer den
+                   Serverbetrieb, sondern der einzige Weg aus jedem
+                   leeren Zustand. */
+                ersteSeiteAnlegen() {
+                    if (this.nurLesen) {
+                        this.hinweis(this.t('nurLesen'));
+                        return;
+                    }
+                    const jetzt = new Date().toISOString();
+                    const seite = {
+                        id: Date.now().toString(),
+                        title: this.eindeutigerTitel(this.t('untitled')),
+                        content: '',
+                        links: [],
+                        tags: [],
+                        created: jetzt,
+                        updated: jetzt
+                    };
+                    this.pages.push(seite);
+                    this.seitenUebernehmen();
+
+                    /* Ohne Startseite wird die erste zur Startseite.
+                       Das muss dem Speicher gesagt werden, sonst waere
+                       sie nach dem Neuladen wieder weg. Zuerst die
+                       Startseite, damit die Seite danach gleich ihre
+                       Farbe und Sprache mitbekommt. */
+                    if (!this.startPageId) {
+                        this.startPageId = seite.id;
+                        SPEICHER.startseiteSetzen(seite.id);
+                    }
+                    this.seiteSichern(seite);
+                    this.selectPage(seite);
+                    this.startEditing();
                 },
 
                 selectPage(page) {

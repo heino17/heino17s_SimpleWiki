@@ -52,6 +52,71 @@
 
         =========================================================================
     -->
+
+    <!--
+        ============================ Betrieb mit MWS ============================
+
+        Ein Server, der SimpleWiki ausliefert, setzt als erstes Element nach
+        </head> einen Marker mit den Tiddlern, die schon im Wiki stehen:
+
+          <script class="tiddlywiki-tiddler-store"
+                  type="application/json">[ …Tiddler… ]</script>
+
+        Steht der Marker nicht da, oder ist das Array leer, bleibt alles im
+        Browser: eine per Doppelklick geöffnete Datei verhält sich genau wie
+        vorher. Die Entscheidung fällt an genau einer Stelle im Programm.
+
+        Wie eine Seite im Tiddler steht
+          title        die Kennung der Seite (das id aus dieser Datei), nicht
+                       ihr Name - der Name steht in caption. So bleibt ein
+                       Tiddler beim Umbenennen derselbe.
+          caption      der Seitentitel, wie er im Inhaltsverzeichnis steht
+          text         der Seiteninhalt, Markdown wie in dieser Datei
+          tags         Schlagworte im Listenformat: [[foo]] [[bar]]
+          created      Zeitstempel als YYYYMMDDHHMMSSmmm
+          modified     Zeitstempel als YYYYMMDDHHMMSSmmm
+          reihenfolge  Stelle im Inhaltsverzeichnis, vierstellig ("0007").
+                       Ergänzung dieses Programms: TiddlyWiki kennt keine
+                       Reihenfolge von Tiddlern, SimpleWiki schon. Ohne dieses
+                       Feld wäre sie nach dem Neuladen verloren. Im
+                       TiddlyWiki-Editor stört das Feld nicht.
+
+        Zwei Systemtiddler
+          $:/DefaultTiddlers   die Kennung der Startseite. TiddlyWiki
+                               schreibt dort eine Liste in [[ ]]; beides wird
+                               gelesen.
+          $:/SiteTitle         der Name des Wikis.
+
+        Sprache und Farbe
+          Sie stehen als Felder (sprache, thema) an den Feldern des Tiddlers,
+          der die Startseite ist - nicht in jedem Tiddler, sonst liefen sie
+          auseinander. Wird die Startseite gewechselt, wandern sie mit.
+
+        Was nicht uebernommen wird
+          Systemtiddler ($:/...), $:/bag-info und $:/recipe-info sind keine
+          Seiten. Felder, die SimpleWiki nicht kennt, werden beim Schreiben
+          wieder mitgegeben, damit sie einen Hin-und-Her-Weg ueberstehen.
+
+        Aufrufe an den Server
+          POST /recipe/<name>/batch/list     {}
+          POST /recipe/<name>/batch/read     { "titles": ["…"] }
+          POST /recipe/<name>/batch/save     { "tiddlers": [ {feld: …} ] }
+          POST /recipe/<name>/batch/delete   { "titles": ["…"] }
+          mit dem Kopf X-Requested-With: fetch
+
+        <name> steht im Pfad: /wiki/<name>/
+
+        Antwortet der Server mit 403 und BAG_NO_WRITE_PERMISSION, ist das kein
+        Fehler, sondern ein Betriebszustand: das Wiki gehört jemand anderem.
+        Dann wird das Bearbeiten abgeschaltet und der Grund genannt.
+
+        Nicht gemacht: ein Abgleich mit anderen Ansichten. Der Endpunkt
+        /recipe/<name>/updates?since=<seq> wird nicht aufgerufen, weil sein
+        Antwortformat nicht festgelegt ist. Jede Aenderung geht sofort raus,
+        ein Neuladen zeigt den Stand des Servers.
+
+        =========================================================================
+    -->
     <script id="simplewiki-daten" type="application/json">{"version":1,"seiten":[{"id":"1","title":"Willkommen bei SimpleWiki! 🎉","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":[],"tags":[],"created":"2026-10-03T23:23:01.878Z","updated":"2026-10-03T23:46:27.593Z"},{"id":"1791069818658","title":"Seite 1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:23:38.658Z","updated":"2026-10-03T23:48:12.504Z"},{"id":"1791069858522","title":"Seite 2","content":"\\# Überschrift\n\nText...\n\n[[Seite 3]]","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:24:18.522Z","updated":"2026-10-03T23:48:28.594Z"},{"id":"1791069898378","title":"Seite 3","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:24:58.378Z","updated":"2026-10-03T23:48:48.796Z"},{"id":"1791071517638","title":"Seite 3-1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:51:57.638Z","updated":"2026-10-03T23:52:25.165Z"},{"id":"1791073464328","title":"Willkommen bei SimpleWiki! 🎉 (Kopie)","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-04T00:24:24.328Z","updated":"2026-10-04T00:24:43.098Z"},{"id":"1791071462035","title":"Neue Seite","content":"","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-03T23:51:02.035Z","updated":"2026-10-03T23:51:13.620Z"}],"startseite":"1","sprache":"de","thema":"light"}</script>
     <!-- Vue 3 (MIT), fest eingebettet statt vom CDN geladen:
          eine strikte Content-Security-Policy erlaubt nur "self".
@@ -433,6 +498,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         }
 
         /* Hinweis nach dem Sichern oder Laden */
+        /* Nur-Lesen-Wiki und Serverbetrieb */
+        .nurlesen-hinweis,
+        .mws-hinweis {
+            margin: 0 0 14px;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .nurlesen-hinweis {
+            border: 1px solid #d98b2b;
+            background: rgba(217, 139, 43, 0.14);
+            color: var(--text-primary);
+        }
+
+        .mws-hinweis {
+            border: 1px solid var(--accent-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        body.dark-mode .nurlesen-hinweis {
+            background: rgba(217, 139, 43, 0.22);
+        }
+
+        .btn:disabled,
+        .new-page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .hinweis {
             position: fixed;
             left: 50%;
@@ -1599,6 +1696,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </header>
 
             <main class="main-content">
+                <!-- Nur-Lesen-Wiki: der Server hat das Schreiben abgelehnt -->
+                <p v-if="nurLesen" class="nurlesen-hinweis">{{ t('nurLesen') }}</p>
+                <!-- Serverbetrieb: woher die Seiten kommen -->
+                <p v-else="" v-if="mwsModus" class="mws-hinweis">☁ {{ t('mwsHinweis') }}</p>
+
                 <!-- Fluss: alle Seiten hintereinander, wie im Inhaltsverzeichnis -->
                 <div v-if="zeigeFluss" class="fluss">
                     <div class="fluss-kopf">
@@ -1660,17 +1762,17 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </main>
 
             <footer v-if="currentPage &amp;&amp; !zeigeFluss" class="footer">
-                <button v-if="!isEditing" class="btn btn-primary" @click="startEditing">
+                <button v-if="!isEditing" class="btn btn-primary" :disabled="nurLesen" @click="startEditing">
                     {{ t('edit') }}
                 </button>
                 <template v-else="">
-                    <button class="btn btn-secondary" @click="openLinkDialog">
+                    <button class="btn btn-secondary" :disabled="nurLesen" @click="openLinkDialog">
                         🔗 {{ t('linkButton') }}
                     </button>
-                    <button class="btn btn-secondary" @click="duplicatePage" :title="t('duplicateHint')">
+                    <button class="btn btn-secondary" :disabled="nurLesen" @click="duplicatePage" :title="t('duplicateHint')">
                         ⧉ {{ t('duplicate') }}
                     </button>
-                    <button class="btn btn-danger" @click="deletePage(currentPage.id)">
+                    <button class="btn btn-danger" :disabled="nurLesen" @click="deletePage(currentPage.id)">
                         {{ t('delete') }}
                     </button>
                     <button class="btn btn-primary" @click="savePage">
@@ -1713,7 +1815,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </div>
             <div class="toc-footer">
                 <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
-                <button class="new-page-btn" @click="createNewPage">
+                <button class="new-page-btn" :disabled="nurLesen" @click="createNewPage">
                     {{ t('newPage') }}
                 </button>
             </div>
@@ -1955,7 +2057,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "titlePlaceholder": "Seitentitel...",
                     "contentPlaceholder": "Schreibe hier... (Markdown wird unterstützt)",
                     "untitled": "Neue Seite",
-                    "language": "Sprache"
+                    "language": "Sprache",
+                    "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
+                    "nurLesenKurz": "Nur lesen",
+                    "mwsHinweis": "Die Seiten liegen auf dem Server. Jede Änderung geht sofort dorthin."
                 }
             },
             "en": {
@@ -2038,7 +2143,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "Create your first page or select an existing one.",
                     "titlePlaceholder": "Page title...",
                     "contentPlaceholder": "Write here... (Markdown is supported)",
-                    "untitled": "New Page"
+                    "untitled": "New Page",
+                    "nurLesen": "This wiki cannot be written to. You can read everything, but not create, change or delete anything.",
+                    "nurLesenKurz": "Read only",
+                    "mwsHinweis": "The pages live on the server. Every change goes there right away."
                 }
             }
         };
@@ -2065,6 +2173,403 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             }
         };
+
+        /* ---------- Wo die Seiten liegen: Browser oder MWS ----------
+
+           Das ist die einzige Stelle im ganzen Programm, die entscheidet,
+           wohin gespeichert wird. Ein Server, der SimpleWiki ausliefert,
+           setzt als erstes Element nach dem Ende des Kopfs ein script-Element
+           der Klasse "tiddlywiki-tiddler-store" mit type="application/json"
+           und den Tiddlern als Array darin. (Hier steht das Muster bewusst
+           nicht ausgeschrieben: schon die Endmarke eines Script-Elements -
+           auch in einem Kommentar - beendet im HTML-Parser das Skript und
+           damit das ganze Wiki.)
+
+           Steht der Marker nicht da, oder ist das Array leer, bleibt alles
+           im Browser - eine per Doppelklick geöffnete Datei merkt sich also
+           genau wie bisher. Beide Speicher sprechen dieselben sechs
+           Methoden an; der Rest des Programms kennt den Unterschied nicht.
+        */
+
+        function mwsTiddlerLesen() {
+            const el = document.querySelector('script.tiddlywiki-tiddler-store');
+            if (!el) return null;
+            try {
+                const roh = JSON.parse(el.textContent || '[]');
+                return Array.isArray(roh) ? roh : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        /* ---------- Listen und Zeiten zwischen beiden Welten ----------
+
+           TiddlyWiki schreibt eine Zeit als YYYYMMDDHHMMSSmmm, SimpleWiki
+           braucht ISO-8601 mit Z. Umgewandelt wird verlustfrei in beide
+           Richtungen: es sind dieselben Ziffern, nur anders gruppiert.
+           (In welcher Zone die Zeit steht, sagt das Format nicht - deshalb
+           wird nichts umgerechnet, nur umgeschrieben.) */
+
+        function zwNachIso(zahl) {
+            const s = String(zahl == null ? '' : zahl).trim();
+            if (!/^\d{17}$/.test(s)) return '';
+            return s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8) + 'T' +
+                s.slice(8, 10) + ':' + s.slice(10, 12) + ':' + s.slice(12, 14) + '.' +
+                s.slice(14, 17) + 'Z';
+        }
+
+        function isoNachZw(iso) {
+            const m = String(iso == null ? '' : iso)
+                .match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?/);
+            if (!m) return '';
+            return m[1] + m[2] + m[3] + m[4] + m[5] + m[6] + (m[7] || '000');
+        }
+
+        /* Schlagworte: TiddlyWiki erwartet eine Liste im Listenformat
+           "[[foo]] [[bar]]", SimpleWiki ein Feld mit Namen. */
+        function zwTagsLesen(text) {
+            const raus = [];
+            const muster = /\[\[([^\[\]]+)\]\]/g;
+            let m;
+            while ((m = muster.exec(String(text == null ? '' : text))) !== null) {
+                const t = m[1].trim();
+                if (t && raus.indexOf(t) < 0) raus.push(t);
+            }
+            return raus;
+        }
+
+        function zwTagsSchreiben(tags) {
+            return (Array.isArray(tags) ? tags : [])
+                .map(t => String(t == null ? '' : t).trim())
+                .filter(t => t)
+                .map(t => '[[' + t + ']]')
+                .join(' ');
+        }
+
+        /* $:/DefaultTiddlers ist bei TiddlyWiki eine Liste in [[ ]].
+           SimpleWiki schreibt die Kennung direkt; beim Lesen wird beides
+           verstanden, damit auch ein im TiddlyWiki-Editor angelegtes Wiki
+           seine Startseite findet. */
+        function zwAusListe(text) {
+            const s = String(text == null ? '' : text).trim();
+            if (!s) return '';
+            const m = s.match(/\[\[([^\]]+)\]\]/);
+            return String(m ? m[1] : (s.split(/\s+/)[0] || '')).trim();
+        }
+
+        /* ---------- Seite und Tiddler ----------
+
+           title ist die Kennung der Seite, nicht ihr Name: der Name steht
+           in caption. So bleibt ein Tiddler beim Umbenennen derselbe, und
+           ein Verweis von aussen zeigt nicht ins Leere.
+
+           reihenfolge ist eine Ergänzung dieses Programms: TiddlyWiki
+           kennt keine Reihenfolge von Tiddlern, das Inhaltsverzeichnis
+           von SimpleWiki aber schon. Ohne sie wäre die Reihenfolge nach
+           dem Neuladen verloren. Das Feld stört TiddlyWiki nicht. */
+        function seiteZuTiddler(seite, felder) {
+            const t = Object.assign({}, felder || {});
+            t.title = String(seite.id);
+            t.caption = String(seite.title == null ? '' : seite.title);
+            t.text = String(seite.content == null ? '' : seite.content);
+            t.tags = zwTagsSchreiben(seite.tags);
+            if (seite.created) t.created = isoNachZw(seite.created);
+            if (seite.updated) t.modified = isoNachZw(seite.updated);
+            return t;
+        }
+
+        function tiddlerZuSeite(t) {
+            return {
+                id: String(t.title == null ? '' : t.title),
+                title: t.caption ? String(t.caption) : '',
+                content: t.text ? String(t.text) : '',
+                links: [],
+                tags: zwTagsLesen(t.tags),
+                created: zwNachIso(t.created),
+                updated: zwNachIso(t.modified)
+            };
+        }
+
+        /* ---------- Der Browserspeicher ----------
+
+           Schlüssel und Verhalten bleiben unveraendert, damit eine
+           gespeicherte Wiki-Datei und ein altes Wiki im Browser gleich
+           bleiben. */
+
+        const LocalStore = {
+            /* Die App und der Speicher arbeiten auf derselben Liste
+               (siehe seitenUebernehmen). Deshalb wird hier nichts
+               nachgeführt, sondern nur geschrieben. */
+            seiten: [],
+            startId: '',
+            einstellungen: {},
+
+            laden: function () {
+                let seiten = [];
+                const roh = SimpleWikiStore.get('simplewiki_pages');
+                if (roh) {
+                    try {
+                        seiten = JSON.parse(roh);
+                    } catch (e) {
+                        seiten = [];
+                    }
+                }
+                if (!Array.isArray(seiten)) seiten = [];
+                this.seiten = seiten;
+                this.startId = SimpleWikiStore.get('simplewiki_startpage') || '';
+                return {
+                    seiten: seiten,
+                    /* Ein leeres Wiki ist nicht dasselbe wie gar keins:
+                       wer schon eine leere Seite gespeichert hat, will
+                       die leere sehen und keine Willkommensseite
+                       dazubekommen. */
+                    vorhanden: roh !== null && roh !== undefined,
+                    /* Die Verweisleiste ist eine Ansichtseinstellung
+                       dieses Browsers, keine Angabe des Wikis - darum
+                       steht sie in beiden Speichern hier. */
+                    verweise: SimpleWikiStore.get('simplewiki_refs') === '1',
+                    startseite: this.startId,
+                    sprache: SimpleWikiStore.get('simplewiki_lang') || '',
+                    thema: SimpleWikiStore.get('simplewiki_theme') || ''
+                };
+            },
+
+            seiteSichern: function () {
+                SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.seiten));
+                return true;
+            },
+
+            seiteLoeschen: function (id) {
+                this.seiten = this.seiten.filter(p => String(p.id) !== String(id));
+                SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.seiten));
+                return true;
+            },
+
+            startseiteSetzen: function (id) {
+                this.startId = id == null ? '' : String(id);
+                SimpleWikiStore.set('simplewiki_startpage', this.startId);
+                return true;
+            },
+
+            themaSetzen: function (thema) {
+                this.einstellungen.thema = thema;
+                SimpleWikiStore.set('simplewiki_theme', thema);
+                return true;
+            },
+
+            spracheSetzen: function (sprache) {
+                this.einstellungen.sprache = sprache;
+                SimpleWikiStore.set('simplewiki_lang', sprache == null ? '' : String(sprache));
+                return true;
+            }
+        };
+
+        /* ---------- MWS: die Seiten liegen auf dem Server ---------- */
+
+        /* Der Name des Wikis steht im Pfad: /wiki/<name>/ */
+        function mwsSlug() {
+            const m = String(window.location.pathname || '').match(/\/wiki\/([^/]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
+        function MwsStore(tiddler) {
+            this.tiddler = Array.isArray(tiddler) ? tiddler : [];
+            this.slug = mwsSlug();
+            /* Die Felder, wie sie kamen. Beim Schreiben werden sie
+               wieder mitgegeben, damit Felder, die SimpleWiki nicht
+               kennt, nicht verloren gehen. */
+            this.felder = {};
+            this.seiten = [];
+            this.startId = '';
+            this.einstellungen = {};
+            this.wikiTitel = '';
+            this.nurLesen = false;
+        }
+
+        MwsStore.prototype.rezepte = function (op) {
+            return '/recipe/' + encodeURIComponent(this.slug) + '/batch/' + op;
+        };
+
+        /* Ein Aufruf an den Server.
+
+           403 mit BAG_NO_WRITE_PERMISSION ist kein Fehler, sondern ein
+           Betriebszustand: das Wiki gehört jemand anderem. Dann wird das
+           Bearbeiten abgeschaltet und der Grund gesagt - jede andere
+           Fehlermeldung bleibt ein Fehler. */
+        MwsStore.prototype.ruf = function (op, nutzlast) {
+            const selbst = this;
+            return fetch(this.rezepte(op), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'fetch'
+                },
+                body: JSON.stringify(nutzlast || {})
+            }).then(function (antwort) {
+                if (antwort.status === 403) {
+                    const e = new Error('BAG_NO_WRITE_PERMISSION');
+                    e.sperre = true;
+                    throw e;
+                }
+                if (!antwort.ok) throw new Error('HTTP ' + antwort.status);
+                return antwort.text().then(function (t) {
+                    if (!t) return {};
+                    try {
+                        return JSON.parse(t);
+                    } catch (x) {
+                        return {};
+                    }
+                });
+            }).catch(function (e) {
+                if (e && e.sperre) {
+                    selbst.nurLesenMelden();
+                    return null;
+                }
+                throw e;
+            });
+        };
+
+        MwsStore.prototype.nurLesenMelden = function () {
+            this.nurLesen = true;
+            try {
+                document.dispatchEvent(new CustomEvent('simplewiki:nurlesen'));
+            } catch (e) { /* älterer Browser: nur die Merkvariable zählt */ }
+        };
+
+        /* Sprache und Farbe stehen an den Feldern des Tiddlers, der die
+           Startseite ist. Beim Start kommt die Startseite aus
+           $:/DefaultTiddlers; fehlt sie, trägt die erste Seite. */
+        MwsStore.prototype.startseitenFelder = function () {
+            const felder = this.felder[this.startId];
+            return felder || {};
+        };
+
+        MwsStore.prototype.einstellungenSchreiben = function () {
+            const id = this.startId;
+            const felder = this.felder[id];
+            if (!id || !felder) return Promise.resolve(null);
+            if (this.einstellungen.thema) felder.thema = this.einstellungen.thema;
+            if (this.einstellungen.sprache) felder.sprache = this.einstellungen.sprache;
+            return this.ruf('save', { tiddlers: [felder] });
+        };
+
+        MwsStore.prototype.laden = function () {
+            const seiten = [];
+            let startseite = '';
+            for (let i = 0; i < this.tiddler.length; i++) {
+                const t = this.tiddler[i] || {};
+                const titel = String(t.title == null ? '' : t.title);
+                if (!titel) continue;
+                this.felder[titel] = Object.assign({}, t);
+                if (titel === '$:/DefaultTiddlers') {
+                    startseite = zwAusListe(t.text);
+                } else if (titel === '$:/SiteTitle') {
+                    this.wikiTitel = String(t.text == null ? '' : t.text).trim();
+                } else if (titel.slice(0, 2) === '$:') {
+                    /* $:/bag-info, $:/recipe-info und jeder andere
+                       Systemtiddler: keine Seite. */
+                } else {
+                    seiten.push(tiddlerZuSeite(t));
+                }
+            }
+            /* Die Reihenfolge aus den Seiten holen, wenn der Server sie
+               mitgeschickt hat. Ohne das Feld gilt die Reihenfolge, in der
+               die Tiddler kommen. */
+            const mitReihenfolge = seiten.some(function (s) {
+                const f = this.felder[s.id] || {};
+                return f.reihenfolge != null && f.reihenfolge !== '';
+            }, this);
+            if (mitReihenfolge) {
+                seiten.sort(function (a, b) {
+                    const fa = this.felder[a.id] || {};
+                    const fb = this.felder[b.id] || {};
+                    const na = parseInt(fa.reihenfolge, 10);
+                    const nb = parseInt(fb.reihenfolge, 10);
+                    if (isNaN(na) && isNaN(nb)) return 0;
+                    if (isNaN(na)) return 1;
+                    if (isNaN(nb)) return -1;
+                    return na - nb;
+                }.bind(this));
+            }
+
+            this.seiten = seiten;
+            this.startId = startseite;
+
+            /* Sprache und Farbe von der Seite holen, die sie trägt. */
+            const traeger = this.startseitenFelder() ||
+                (seiten.length ? this.felder[seiten[0].id] : null) || {};
+            this.einstellungen = {
+                thema: traeger.thema === 'dark' ? 'dark' : (traeger.thema === 'light' ? 'light' : ''),
+                sprache: traeger.sprache ? String(traeger.sprache) : ''
+            };
+
+            return {
+                seiten: seiten,
+                /* Der Server hat das Wiki geschickt. Enthaelt es nur
+                   Systemtiddler, ist es leer - und dann bleibt es leer:
+                   in einem fremden Wiki wird nichts erfunden. */
+                vorhanden: true,
+                verweise: SimpleWikiStore.get('simplewiki_refs') === '1',
+                startseite: startseite,
+                sprache: this.einstellungen.sprache,
+                thema: this.einstellungen.thema,
+                nurLesen: this.nurLesen,
+                wikiTitel: this.wikiTitel
+            };
+        };
+
+        MwsStore.prototype.seiteSichern = function (seite) {
+            const felder = this.felder[seite.id] || {};
+            const t = seiteZuTiddler(seite, felder);
+            /* Nur die Startseite trägt Sprache und Farbe. */
+            if (String(seite.id) === String(this.startId)) {
+                if (this.einstellungen.thema) t.thema = this.einstellungen.thema;
+                if (this.einstellungen.sprache) t.sprache = this.einstellungen.sprache;
+            }
+            /* Die Stelle im Inhaltsverzeichnis mitgeben. */
+            const pos = this.seiten.indexOf(seite);
+            if (pos >= 0) {
+                t.reihenfolge = ('000' + pos).slice(-4);
+            }
+            this.felder[t.title] = t;
+            return this.ruf('save', { tiddlers: [t] });
+        };
+
+        MwsStore.prototype.seiteLoeschen = function (id) {
+            delete this.felder[id];
+            return this.ruf('delete', { titles: [String(id)] });
+        };
+
+        /* Die Startseite wandert nach $:/DefaultTiddlers. Sprache und
+           Farbe wandern mit: sie stehen danach am Tiddler der neuen
+           Startseite. */
+        MwsStore.prototype.startseiteSetzen = function (id) {
+            this.startId = id == null ? '' : String(id);
+            const eintrag = { title: '$:/DefaultTiddlers', text: this.startId };
+            this.felder[eintrag.title] = eintrag;
+            return this.ruf('save', { tiddlers: [eintrag] })
+                .then(() => this.einstellungenSchreiben());
+        };
+
+        MwsStore.prototype.themaSetzen = function (thema) {
+            this.einstellungen.thema = thema === 'dark' ? 'dark' : 'light';
+            return this.einstellungenSchreiben();
+        };
+
+        MwsStore.prototype.spracheSetzen = function (sprache) {
+            this.einstellungen.sprache = sprache == null ? '' : String(sprache);
+            return this.einstellungenSchreiben();
+        };
+
+        /* ---------- Und hier wird entschieden ----------
+
+           Marker mit Inhalt: der Server liefert die Seiten mit, das Wiki
+           schreibt dorthin zurück. Marker fehlt oder leer: alles bleibt
+           im Browser. */
+        const MWS_TIDDLER = mwsTiddlerLesen();
+        const SPEICHER = (MWS_TIDDLER && MWS_TIDDLER.length)
+            ? new MwsStore(MWS_TIDDLER)
+            : LocalStore;
 
         /* Oberflächentexte des Markdown-Editors.
            Die i18n-Datei von Toast UI ist mit dem All-Bundle inkompatibel,
@@ -2178,6 +2683,12 @@ showToc: false,
                 druckModus: false,
                 /* Unbekannte Angaben oben aus einer eingelesenen Datei. */
                 fremdeDaten: {},
+                /* Der Server hat kein Schreiben erlaubt. */
+                nurLesen: false,
+                /* Name des Wikis, wenn der Server einen schickt. */
+                mwsTitel: '',
+                /* Kommt der Inhalt vom Server statt aus dem Browser? */
+                mwsModus: false,
                 dragIndex: null,
                 dropIndex: null,
                 hinweisText: '',
@@ -2260,20 +2771,21 @@ showToc: false,
             },
 
             mounted() {
+                /* Der Speicher entscheidet, woher die Seiten kommen:
+                   aus dem Browser oder vom Server. Erst danach sind
+                   Farbe und Sprache bekannt - vorher wüsste die App
+                   nicht, was der Server geschickt hat. */
                 this.loadPages();
-                this.isDarkMode = SimpleWikiStore.get('simplewiki_theme') === 'dark';
                 this.updateTheme();
-                this.currentLang = SimpleWikiStore.get('simplewiki_lang');
                 /* Fehlt die gespeicherte Sprache (z. B. weil eine entfernt
                    wurde), zurück auf die Hauptsprache. */
                 if (!SIMPLEWIKI_LANGS[this.currentLang]) {
                     this.currentLang = SIMPLEWIKI_BASE_LANG;
                 }
                 this.applyLanguage();
-                /* Das Verweis-Panel kommt so zurück, wie es das letzte
-                   Mal verlassen wurde – sonst wäre die Einstellung
-                   nach einem Neuladen verloren. */
-                this.showRefs = SimpleWikiStore.get('simplewiki_refs') === '1';
+                /* Sagt der Server, dass hier nicht geschrieben werden
+                   darf, wird das Bearbeiten abgeschaltet - mit Grund. */
+                document.addEventListener('simplewiki:nurlesen', this.nurLesenMerken);
                 window.addEventListener('beforeprint', this.vorDemDruck);
                 window.addEventListener('afterprint', this.nachDemDruck);
                 window.addEventListener('keydown', this.onKeydown);
@@ -2334,15 +2846,16 @@ showToc: false,
                     }
                     /* Verknüpfungen sind Eigenschaften der Seite, kein Text –
                        deshalb sofort sichern, unabhängig vom Textbearbeiten. */
-                    this.savePages();
+                    this.seiteSichern(this.currentPage);
                     this.showLinkDialog = false;
                 },
 
                 /* Verlinken und – falls nötig – die Seite gleich anlegen. */
                 linkAndCreate(titel) {
                     if (!titel) return;
+                    let neu = null;
                     if (!this.pages.some(p => p.title === titel)) {
-                        const neu = {
+                        neu = {
                             id: Date.now().toString(),
                             title: titel,
                             content: '',
@@ -2352,6 +2865,7 @@ showToc: false,
                             updated: new Date().toISOString()
                         };
                         this.pages.unshift(neu);
+                        this.seiteSichern(neu);
                     }
                     if (!Array.isArray(this.currentPage.links)) {
                         this.currentPage.links = [];
@@ -2359,7 +2873,7 @@ showToc: false,
                     if (this.currentPage.links.indexOf(titel) < 0) {
                         this.currentPage.links.push(titel);
                     }
-                    this.savePages();
+                    this.seiteSichern(this.currentPage);
                     this.showLinkDialog = false;
                 },
 
@@ -2561,7 +3075,7 @@ showToc: false,
                     };
                     this.pages.unshift(neu);
                     this.currentPage = neu;
-                    this.savePages();
+                    this.seiteSichern(neu);
                     this.startEditing();
                 },
 
@@ -2691,7 +3205,10 @@ showToc: false,
                     if (ziel === von) return;
                     liste.splice(ziel, 0, seite);
                     this.pages = liste;
-                    this.savePages();
+                    /* Die neue Liste dem Speicher geben: er schreibt daraus
+                       die Reihenfolge in die Seiten. */
+                    this.seitenUebernehmen();
+                    this.seitenSichern();
                 },
 
                 /* Alt + Pfeil verschiebt die Zeile: für die Tastatur
@@ -2738,7 +3255,7 @@ showToc: false,
 
                 changeLanguage() {
                     this.applyLanguage();
-                    SimpleWikiStore.set('simplewiki_lang', this.currentLang);
+                    SPEICHER.spracheSetzen(this.currentLang);
                     /* Läuft der Editor gerade, neu aufbauen – sonst bliebe seine
                        Oberfläche in der alten Sprache. */
                     if (this.mdEditor) {
@@ -2882,17 +3399,17 @@ showToc: false,
                 uebernehmenAusDatei(daten) {
                     if (daten.startseite && this.pages.some(p => p.id === daten.startseite)) {
                         this.startPageId = daten.startseite;
-                        SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                        SPEICHER.startseiteSetzen(this.startPageId);
                     }
                     if (daten.sprache && SIMPLEWIKI_LANGS[daten.sprache]) {
                         this.currentLang = daten.sprache;
                         this.applyLanguage();
-                        SimpleWikiStore.set('simplewiki_lang', this.currentLang);
+                        SPEICHER.spracheSetzen(this.currentLang);
                     }
                     if (daten.thema === 'dark' || daten.thema === 'light') {
                         this.isDarkMode = daten.thema === 'dark';
                         this.updateTheme();
-                        SimpleWikiStore.set('simplewiki_theme', daten.thema);
+                        SPEICHER.themaSetzen(daten.thema);
                     }
                 },
 
@@ -2965,6 +3482,15 @@ showToc: false,
                        zerreissen. Als JSON-Datei ist das unnoetig und
                        wuerde den Inhalt sogar veraendern. */
                     const inhalt = JSON.stringify(daten || this.bauDaten()).replace(/</g, '\\u003c');
+
+                    /* Der Marker gehört zum Server, nicht in die Datei:
+                       eine gesicherte Wiki ist eine eigenständige Datei und
+                       benutzt den Browser-Speicher. Ihre Seiten stehen
+                       vollständig im Datenblock. */
+                    const markierung = doc.querySelector('script.tiddlywiki-tiddler-store');
+                    if (markierung && markierung.parentNode) {
+                        markierung.parentNode.removeChild(markierung);
+                    }
 
                     let halter = doc.getElementById('simplewiki-daten');
                     if (!halter) {
@@ -3053,7 +3579,8 @@ showToc: false,
                         }
                         this.fremdeAngabenMerken(daten);
                         this.pages = this.normiereSeiten(daten.seiten);
-                        this.savePages();
+                        this.seitenUebernehmen();
+                        this.seitenSichern();
                         this.uebernehmenAusDatei(daten);
                         /* Die bisher offene Seite existiert vielleicht
                            nicht mehr - auf die Startseite gehen. */
@@ -3075,18 +3602,31 @@ showToc: false,
                     this.hinweisTimer = setTimeout(() => { this.hinweisText = ''; }, 6000);
                 },
 
+                /* Die Seiten holen und die Einstellungen dazu.
+
+                   Die Reihenfolge der Zustände bleibt: was der Speicher
+                   liefert, gewinnt - sonst der Inhalt aus der Datei -
+                   sonst eine neue Wiki. Der Speicher entscheidet selbst,
+                   ob er aus dem Browser oder vom Server kommt. */
                 loadPages() {
-                    const saved = SimpleWikiStore.get('simplewiki_pages');
-                    /* Reihenfolge der Zustände: was im Browser steht, gewinnt –
-                       sonst der Inhalt aus der Datei – sonst die neue Wiki. */
+                    const geladen = SPEICHER.laden();
+                    this.mwsModus = SPEICHER instanceof MwsStore;
+                    this.mwsTitel = geladen.wikiTitel || '';
+                    this.nurLesen = !!geladen.nurLesen;
+                    this.showRefs = !!geladen.verweise;
+
                     const ausDatei = this.readDatenAusDatei();
 
-                    if (saved) {
-                        this.pages = JSON.parse(saved);
+                    if (geladen.vorhanden) {
+                        this.pages = this.normiereSeiten(geladen.seiten);
+                        this.seitenUebernehmen();
+                        this.startPageId = geladen.startseite || '';
+                        this.einstellungenMerken(geladen);
                     } else if (ausDatei && ausDatei.seiten && ausDatei.seiten.length) {
                         this.fremdeAngabenMerken(ausDatei);
                         this.pages = this.normiereSeiten(ausDatei.seiten);
-                        this.savePages();
+                        this.seitenUebernehmen();
+                        this.seitenSichern();
                         this.uebernehmenAusDatei(ausDatei);
                     } else {
                         this.pages = [
@@ -3100,30 +3640,70 @@ showToc: false,
                                 updated: new Date().toISOString()
                             }
                         ];
-                        this.savePages();
+                        this.seitenUebernehmen();
+                        this.seitenSichern();
                     }
 
                     /* Beim Start die Startseite öffnen. */
-                    const startId = SimpleWikiStore.get('simplewiki_startpage');
-                    const start = this.pages.find(p => p.id === startId);
+                    const start = this.pages.find(p => p.id === this.startPageId);
                     if (start) {
                         this.startPageId = start.id;
                     } else if (this.pages.length) {
                         this.startPageId = this.pages[0].id;
-                        SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                        SPEICHER.startseiteSetzen(this.startPageId);
                     }
                     this.currentPage = this.pages.find(p => p.id === this.startPageId) || null;
                 },
 
-                changeStartPage() {
-                    SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                /* Farbe und Sprache, die der Speicher mitgebracht hat. */
+                einstellungenMerken(geladen) {
+                    if (geladen.thema === 'dark' || geladen.thema === 'light') {
+                        this.isDarkMode = geladen.thema === 'dark';
+                    }
+                    if (geladen.sprache && SIMPLEWIKI_LANGS[geladen.sprache]) {
+                        this.currentLang = geladen.sprache;
+                    }
                 },
 
-                savePages() {
-                    SimpleWikiStore.set('simplewiki_pages', JSON.stringify(this.pages));
+                changeStartPage() {
+                    SPEICHER.startseiteSetzen(this.startPageId);
+                },
+
+                /* Der Speicher und die App arbeiten auf derselben
+                   Seitenliste. Deshalb wird sie hier nur übergeben -
+                   was die App danach an der Liste ändert, sieht der
+                   Speicher sofort. */
+                seitenUebernehmen() {
+                    SPEICHER.seiten = this.pages;
+                },
+
+                /* Alle Seiten dem Speicher geben. Wird beim Einlesen
+                   einer Datei gebraucht, wo mehrere Seiten auf einmal
+                   entstehen. */
+                seitenSichern() {
+                    for (let i = 0; i < this.pages.length; i++) {
+                        SPEICHER.seiteSichern(this.pages[i]);
+                    }
+                },
+
+                /* Eine Seite dem Speicher geben. Im Browser ist das ein
+                   Schreibvorgang für die ganze Liste, auf dem Server
+                   genau ein Tiddler. */
+                seiteSichern(seite) {
+                    SPEICHER.seiteSichern(seite);
+                },
+
+                /* Sagt der Server, dass hier nicht geschrieben werden
+                   darf: das Bearbeiten abstellen. */
+                nurLesenMerken() {
+                    this.nurLesen = true;
                 },
 
                 createNewPage() {
+                    if (this.nurLesen) {
+                        this.hinweis(this.t('nurLesen'));
+                        return;
+                    }
                     const newPage = {
                         id: Date.now().toString(),
                         title: this.eindeutigerTitel(this.t('untitled')),
@@ -3138,7 +3718,7 @@ showToc: false,
                     this.isEditing = true;
                     this.editContent = '';
                     this.editTitle = newPage.title;
-                    this.savePages();
+                    this.seiteSichern(newPage);
                     this.$nextTick(() => this.initEditor());
                 },
 
@@ -3151,6 +3731,10 @@ showToc: false,
                 },
 
                 startEditing() {
+                    if (this.nurLesen) {
+                        this.hinweis(this.t('nurLesen'));
+                        return;
+                    }
                     this.editContent = this.currentPage.content;
                     this.editTitle = this.currentPage.title;
                     this.isEditing = true;
@@ -3237,7 +3821,7 @@ showToc: false,
                         this.currentPage.updated = new Date().toISOString();
                         this.isEditing = false;
                         this.destroyEditor();
-                        this.savePages();
+                        this.seiteSichern(this.currentPage);
                     }
                 },
 
@@ -3310,7 +3894,7 @@ showToc: false,
                     this.destroyEditor();
                     this.editContent = '';
                     this.editTitle = '';
-                    this.savePages();
+                    this.seiteSichern(kopie);
                 },
 
                 deletePage(id) {
@@ -3328,7 +3912,7 @@ showToc: false,
                        bestimmen – sonst zeigt das Wiki ins Leere. */
                     if (this.startPageId === deleted.id) {
                         this.startPageId = this.pages.length ? this.pages[0].id : '';
-                        SimpleWikiStore.set('simplewiki_startpage', this.startPageId);
+                        SPEICHER.startseiteSetzen(this.startPageId);
                     }
 
                     /* Auf eine gültige Seite wechseln und den Editor verlassen. */
@@ -3340,7 +3924,7 @@ showToc: false,
                     this.editContent = '';
                     this.destroyEditor();
 
-                    this.savePages();
+                    SPEICHER.seiteLoeschen(deleted.id);
                     this.showDeleteModal = false;
                     this.pageToDelete = null;
                 },
@@ -3348,7 +3932,7 @@ showToc: false,
                 toggleTheme() {
                     this.isDarkMode = !this.isDarkMode;
                     this.updateTheme();
-                    SimpleWikiStore.set('simplewiki_theme', this.isDarkMode ? 'dark' : 'light');
+                    SPEICHER.themaSetzen(this.isDarkMode ? 'dark' : 'light');
                 },
 
                 updateTheme() {

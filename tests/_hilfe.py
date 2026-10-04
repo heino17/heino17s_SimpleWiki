@@ -36,10 +36,19 @@ def url(name):
 
 def dumpdom(name, fenster=None, budget=120000):
     """Seite in Chromium oeffnen und das fertige HTML zurueckgeben."""
+    return dumpdom_url(url(name), fenster, budget)
+
+
+def dumpdom_url(url, fenster=None, budget=120000):
+    """Wie dumpdom, aber mit einer fertigen Adresse.
+
+    Fuer den MWS-Test: der laeuft ueber einen eigenen kleinen Server,
+    nicht ueber eine Datei.
+    """
     befehl = [CHROMIUM, '--headless', '--disable-gpu', '--no-sandbox']
     if fenster:
         befehl.append('--window-size=' + fenster)
-    befehl += ['--virtual-time-budget=%d' % budget, '--dump-dom', url(name)]
+    befehl += ['--virtual-time-budget=%d' % budget, '--dump-dom', url]
     ergebnis = subprocess.run(befehl, capture_output=True, timeout=budget / 1000 + 120)
     return ergebnis.stdout.decode('utf-8', 'replace')
 

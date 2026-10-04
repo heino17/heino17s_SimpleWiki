@@ -39,7 +39,9 @@ _DATENBLOCK = r'<script id="simplewiki-daten"[^>]*>[\s\S]*?</script>'
 
 # Alles, was beim Suchen nach echten Tags beachtet werden muss:
 # script- und style-Bloecke stehen im Rohtext, ihr Inhalt ist kein HTML.
-_SCAN = re.compile(r'<script\b[^>]*>|</script\s*>|<style\b[^>]*>|</style\s*>'
+# Kommentare ebenso: der Vertrag im Kopf nennt </head> und <body>, ohne
+# dass damit etwas im Dokument zu tun waere.
+_SCAN = re.compile(r'<!--[\s\S]*?-->|<script\b[^>]*>|</script\s*>|<style\b[^>]*>|</style\s*>'
                    r'|</head>|<body[^>]*>', re.I)
 
 
@@ -50,15 +52,21 @@ def _echte_tags(h):
     '<head></head><body>' mehrfach - Toast UI baut damit Druckseiten.
     Ein blosses replace() landet dort also mitten im JavaScript und
     zerschiesst die Testkopie. Deshalb wird der Dokumenttext ueber
-    script- und style-Bloecke hinweg gescannt und nur Tags ausserhalb
-    deren Inhalt verwendet.
+    Kommentare und script-/style-Bloecke hinweg gescannt und nur Tags
+    ausserhalb deren Inhalt verwendet.
 
     Liefert (ende_von_head, ende_vom_body_tag, beginn_vom_/body).
     """
     roh = False
+    kommentar = False
     head = body_tag_ende = body = None
     for m in _SCAN.finditer(h):
         t = m.group(0).lower()
+        if t.startswith('<!--'):
+            kommentar = not kommentar
+            continue
+        if kommentar:
+            continue
         if t.startswith('<script') or t.startswith('<style'):
             roh = True
             continue

@@ -28,6 +28,7 @@ REIHENFOLGE = [
     't_order.py',      # Reihenfolge per Ziehen
     't_file.py',       # Als Datei sichern und laden
     't_mws.py',        # Austausch mit MWS: JSON, Version, Fremdfelder
+    't_mwsmode.py',    # Betrieb auf einem MWS-Server: Marker, Speicher, 403
     't_leerwiki.py',   # Leere Wiki-Datei, Vorlage fuellen und oeffnen
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_fluss.py',      # Fluss und Druckansicht
@@ -46,6 +47,7 @@ BESCHRIEBUNG = {
     't_order.py': 'Reihenfolge per Ziehen und Alt + Pfeil',
     't_file.py': 'Wiki als Datei sichern und laden',
     't_mws.py': 'Austauschformat: JSON, Version, fremde Felder, doppelte Titel',
+    't_mwsmode.py': 'Serverbetrieb: Marker, Speicher, Schreiben, 403, leerer Marker',
     't_leerwiki.py': 'Leere Wiki-Datei als Vorlage, Angaben oben, der Weg zurueck',
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_fluss.py': 'Fluss und Druckansicht',
@@ -77,7 +79,8 @@ def main():
             continue
         print('--- ' + name + '  (' + BESCHRIEBUNG.get(name, '') + ')')
         lauf = subprocess.run([sys.executable, pfad],
-                              capture_output=True, text=True, timeout=900)
+                              capture_output=True, text=True,
+                              timeout=1800)   # der MWS-Test startet einen Server
         ausgabe = lauf.stdout
         # Die Reports der Tests sind ausfuehrlich; hier nur die Fazits.
         for zeile in ausgabe.split('\n'):

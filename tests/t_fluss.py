@@ -24,8 +24,10 @@ script = r"""
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function head(m) { log.push('--- ' + m); out(); }
       function flussTitel() { return all('.fluss-eintrag-titel').map(function (t) { return t.textContent.trim(); }); }
+      /* Der Fluss wird ueber den Knopf im Kopf geoeffnet; im
+         Inhaltsverzeichnis steht er nicht mehr. */
       function knopfImVerzeichnis() { return all('.toc-footer .new-page-btn'); }
-      function flussOeffnen() { knopfImVerzeichnis()[0].click(); }
+      function flussOeffnen() { q('.kopf-fluss').click(); }
       function zurueck() { all('.fluss-aktionen .btn')[1].click(); }
       function ende() {
         log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
@@ -41,8 +43,9 @@ script = r"""
         q('.menu-toggle').click();
         setTimeout(function () {
           var knoepfe = knopfImVerzeichnis();
-          ok(knoepfe.length === 2, 'zwei Knöpfe im Verzeichnis: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
-          ok(knoepfe[0].textContent.indexOf('Fluss') >= 0, 'Fluss-Knopf zuerst: ' + knoepfe[0].textContent.trim());
+          ok(knoepfe.length === 1, 'im Verzeichnis bleibt nur „Neue Seite“: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
+          ok(!q('.toc-footer') || q('.toc-footer').textContent.indexOf('Fluss') < 0, 'im Verzeichnis steht kein Fluss-Knopf mehr');
+          ok(!!q('.kopf-fluss'), 'der Fluss-Knopf sitzt im Kopf');
 
           head('Fluss oeffnen');
           flussOeffnen();

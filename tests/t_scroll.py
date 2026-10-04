@@ -31,7 +31,7 @@ script = r"""
       setTimeout(function () {
         q('.menu-toggle').click();
         setTimeout(function () {
-          all('.toc-footer .new-page-btn')[0].click();
+          q('.kopf-fluss').click();
           setTimeout(function () {
             var f = q('.fluss');
             head('Scrollen');
@@ -54,13 +54,18 @@ script = r"""
                 var text = all('.fluss-eintrag-titel').map(function (t) { return t.textContent.trim(); }).join('|');
                 ok(text === 'Anleitung|Notizen|Letzte Seite', 'alle drei da: ' + text);
 
-                head('Neuer Fluss beginnt oben');
+                head('Knopf im Fluss: nochmal druecken schliesst');
                 f.scrollTop = 300;
-                q('.menu-toggle').click();
+                q('.kopf-fluss').click();
                 setTimeout(function () {
-                  all('.toc-footer .new-page-btn')[0].click();
+                  ok(!q('.fluss'), 'Fluss ist geschlossen');
+                  ok(!!q('.content-title'), 'Seitenansicht ist da');
+
+                  head('Neuer Fluss beginnt oben');
+                  q('.kopf-fluss').click();
                   setTimeout(function () {
-                    ok(q('.fluss').scrollTop === 0, 'Fluss startet oben: ' + q('.fluss').scrollTop);
+                    ok(!!q('.fluss'), 'Fluss wieder offen');
+                    ok(q('.fluss') && q('.fluss').scrollTop === 0, 'Fluss startet oben: ' + (q('.fluss') ? q('.fluss').scrollTop : 'kein Fluss'));
                     log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                     out();
                   }, 700);

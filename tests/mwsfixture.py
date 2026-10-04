@@ -1,15 +1,20 @@
 """Baut eine Wiki-Datei, die so aussieht, wie MWS sie ausliefert.
 
-MWS nimmt simplewiki.html, setzt als erstes Element nach dem Kopf einen
-script-Block der Klasse tiddlywiki-tiddler-store mit den Tiddlern des
-Wikis und liefert die Seite aus. Diese Datei macht genau das - ohne
-Server, damit der Browser die Datei per Doppelklick oeffnen kann.
+MWS nimmt simplewiki.html und stellt an den Store-Punkt einen
+script-Block mit den Tiddlern des Wikis, einen Aufruf $tw.preloadTiddler
+je Tiddler. Der Aufbau, der die Aufrufe entgegennimmt, steht mit in der
+Datei. Diese Fixture macht genau das - ohne Server, damit der Browser
+die Datei per Doppelklick oeffnen kann.
 
 Warum erzeugt und nicht gespeichert:
     Eine mitgecheckte Kopie von simplewiki.html waere bei der naechsten
     Aenderung an der Datei still veraltet, und niemand merkt es, bis
     ein Test etwas anderes prueft als gedacht. Deshalb wird die Datei
     bei Bedarf gebaut und nicht dem Repository anvertraut.
+
+Ohne Tiddler bleibt die Datei unveraendert: das ist die Datei, wie man
+sie per Doppelklick oeffnet, und genau so verhaelt sie sich - der
+Aufbau fuehlt keine Tiddler, also bleibt alles im Browser.
 
 Aufrufen:
 
@@ -27,7 +32,6 @@ auch geschrieben werden kann.
 
 import io
 import json
-import re
 import os
 import sys
 
@@ -38,62 +42,36 @@ HIN = os.path.dirname(os.path.abspath(__file__))
 PROJEKT = os.path.dirname(HIN)
 QUELLE = os.path.join(PROJEKT, 'simplewiki.html')
 
-MARKER_KLASSE = mkcopy.MARKER_KLASSE
+STORE_PUNKT = mkcopy.STORE_PUNKT
 
 
-def _marker_tauschen(html, marker):
-    """Das Element direkt nach </head> durch 'marker' ersetzen.
+def einsetzen(html, tiddler):
+    """Die Tiddler als $tw.preloadTiddler-Aufrufe vor den Store-Punkt setzen.
 
-    'marker' ist der ganze Element-Text oder None, um es zu entfernen.
-    Gesucht wird nicht nach dem Klassennamen - der steht auch im
-    Kommentar -, sondern nach dem Element, das dort wirklich steht.
+    Genau an der Stelle und in genau der Form, in der MWS es tut: ein
+    script-Block unmittelbar vor dem Punkt, ein Aufruf je Tiddler, JSON
+    mit '<' als \\u003c.
+
+    Ohne Tiddler wird nichts eingesetzt. Die Datei bleibt damit die
+    Datei fuer den Doppelklick - der Aufbau im Kopf laeuft, fuehrt aber
+    keine Tiddler zu.
     """
-    head_at = mkcopy._echte_tags(html)[0] + len('</head>')
-    vorhanden = re.match(r'\s*<script class="' + re.escape(MARKER_KLASSE) +
-                         r'"[^>]*>[\s\S]*?</' + 'script>', html[head_at:])
-    if not vorhanden:
-        return (html[:head_at] + '\n' + marker + html[head_at:]) if marker else html
-    a = head_at + vorhanden.start()
-    b = head_at + vorhanden.end()
-    return html[:a] + (marker + '\n' if marker else '') + html[b:]
+    aufrufe = ''.join(
+        '$tw.preloadTiddler(%s);\n' % json.dumps(t, ensure_ascii=False).replace('<', '\\u003c')
+        for t in list(tiddler or []))
+    if not aufrufe:
+        return html
+    i = html.index(STORE_PUNKT)
+    return html[:i] + '<script>\n' + aufrufe + '</' + 'script>\n' + html[i:]
 
 
-def einsetzen(html, tiddler, marker_leer=False):
-    """Den leeren Platzhalter-Marker durch die Tiddler ersetzen.
-
-    simplewiki.html bringt den Marker schon mit - leer, als erstes
-    Element nach </head>. MWS schreibt die Tiddler an seine Stelle; hier
-    wird genauso verfahren. Wuerde der Marker nur davor gesetzt, stuende
-    er zweimal im Dokument, und querySelector naehme den falschen.
-
-    Die echte Head-Grenze wird gesucht, nicht die erste Zeichenkette
-    "</head>": im Dokument steht das Wort auch im Kommentar, und dort
-    gehoert der Marker nicht hin.
-    """
-    inhalt = [] if marker_leer else list(tiddler or [])
-    koerper = json.dumps(inhalt, ensure_ascii=False).replace('<', '\\u003c')
-    return _marker_tauschen(html, '<script class="' + MARKER_KLASSE + '" '
-                                 'type="application/json">' + koerper + '</' + 'script>')
-
-
-def entfernen(html):
-    """Den Marker ganz rausnehmen - die Datei, wie man sie oeffnet."""
-    return _marker_tauschen(html, None)
-
-
-def bauen(name, tiddler, skript='', vorab='', marker_leer=False,
-          marker_keiner=False, ersetzungen=None):
-    """Fixture schreiben und ihren Pfad zurueckgeben.
-
-    marker_leer   ein Marker, dessen Array leer ist
-    marker_keiner gar kein Marker - die Datei, wie man sie per
-                  Doppelklick oeffnet
-    """
+def bauen(name, tiddler, skript='', vorab='', ersetzungen=None):
+    """Fixture schreiben und ihren Pfad zurueckgeben."""
     with io.open(QUELLE, encoding='utf-8') as fh:
         html = fh.read()
     for a, b in (ersetzungen or []):
         html = html.replace(a, b)
-    html = entfernen(html) if marker_keiner else einsetzen(html, tiddler, marker_leer)
+    html = einsetzen(html, tiddler)
     html = mkcopy.hauptskripte(html, pre=vorab, script=skript)
     return mkcopy.build_roh(name, html)
 
@@ -101,12 +79,11 @@ def bauen(name, tiddler, skript='', vorab='', marker_leer=False,
 def beispiel_tiddler():
     """Drei Tiddler: Startseite, eine verlinkte Seite, ein Systemtiddler."""
     return [
-        {'title': 'b1', 'caption': 'Erste Seite', 'text': '# Erste\n\nSiehe [[Zweite Seite]].',
+        {'title': 'b1', 'text': '# Erste\n\nSiehe [[Zweite Seite]].',
          'tags': '[[beispiel]]', 'created': '20260704120000000',
          'modified': '20260704120000000', 'reihenfolge': '0001',
          'thema': 'dark', 'sprache': 'en'},
-        {'title': 'b2', 'caption': 'Zweite Seite',
-         'text': '# Zweite\n\nZurück mit [Text](wiki:b1) und [[Erste Seite]].',
+        {'title': 'b2', 'text': '# Zweite\n\nZurück mit [Text](wiki:b1) und [[Erste Seite]].',
          'tags': '', 'created': '20260704120100000',
          'modified': '20260704120100000', 'reihenfolge': '0000'},
         {'title': '$:/DefaultTiddlers', 'text': 'b1'},
@@ -133,19 +110,14 @@ def main():
     print('geschrieben: ' + ziel)
     with io.open(ziel, encoding='utf-8') as fh:
         html = fh.read()
-    # Der Marker endet genau an der Head-Grenze. Gesucht wird deshalb
-    # rueckwaerts vor ihr: dieselbe Zeichenkette steht weiter oben im
-    # Vertrag, und gezeigt werden soll der Marker, der wirklich im
-    # Dokument steht.
-    ab = mkcopy._echte_tags(html)[0]
-    i = html.rfind('<script class="' + MARKER_KLASSE + '"', 0, ab)
-    j = html.find('</' + 'script>', i)
+    i = html.rfind('<script>\n$tw.preloadTiddler', 0, html.index(STORE_PUNKT))
+    j = html.index('</' + 'script>', i)
     if i < 0:
-        print('FEHLER: kein Marker gefunden')
+        print('FEHLER: kein Store-Block gefunden')
         return 1
     print('Groesse: %d Bytes' % len(html.encode('utf-8')))
     print()
-    print('Der Block, den ein Server statt des Platzhalters setzt:')
+    print('Der Block, den ein Server vor dem Punkt setzt:')
     print(html[i:j + len('</' + 'script>')])
     print()
     print('Danach geht es weiter mit:')

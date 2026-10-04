@@ -4,8 +4,13 @@ Startet auf einem freien Port und liefert genau das, was der Vertrag
 im Kopf von simplewiki.html verspricht:
 
   GET  /wiki/<name>/               simplewiki.html mit gesetztem Marker
-  POST /recipe/<name>/batch/<op>   list | read | save | delete
-  POST /recipe/<name>/batch/<op>   bei /nurlesen/<name>/ stattdessen 403
+  PUT  /recipe/<name>/batch/<op>   list | read | save | delete
+  PUT  /recipe/<name>/batch/<op>   bei /nurlesen/<name>/ stattdessen 403
+
+  PUT, nicht POST: so ist es in RecipeRoutes.ts in MWS festgeschrieben
+  (packages/mws/src/new-managers/RecipeRoutes.ts). Ein Testserver, der
+  nur POST nimmt, bestaetigt genau das, was man ihm vorgegeben hat -
+  und die App haette gegen die echte Route keinen Erfolg.
 
 Der Server merkt sich jeden Aufruf in einer Liste (anfragen), damit die
 Tests nachsehen koennen, ob die App wirklich die vereinbarten Wege geht:
@@ -40,7 +45,7 @@ class Wiki:
     """Der Inhalt eines Wikis: Titel -> Felder."""
 
     def __init__(self, slug, tiddler, nurLesen=False, titel='Testwiki',
-                 skript='', vorab='', marker_leer=False, ersetzungen=None,
+                 skript='', vorab='', store_leer=False, ersetzungen=None,
                  fehler=None):
         self.slug = slug
         self.nurLesen = nurLesen
@@ -48,9 +53,9 @@ class Wiki:
         # wie mkcopy es fuer Dateikopien macht.
         self.skript = skript
         self.vorab = vorab
-        # Ein Marker ohne Inhalt: so sieht eine Seite aus, die der
-        # Browser bedienen soll, obwohl sie vom Server kommt.
-        self.marker_leer = marker_leer
+        # Ein Server, der keine Tiddler schickt: so sieht eine Seite aus,
+        # die der Browser bedienen soll, obwohl sie vom Server kommt.
+        self.store_leer = store_leer
         # Antworten, die der Server fuer einen Aufruf geben soll, statt
         # zu arbeiten: {'save': 500}. Damit laesst sich pruefen, was die
         # App tut, wenn es keinen Fehler ist, sondern einen Ausfall.
@@ -117,12 +122,12 @@ class Handler(BaseHTTPRequestHandler):
         if m and m.group(1) in self.wikis:
             self.eintrag = None
             self.anfragen.append({'weg': 'GET', 'pfad': self.path})
-            self._html(200, self._mit_marker(self.wikis[m.group(1)]))
+            self._html(200, self._mit_store(self.wikis[m.group(1)]))
             return
         self._json(404, {'error': 'not found'})
 
     # -------------------------------------------------------------- Schreiben
-    def do_POST(self):
+    def do_PUT(self):
         m = re.match(r'^/recipe/([^/]+)/batch/(\w+)$', self.path)
         if not m:
             self._json(404, {'error': 'not found'})
@@ -177,19 +182,17 @@ class Handler(BaseHTTPRequestHandler):
             self._json(400, {'error': 'unknown op'})
 
     # ------------------------------------------------------- Marker setzen
-    def _mit_marker(self, wiki):
-        """simplewiki.html mit dem Marker als erstes Element nach dem Kopf."""
+    def _mit_store(self, wiki):
+        """simplewiki.html mit den Tiddlern vor dem Store-Punkt."""
         with io.open(QUELLE, encoding='utf-8') as fh:
             html = fh.read()
         inhalt = wiki.alle()
-        # Die echte Head-Grenze suchen: im Dokument steht </head> auch
-        # im Kommentar, und dort gehoert der Marker nicht hin.
         for a, b in wiki.ersetzungen:
             html = html.replace(a, b)
-        # Der Aufbau ist derselbe wie in der Datei-Fixture: erst der
-        # Marker an die echte Head-Grenze, dann die Testskripte. So gibt
-        # es nur eine Stelle, die weiss, wie ein Server auszusehen hat.
-        html = mwsfixture.einsetzen(html, inhalt, wiki.marker_leer)
+        # Der Aufbau ist derselbe wie in der Datei-Fixture: erst die
+        # Tiddler an den Punkt, dann die Testskripte. So gibt es nur eine
+        # Stelle, die weiss, wie ein Server auszusehen hat.
+        html = mwsfixture.einsetzen(html, [] if wiki.store_leer else inhalt)
         html = mkcopy.hauptskripte(html, pre=wiki.vorab, script=wiki.skript)
         return html
 

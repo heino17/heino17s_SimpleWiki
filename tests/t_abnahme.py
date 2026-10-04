@@ -66,27 +66,33 @@ melde('jedes url() im CSS zeigt auf data:', len(url_ohne_data), 0)
 daten_bilder = len(re.findall(r'url\(\s*["\']?data:', quelle))
 melde('Bilder stecken als data: drin', daten_bilder > 0, True)
 
-# ---- Der Marker ----------------------------------------------------
-# Ohne dieses Element findet MWS die Datei nicht und antwortet mit
-# einem Fehler. Im Browser faellt das nicht auf - man sieht einen
-# fehlenden Marker nur, wenn ein fremder Server die Datei zu fassen
-# versucht. Deshalb steht es hier.
+# ---- Der Store-Punkt und der Aufbau -------------------------------
+# MWS schreibt die Tiddler an einen Punkt in dieser Datei und schickt
+# bei einer eigenen HTML-Huelle keinen eigenen Aufbau mit - der muss
+# mit drinstehen. Fehlt eines von beidem, faellt es im Browser nicht
+# auf: man sieht eine schoene Wiki ohne Inhalt, und jede Eingabe
+# landet im Browser und ist beim naechsten Aufruf weg.
 #
 # Gezählt wird auf den Roh-Bytes, ohne die Kommentare vorher zu
 # entfernen. MWS kennt kein HTML und keinen Parser, sondern macht ein
 # schlichtes indexOf auf der ganzen Datei. Ein Kommentar, der die
 # Zeichenkette zitiert, ist deshalb kein Kommentar, sondern der erste
 # Fundort im Dokument: der Server schreibt die Tiddler in den
-# Kommentar, das echte Element bleibt leer, die Wiki sieht fuer
-# SimpleWiki aus wie eine ohne Inhalt - und jede Eingabe landet im
-# Browser und ist beim naechsten Aufruf weg. Genau dieser Fehler ist
+# Kommentar und das echte Element bleibt leer. Genau dieser Fehler ist
 # durch einen Zaehler entstanden, der die Kommentare vorher wegwarf,
 # denn damit wurde genau das weggezaehlt, woran MWS scheitert.
-LITERAL = '<script class="tiddlywiki-tiddler-store" type="application/json">['
+PUNKT = '<script class="simplewiki-store-point"></' + 'script>'
 roh = quelle
-melde('die Literalzeichenkette kommt genau einmal vor', roh.count(LITERAL), 1)
-zeilen = [i + 1 for i, z in enumerate(roh.split('\n')) if LITERAL in z]
+melde('der Store-Punkt kommt genau einmal vor', roh.count(PUNKT), 1)
+zeilen = [i + 1 for i, z in enumerate(roh.split('\n')) if PUNKT in z]
 print('     (gefunden in Zeile %s)' % ', '.join(str(z) for z in zeilen))
+
+# Der Aufruf, den der Server macht, muss auch in der Datei stehen,
+# und zwar vor dem Punkt: die Tiddler kommen vorher an.
+AUFBAU = '$tw.preloadTiddler = '
+melde('der Aufbau steht in der Datei', roh.count(AUFBAU), 1)
+melde('und vor dem Store-Punkt',
+      roh.index(AUFBAU) < roh.index(PUNKT) if AUFBAU in roh and PUNKT in roh else False, True)
 
 # Nur zur Kenntnis, nicht als Pruefung: Adressen als Text im Code.
 print('     (zur Kenntnis: %d Adressen als Zeichenkette im eingebetteten Code,'
@@ -208,24 +214,25 @@ skript3 = abnahme_durchgang("""
         }, 2800);
 """)
 
-# Ohne Marker und mit altem Stand im Browser: die gewoehnliche Datei,
-# per Doppelklick geoeffnet.
-skript_marker = abnahme_durchgang("""
-        log.push('--- Der Marker im Dokument');
-        var el = document.querySelector('script.tiddlywiki-tiddler-store');
-        ok(!!el && el.tagName === 'SCRIPT', 'querySelector zeigt auf ein Element: ' + (el ? el.tagName : 'nichts'));
-        ok(!!el && el.textContent === '[]', 'der Inhalt ist "[]": ' + JSON.stringify(el ? el.textContent : null));
-        ok(document.querySelectorAll('script.tiddlywiki-tiddler-store').length === 1,
-           'nur ein Marker: ' + document.querySelectorAll('script.tiddlywiki-tiddler-store').length);
+# Ohne Tiddler im Aufbau und mit altem Stand im Browser: die gewoehnliche
+# Datei, per Doppelklick geoeffnet.
+skript_punkt = abnahme_durchgang("""
+        log.push('--- Der Aufbau und der Punkt im Dokument');
+        ok(!!window.$tw, 'der Aufbau ist da: ' + typeof window.$tw);
+        ok(!!(window.$tw && Array.isArray(window.$tw.preloadTiddlers)),
+           'er fuehrt ein Feld mit den Tiddlern');
+        ok(window.$tw.preloadTiddlers.length === 0,
+           'und es ist leer: ' + window.$tw.preloadTiddlers.length);
+        ok(!!q('script.simplewiki-store-point'), 'der Store-Punkt steht im Dokument');
+        ok(document.querySelectorAll('script.simplewiki-store-point').length === 1,
+           'nur einer: ' + document.querySelectorAll('script.simplewiki-store-point').length);
         ok(!document.querySelector('.mws-hinweis'),
-           'ein leerer Marker laesst den Browser die Seiten nehmen');
+           'ohne Tiddler laesst der Browser die Seiten nehmen');
         ende();
 """)
-kopie_marker = bauen('_abnahme_marker.html', [], skript=skript_marker,
-                     marker_keiner=False)
+kopie_punkt = bauen('_abnahme_punkt.html', [], skript=skript_punkt)
 
-kopie3 = bauen('_abnahme_ohne_net.html', [], skript=skript3, vorab=VORAB_ALT,
-               marker_keiner=True)
+kopie3 = bauen('_abnahme_ohne_net.html', [], skript=skript3, vorab=VORAB_ALT)
 
 # --- 4: injizierter Store
 TIDDLER = [
@@ -246,7 +253,8 @@ skript4 = abnahme_durchgang("""
           return;
         }
         kopf('Mit injiziertem Store');
-        ok(!!document.querySelector('script.tiddlywiki-tiddler-store'), 'der Marker ist im Dokument');
+        ok(window.$tw.preloadTiddlers.length > 0,
+           'die Tiddler sind im Aufbau: ' + window.$tw.preloadTiddlers.length);
         ok(titel().join('|') === 'Injizierte Seite', 'die Seite steht in der Oberflaeche: ' + titel().join('|'));
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Injizierte Seite',
            'und ist offen');
@@ -269,8 +277,8 @@ skript4 = abnahme_durchgang("""
 kopie4 = bauen('_abnahme_store.html', TIDDLER, skript=skript4)
 
 # ---------------------------------------------------------------- Ausfuehren
-print('=== 1b. Chromium findet den Marker ===')
-textm = bericht(dumpdom('_abnahme_marker.html', budget=120000))
+print('=== 1b. Chromium findet Aufbau und Store-Punkt ===')
+textm = bericht(dumpdom('_abnahme_punkt.html', budget=120000))
 print(textm.split('\n')[-1] if textm else 'KEIN REPORT')
 for z in textm.split('\n'):
     if z.startswith('FAIL') or z.startswith('--- '):

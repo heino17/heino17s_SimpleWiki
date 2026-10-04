@@ -72,8 +72,8 @@ wikis = {
     'nurlesen': Wiki('nurlesen', [ALPHA, BETA, STANDARD, NURLEBEN], nurLesen=True,
                      titel='Fremdes Wiki'),
     'leer': Wiki('leer', []),          # Marker mit Inhalt, aber ohne Seiten
-    'ohne': Wiki('ohne', [ALPHA, BETA, STANDARD], marker_leer=True,
-                 vorab=VORAB),        # Marker leer: der Browser soll her
+    'ohne': Wiki('ohne', [ALPHA, BETA, STANDARD], store_leer=True,
+                 vorab=VORAB),        # der Browser soll her
     'kaputt': Wiki('kaputt', [ALPHA, BETA, STANDARD],
                    fehler={'save': 500}),   # der Server faellt aus
     'kraus': Wiki('kraus', KRAUS, titel='Krauses Wiki'),
@@ -713,7 +713,7 @@ try:
             data=json.dumps(nutzlast).encode('utf-8'),
             headers=dict([('Content-Type', 'application/json')] +
                         ([('X-Requested-With', 'fetch')] if mit_kopf else [])),
-            method='POST')
+            method='PUT')
         try:
             with urllib.request.urlopen(anfrage, timeout=10) as antwort:
                 return antwort.status, json.loads(antwort.read().decode('utf-8'))

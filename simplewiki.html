@@ -56,31 +56,26 @@
     <!--
         ============================ Betrieb mit MWS ============================
 
-        Das Element steht schon in dieser Datei, direkt nach </head>, und
-        ist leer: ein script mit der Klasse tiddlywiki-tiddler-store, dem
-        Typ application/json und einem leeren Array als Inhalt.
+MWS stellt die Tiddler nicht als Datenblock bereit, sondern als
+        Aufrufe von $tw.preloadTiddler, und zwar direkt hinter einem
+        kleinen script-Element mit der Klasse simplewiki-store-point.
+        Der Aufbau, der diese Aufrufe entgegennimmt, steht mit im Kopf
+        dieser Datei - der Server schickt fuer eine eigene HTML-Huelle
+        keinen eigenen mit, er setzt voraus, dass die Seite sich selbst
+        startet.
 
-        MWS sucht nicht nach der Klasse und nicht nach dem Typ, sondern
-        woertlich nach genau diesem Element und schreibt die Tiddler des
-        Wikis an seine Stelle.
+        Diese Beschreibung nennt den Punkt absichtlich nicht als
+        Zeichenkette. MWS sucht woertlich nach genau diesem Text und nimmt
+        den ersten Fundort im Dokument - auch einen in einem Kommentar. Ein
+        Kommentar, der ihn zitiert, wuerde die Tiddler in sich hinein-
+        schlucken: die Wiki stuende schoen und leer da, und jede Eingabe
+        landete im Browser und waere beim naechsten Aufruf weg. Die Regel
+        gilt ohne Ausnahme: die Roh-Datei enthaelt den Text genau einmal.
 
-        Diese Beschreibung nennt die Zeichenkette absichtlich nicht. Ein
-        Kommentar, der sie zitiert, ist fuer MWS kein Kommentar, sondern
-        der erste Fundort im Dokument: indexOf trifft die Abschrift hier
-        oben, die Tiddler landen im Kommentar, und das echte Element
-        bleibt leer - die Wiki sieht dann aus wie eine ohne Inhalt, und
-        jede Eingabe landet im Browser und ist beim naechsten Aufruf
-        weg. Die Regel ist deshalb ohne Ausnahme: die Roh-Datei enthaelt
-        diese Zeichenkette genau einmal.
-
-        Eine Zeile, kein Umbruch, genau ein Leerzeichen zwischen den
-        Attributen, class zuerst und type danach. Bricht ein Server die
-        Zeile um, findet er nichts und antwortet mit einem Fehler - die
-        Wiki waere dann gar nicht erreichbar.
-
-        Steht der Marker nicht da, oder ist das Array leer, bleibt alles im
-        Browser: eine per Doppelklick geöffnete Datei verhält sich genau wie
-        vorher. Die Entscheidung fällt an genau einer Stelle im Programm.
+        Steht der Aufbau nicht da, oder werden keine Tiddler geliefert,
+        bleibt alles im Browser: eine per Doppelklick geoeffnete Datei
+        verhaelt sich genau wie vorher. Die Entscheidung faellt an genau
+        einer Stelle im Programm.
 
         Wie eine Seite im Tiddler steht
           title        der Name der Seite, genau wie er im Inhaltsverzeichnis
@@ -1709,8 +1704,17 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             }
         }
     </style>
+    <script>
+        /* Der Aufbau, den MWS beim Ausliefern der Tiddler braucht. Der Server
+           schickt bei einer eigenen HTML-Huelle keinen eigenen mit - er
+           setzt voraus, dass die Seite sich selbst startet. Das Element
+           darunter ist der Punkt, hinter den er die Tiddler schreibt. */
+        window.$tw = window.$tw || Object.create(null);
+        $tw.preloadTiddlers = $tw.preloadTiddlers || [];
+        $tw.preloadTiddler = function (fields) { $tw.preloadTiddlers.push(fields); };
+    </script>
+    <script class="simplewiki-store-point"></script>
 </head>
-    <script class="tiddlywiki-tiddler-store" type="application/json">[]</script>
 <body>
     <div id="app">
         <div class="app">
@@ -2231,28 +2235,20 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
            Das ist die einzige Stelle im ganzen Programm, die entscheidet,
            wohin gespeichert wird. Ein Server, der SimpleWiki ausliefert,
-           setzt als erstes Element nach dem Ende des Kopfs ein script-Element
-           der Klasse "tiddlywiki-tiddler-store" mit type="application/json"
-           und den Tiddlern als Array darin. (Hier steht das Muster bewusst
-           nicht ausgeschrieben: schon die Endmarke eines Script-Elements -
-           auch in einem Kommentar - beendet im HTML-Parser das Skript und
-           damit das ganze Wiki.)
+           schreibt hinter den Punkt im Kopf Aufrufe von $tw.preloadTiddler,
+           eines je Tiddler, und der Aufbau oben legt sie in einem Feld ab.
+           (Hier steht der Punkt bewusst nicht als Zeichenkette: MWS sucht
+           woertlich danach und nimmt den ersten Fundort im Dokument.)
 
-           Steht der Marker nicht da, oder ist das Array leer, bleibt alles
-           im Browser - eine per Doppelklick geöffnete Datei merkt sich also
-           genau wie bisher. Beide Speicher sprechen dieselben sechs
-           Methoden an; der Rest des Programms kennt den Unterschied nicht.
+           Kommen keine Tiddler an, bleibt alles im Browser - eine per
+           Doppelklick geoeffnete Datei merkt sich also genau wie bisher.
+           Beide Speicher sprechen dieselben sechs Methoden an; der Rest des
+           Programms kennt den Unterschied nicht.
         */
 
         function mwsTiddlerLesen() {
-            const el = document.querySelector('script.tiddlywiki-tiddler-store');
-            if (!el) return null;
-            try {
-                const roh = JSON.parse(el.textContent || '[]');
-                return Array.isArray(roh) ? roh : null;
-            } catch (e) {
-                return null;
-            }
+            if (!window.$tw || !Array.isArray($tw.preloadTiddlers)) return null;
+            return $tw.preloadTiddlers.length ? $tw.preloadTiddlers : null;
         }
 
         /* ---------- Listen und Zeiten zwischen beiden Welten ----------
@@ -2585,7 +2581,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         MwsStore.prototype.ruf = function (op, nutzlast) {
             const selbst = this;
             return fetch(this.rezepte(op), {
-                method: 'POST',
+                /* PUT, nicht POST: so erwartet es die Batch-Route von MWS. */
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'fetch'
@@ -2849,10 +2846,15 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         /* ---------- Und hier wird entschieden ----------
 
-           Marker mit Inhalt: der Server liefert die Seiten mit, das Wiki
-           schreibt dorthin zurück. Marker fehlt oder leer: alles bleibt
-           im Browser. Das ist die einzige Stelle im Programm, an der
-           zwischen den beiden Ausprägungen gewählt wird. */
+           Tiddler im Aufbau: der Server liefert die Seiten mit, das Wiki
+           schreibt dorthin zurueck. Keine Tiddler: alles bleibt im
+           Browser. Das ist die einzige Stelle im Programm, an der
+           zwischen den beiden Auspraegungen gewaehlt wird.
+
+           Ein leeres Server-Wiki zaehlt hier als Server, weil MWS zu
+           jeder Wiki die Verwaltungs-Tiddler mitschickt ($:/config/...,
+           $:/state/...). Die gehoeren zu keiner Seite und werden beim
+           Laden aussortiert. */
         const MWS_TIDDLER = mwsTiddlerLesen();
         const SPEICHER = (MWS_TIDDLER && MWS_TIDDLER.length)
             ? new MwsStore(MWS_TIDDLER)
@@ -3795,16 +3797,16 @@ showToc: false,
                        wuerde den Inhalt sogar veraendern. */
                     const inhalt = JSON.stringify(daten || this.bauDaten()).replace(/</g, '\\u003c');
 
-                    /* Der Marker wird geleert, nicht entfernt. Er gehört
-                       zur Vorlage - ohne ihn könnte ein Server die
-                       gesicherte Datei nicht fassen. Steht er mit den
-                       Tiddlern des Servers drin, waere die gesicherte
-                       Wiki eine Serverdatei, deren Schreibversuche ins
-                       Leere liefen. Ihre Seiten stehen vollständig im
+                    /* Die Aufrufe des Servers werden entfernt, nicht geleert. Sie
+                       gehoeren zur Vorlage nicht - stehen sie mit den
+                       Tiddlern drin, waere die gesicherte Datei eine
+                       Serverdatei, deren Schreibversuche ins Leere
+                       liefen. Ihre Seiten stehen vollstaendig im
                        Datenblock. */
-                    const markierung = doc.querySelector('script.tiddlywiki-tiddler-store');
-                    if (markierung) {
-                        markierung.textContent = '[]';
+                    for (const skript of Array.from(doc.querySelectorAll('head script:not([src]):not([id]):not([class])'))) {
+                        if (/^\s*\$tw\.preloadTiddler\(/.test(skript.textContent || '')) {
+                            skript.parentNode.removeChild(skript);
+                        }
                     }
 
                     let halter = doc.getElementById('simplewiki-daten');

@@ -38,19 +38,38 @@ script1 = r"""
     (function () {
       var log = [], fails = 0;
       function q(s) { return document.querySelector(s); }
+      /* Knopf im Bereich Wiki-Daten nach Text suchen, statt nach Nummer:
+         ein weiterer Knopf soll einen Test nicht umhauen. */
+      function knopf(muster) {
+        return [].slice.call(document.querySelectorAll('.settings-btn'))
+                .filter(function (b) { return new RegExp(muster).test(b.textContent); })[0];
+      }
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function head(m) { log.push('--- ' + m); out(); }
       function speicher() { return JSON.parse(localStorage.getItem('simplewiki_pages')); }
       function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      /* Nach dem Einlesen erst weiterlaufen, wenn ein neuer Hinweis
+         erschienen ist. Das Einlesen braucht unter Virtual Time
+         zwischen einer und drei Sekunden - eine feste Wartezeit ist
+         hier Lotterie. */
       function lade(text, dann, name) {
+        var vorher = hinweisLog.length;
         var feld = q('input.datei-feld');
         var dt = new DataTransfer();
         dt.items.add(new File([text], name || 'daten.json', { type: 'application/json' }));
         feld.files = dt.files;
         feld.dispatchEvent(new Event('change', { bubbles: true }));
-        setTimeout(dann, 2500);
+        var versuche = 0;
+        (function warten() {
+          versuche++;
+          if (hinweisLog.length > vorher || versuche > 60) {
+            setTimeout(dann, 400);
+            return;
+          }
+          setTimeout(warten, 200);
+        })();
       }
       function ende() {
         log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
@@ -58,13 +77,27 @@ script1 = r"""
       }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
+      /* Alle Hinweise notieren: sie verschwinden nach sechs Sekunden
+         von selbst. */
+      var hinweisLog = [];
+      new MutationObserver(function () {
+        var h = q('.hinweis');
+        if (h) {
+          var t = h.textContent.trim();
+          if (t && hinweisLog[hinweisLog.length - 1] !== t) hinweisLog.push(t);
+        }
+      }).observe(document.body, { childList: true, subtree: true, characterData: true });
+
       setTimeout(function () {
         q('.settings-toggle').click();
         setTimeout(function () {
           var knoepfe = all('.settings-btn').map(function (b) { return b.textContent.trim(); });
           head('Einstellungen');
-          ok(knoepfe.length === 3, 'drei Knoepfe: ' + knoepfe.join(' / '));
-          ok(knoepfe[1].indexOf('JSON') >= 0, 'JSON-Knopf in der Mitte: ' + knoepfe[1]);
+          ok(!!knopf('JSON'), 'JSON-Knopf vorhanden');
+          ok(!!knopf('Als Datei sichern|Save as file'), 'sichern vorhanden');
+          ok(!!knopf('Datei laden|Load file'), 'laden vorhanden');
+          ok(!!knopf('Leeres Wiki|Export empty'), 'leeres Wiki vorhanden');
+          ok(knoepfe.length >= 4, 'Knöpfe im Bereich: ' + knoepfe.join(' / '));
           ok(q('input.datei-feld').getAttribute('accept').indexOf('.json') >= 0,
              'Dateiauswahl nimmt JSON an: ' + q('input.datei-feld').getAttribute('accept'));
 
@@ -73,8 +106,7 @@ script1 = r"""
             var s = speicher();
             ok(s.length === 4, 'vier Seiten uebernommen: ' + s.length);
             ok(titel().join('|') === 'Von MWS|Alpha|Beta|Zweite Seite', 'Reihenfolge aus der Datei: ' + titel().join('|'));
-            ok(!!q('.hinweis') && q('.hinweis').textContent.indexOf('4') >= 0,
-               'Hinweis: ' + (q('.hinweis') ? q('.hinweis').textContent.trim() : 'KEINER'));
+            ok(hinweisLog.join(' | ').indexOf('4') >= 0, 'Hinweis: ' + (hinweisLog.join(' | ') || 'KEINER'));
 
             head('Fremde Felder bleiben erhalten');
             var erste = s.filter(function (p) { return p.title === 'Von MWS'; })[0] || {};
@@ -134,6 +166,12 @@ script2 = r"""
     (function () {
       var log = [], fails = 0;
       function q(s) { return document.querySelector(s); }
+      /* Knopf im Bereich Wiki-Daten nach Text suchen, statt nach Nummer:
+         ein weiterer Knopf soll einen Test nicht umhauen. */
+      function knopf(muster) {
+        return [].slice.call(document.querySelectorAll('.settings-btn'))
+                .filter(function (b) { return new RegExp(muster).test(b.textContent); })[0];
+      }
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
@@ -262,6 +300,12 @@ script3 = r"""
     (function () {
       var log = [], fails = 0;
       function q(s) { return document.querySelector(s); }
+      /* Knopf im Bereich Wiki-Daten nach Text suchen, statt nach Nummer:
+         ein weiterer Knopf soll einen Test nicht umhauen. */
+      function knopf(muster) {
+        return [].slice.call(document.querySelectorAll('.settings-btn'))
+                .filter(function (b) { return new RegExp(muster).test(b.textContent); })[0];
+      }
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
@@ -274,7 +318,7 @@ script3 = r"""
       setTimeout(function () {
         q('.settings-toggle').click();
         setTimeout(function () {
-          all('.settings-btn')[1].click();
+          knopf('JSON').click();
           setTimeout(function () {
             ok(window.__name === 'simplewiki.json', 'Dateiname: ' + window.__name);
             ok(!!window.__blob, 'Datei erzeugt');

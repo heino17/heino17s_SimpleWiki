@@ -18,6 +18,12 @@ teil1 = r"""
     (function () {
       var log = [], fails = 0;
       function q(s) { return document.querySelector(s); }
+      /* Knopf im Bereich Wiki-Daten nach Text suchen, statt nach Nummer:
+         ein weiterer Knopf soll einen Test nicht umhauen. */
+      function knopf(muster) {
+        return [].slice.call(document.querySelectorAll('.settings-btn'))
+                .filter(function (b) { return new RegExp(muster).test(b.textContent); })[0];
+      }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       window.__blob = null; window.__name = null;
@@ -29,7 +35,7 @@ teil1 = r"""
       setTimeout(function () {
         q('.settings-toggle').click();
         setTimeout(function () {
-          [].slice.call(document.querySelectorAll('.settings-btn'))[0].click();
+          knopf('Als Datei sichern|Save as file').click();
           setTimeout(function () {
             ok(!!window.__blob, 'Datei erzeugt');
             window.__blob.text().then(function (text) {
@@ -105,6 +111,12 @@ pruefskript = r"""
     setTimeout(function () {
       var log = [], fails = 0;
       function q(s) { return document.querySelector(s); }
+      /* Knopf im Bereich Wiki-Daten nach Text suchen, statt nach Nummer:
+         ein weiterer Knopf soll einen Test nicht umhauen. */
+      function knopf(muster) {
+        return [].slice.call(document.querySelectorAll('.settings-btn'))
+                .filter(function (b) { return new RegExp(muster).test(b.textContent); })[0];
+      }
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
@@ -122,7 +134,8 @@ pruefskript = r"""
           ok(all('.toc-grip').length === 3, 'Griffe vorhanden: ' + all('.toc-grip').length);
           q('.settings-toggle').click();
           setTimeout(function () {
-            ok(all('.settings-btn').length === 3, 'Sichern, JSON und Laden vorhanden');
+            ok(!!knopf('Als Datei sichern|Save as file') && !!knopf('JSON') && !!knopf('Datei laden|Load file'),
+               'Sichern, JSON und Laden vorhanden');
             ok(q('.refs-toggle') !== null, 'Verweis-Knopf vorhanden');
             all('.footer .btn').length;
             ok(!!q('.footer .btn'), 'Fusszeile bedienbar');

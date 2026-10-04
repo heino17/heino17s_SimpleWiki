@@ -5,16 +5,52 @@
     <title>SimpleWiki</title>
 
     <!--
-        Hier steht das Wiki, wenn die Datei mit "Als Datei sichern"
-        geschrieben wurde: Seiten in ihrer Reihenfolge, Startseite,
-        Sprache und Farbe. Beim Start wird dieser Block gelesen, wenn
-        im Browser noch nichts steht – deshalb lässt sich eine
-        gesicherte Datei einfach weitergeben und öffnet sich mit
-        ihrem Inhalt.
+        ============================ Austauschvertrag ============================
 
-        Wichtig: Inhalte dürfen hier kein "<" enthalten, sonst würde
-        der Text den Block verlassen. Der Export schreibt deshalb
-        "<" als "\u003c".
+        Hier steht das Wiki, wenn die Datei mit "Als Datei sichern" oder
+        "Leeres Wiki exportieren" geschrieben wurde. Beim Start wird dieser
+        Block gelesen, wenn im Browser noch nichts steht – deshalb lässt sich
+        eine gesicherte Datei einfach weitergeben und öffnet sich mit ihrem
+        Inhalt. Das ist der stabile Punkt, an dem eine fremde Anwendung
+        ihren JSON-Block einsetzt.
+
+        Aufbau
+          version    1. Höhere Versionen werden abgelehnt, nicht teilweise
+                     gelesen: eine Datei aus einer neueren SimpleWiki darf
+                     keine Information stillschweigend verlieren.
+          seiten[]   { id, title, content, links[], tags[], created, updated }
+                     content ist Markdown, created/updated sind ISO-8601 mit Z.
+                     id muss eindeutig sein. Verknüpft wird über title, nicht
+                     über id – deshalb dürfen keine zwei Seiten denselben
+                     Namen haben.
+          startseite eine id, keine Überschrift.
+          sprache    "de" | "en" – nur was SimpleWiki kennt.
+          thema      "light" | "dark".
+
+        Verweise im Text
+          [[Ziel]]  oder  [[Beschriftung|Ziel]]  oder
+          [Beschriftung](wiki:Ziel)
+          Im Ziel darf kein "]" und kein Zeilenumbruch stehen. Innerhalb von
+          Code ist [[…]] kein Verweis, sondern Beispieltext. Beim Einlesen
+          werden die Verweise aus dem Text zu page.links ergänzt, damit der
+          Verweisgraph vollständig ist.
+
+        Unbekannte Felder
+          Seite wie auch oberste Ebene: was SimpleWiki nicht kennt, wird
+          beim Einlesen aufgehoben und beim Schreiben wieder mitgegeben.
+          Eine spätere Erweiterung übersteht so einen Hin-und-Her-Weg.
+
+        Was hier beachten muss
+          Ein "<" im Inhalt steht in der Datei als "\u003c", sonst würde der
+          Text den Block verlassen und die Datei zerreißen.
+          Es gibt keine Bilder: eine Wiki-Datei besteht aus Textseiten. Wer
+          Inhalte mit Bildern übergibt, verliert sie, und sollte das vorher
+          sagen.
+          Eine Datei ohne Seiten wird nicht eingelesen – sie würde eine
+          vorhandene Wiki ersetzen. Die leere Vorlage ist zum Füllen da, nicht
+          zum Laden.
+
+        =========================================================================
     -->
     <script id="simplewiki-daten" type="application/json">{"version":1,"seiten":[{"id":"1","title":"Willkommen bei SimpleWiki! 🎉","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":[],"tags":[],"created":"2026-10-03T23:23:01.878Z","updated":"2026-10-03T23:46:27.593Z"},{"id":"1791069818658","title":"Seite 1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:23:38.658Z","updated":"2026-10-03T23:48:12.504Z"},{"id":"1791069858522","title":"Seite 2","content":"\\# Überschrift\n\nText...\n\n[[Seite 3]]","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:24:18.522Z","updated":"2026-10-03T23:48:28.594Z"},{"id":"1791069898378","title":"Seite 3","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 2"],"tags":[],"created":"2026-10-03T23:24:58.378Z","updated":"2026-10-03T23:48:48.796Z"},{"id":"1791071517638","title":"Seite 3-1","content":"\\# Überschrift\n\nText...","links":["Willkommen bei SimpleWiki! 🎉","Seite 3"],"tags":[],"created":"2026-10-03T23:51:57.638Z","updated":"2026-10-03T23:52:25.165Z"},{"id":"1791073464328","title":"Willkommen bei SimpleWiki! 🎉 (Kopie)","content":"Dein neues, einfaches Wiki.\n\n## Was du hier machen kannst\n\n* **Seiten anlegen** – über das Menü ☰ oder „+ Neue Seite“\n* **Schreiben** – Markdown wird verstanden\n* **Verlinken** – `[[Seitenname]]` im Text oder der 🔗-Knopf beim Bearbeiten\n* **Kopieren** – der ⧉-Knopf legt eine Kopie der Seite an\n* **Suchen** – oben im Kopf\n* **Sprache wählen** – oben rechts\n* **Hell / Dunkel** – die Sonne und der Mond\n\nViel Spaß! ✍️\n\n[[Seite 2]]","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-04T00:24:24.328Z","updated":"2026-10-04T00:24:43.098Z"},{"id":"1791071462035","title":"Neue Seite","content":"","links":["Willkommen bei SimpleWiki! 🎉"],"tags":[],"created":"2026-10-03T23:51:02.035Z","updated":"2026-10-03T23:51:13.620Z"}],"startseite":"1","sprache":"de","thema":"light"}</script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -227,6 +263,18 @@
             font-size: 0.8rem;
             color: var(--text-muted);
             margin-top: 8px;
+        }
+
+        /* Der Einleitungssatz im Bereich Wiki-Daten: etwas Luft drueber,
+           damit er als Text und nicht als Bildunterschrift liest. */
+        .settings-hint.data-hinweis {
+            margin-top: 0;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-left: 3px solid var(--accent-color);
+            border-radius: 0 6px 6px 0;
+            background: var(--bg-primary);
+            line-height: 1.5;
         }
 
         .settings-btn {
@@ -1548,6 +1596,7 @@
                 </div>
                 <div class="settings-section">
                     <label class="settings-label">{{ t('dataSection') }}</label>
+                    <p class="settings-hint data-hinweis">{{ t('dataSectionHint') }}</p>
                     <button class="settings-btn" @click="sichernAlsDatei">
                         💾 {{ t('fileSave') }}
                     </button>
@@ -1560,6 +1609,10 @@
                         📂 {{ t('fileLoad') }}
                     </button>
                     <p class="settings-hint">{{ t('fileLoadHint') }}</p>
+                    <button class="settings-btn" @click="leeresWikiExportieren">
+                        🗂 {{ t('fileSaveLeer') }}
+                    </button>
+                    <p class="settings-hint">{{ t('fileSaveLeerHint') }}</p>
                     <input ref="dateiFeld" type="file" accept=".html,.json,text/html,application/json" class="datei-feld" @change="dateiLaden">
                 </div>
             </div>
@@ -1634,7 +1687,11 @@
                     "linkCreateAndLink": "Anlegen und verlinken",
                     "linkHint": "Haken setzen zum Verlinken, erneut klicken zum Lösen.",
                     "linkNoPages": "Keine passende Seite gefunden – oben einen Namen eingeben.",
-                                                            "dataSection": "Wiki-Daten",
+                                                                                "dataSectionHint": "Eine JSON-Datei eines anderen Werkzeugs laden und mit „Als Datei sichern“ als Wiki-Datei weitergeben. Der Weg zurück ist derselbe: Eine Wiki-Datei bringt ihre Daten in der Dateninsel mit.",
+                    "fileSaveLeer": "Leeres Wiki exportieren",
+                    "fileSaveLeerHint": "Eine wiki-Datei mit leerer Dateninsel – als Vorlage für ein anderes Programm, das die Dateninsel füllen und fertige Wiki-Dateien ausgeben will.",
+                    "noticeLeerSaved": "Leere Wiki-Datei gesichert: simplewiki-leer.html",
+"dataSection": "Wiki-Daten",
                     "fileSave": "Als Datei sichern",
                                         "fileSaveJson": "JSON exportieren",
                     "fileSaveJsonHint": "Schreibt nur die Daten als JSON – gleicher Aufbau wie beim Laden, ohne HTML-Hülle. Gedacht für Werkzeuge, die keine HTML-Datei bauen können.",
@@ -1712,7 +1769,11 @@
                     "linkCreateAndLink": "Create and link",
                     "linkHint": "Click to link a page, click again to remove the link.",
                     "linkNoPages": "No matching page found – enter a name above.",
-                                                            "dataSection": "Wiki data",
+                                                                                "dataSectionHint": "Load a JSON file from another tool and pass it on as a wiki file with \u201eSave as file\u201c. The way back is the same: a wiki file carries its data along in the data island.",
+                    "fileSaveLeer": "Export empty wiki",
+                    "fileSaveLeerHint": "A wiki file with an empty data island – a template for another program that wants to fill the island and output finished wiki files.",
+                    "noticeLeerSaved": "Empty wiki file saved: simplewiki-leer.html",
+"dataSection": "Wiki data",
                     "fileSave": "Save as file",
                                         "fileSaveJson": "Export JSON",
                     "fileSaveJsonHint": "Writes only the data as JSON – same structure as on import, without an HTML wrapper. Meant for tools that cannot build an HTML file.",
@@ -1864,6 +1925,9 @@
            abgelehnt - und zwar ganz, nicht teilweise. Sonst koennte
            ein Hin-und-Her-Weg Felder stillschweigend verlieren,
            weil die aeltere Version sie nicht kennt. */
+        /* Der vollständige Austauschvertrag steht als Kommentar über dem
+           Datenblock im Kopf dieser Datei – dort, wo eine fremde
+           Anwendung ihren JSON-Block einsetzt. */
         const SIMPLEWIKI_FORMAT_VERSION = 1;
 
         /* Kopie des Dokuments, BEVOR Vue startet.
@@ -1904,6 +1968,8 @@ showToc: false,
                 showRefs: false,
                 fluss: false,
                 druckModus: false,
+                /* Unbekannte Angaben oben aus einer eingelesenen Datei. */
+                fremdeDaten: {},
                 dragIndex: null,
                 dropIndex: null,
                 hinweisText: '',
@@ -2620,15 +2686,38 @@ showToc: false,
                     return n === 1 ? this.t('seite1') : this.t('seitenN').replace('{n}', n);
                 },
 
-                /* Die Daten des Wikis in der Austauschform. */
+                /* Die Daten des Wikis in der Austauschform.
+
+                   Die bekannten Felder schreibt diese Methode frisch, die
+                   unbekannten kommen aus dem beim Einlesen gemerkten
+                   Original. Sonst wuerde eine Erweiterung oben (Autor,
+                   Exportdatum, Herkunft) einen Hin-und-Her-Weg nicht
+                   ueberstehen - obwohl die unbekannten Felder einer Seite
+                   das sehr wohl tun. */
                 bauDaten() {
-                    return {
-                        version: SIMPLEWIKI_FORMAT_VERSION,
-                        seiten: this.pages,
-                        startseite: this.startPageId,
-                        sprache: this.currentLang,
-                        thema: this.isDarkMode ? 'dark' : 'light'
-                    };
+                    const daten = Object.assign({}, this.fremdeDaten || {});
+                    daten.version = SIMPLEWIKI_FORMAT_VERSION;
+                    daten.seiten = this.pages;
+                    daten.startseite = this.startPageId;
+                    daten.sprache = this.currentLang;
+                    daten.thema = this.isDarkMode ? 'dark' : 'light';
+                    return daten;
+                },
+
+                /* Von einer eingelesenen Datei nur das merken, was
+                   SimpleWiki nicht kennt: die bekannten fuenf Schluessel
+                   schreibt bauDaten() ohnehin neu. */
+                fremdeAngabenMerken(daten) {
+                    if (!daten || typeof daten !== 'object' || Array.isArray(daten)) {
+                        this.fremdeDaten = {};
+                        return;
+                    }
+                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema'];
+                    const raus = {};
+                    Object.keys(daten).forEach(k => {
+                        if (bekannt.indexOf(k) < 0) raus[k] = daten[k];
+                    });
+                    this.fremdeDaten = raus;
                 },
 
                 /* Dem Browser eine Datei zum Herunterladen geben. */
@@ -2654,13 +2743,13 @@ showToc: false,
                    inklusive Reihenfolge in der Datei. */
                 /* Die gesicherte Datei bauen: die Vorlage von vor dem Mount,
                    nur mit frischen Daten im Datenblock. */
-                bauExport() {
+                bauExport(daten) {
                     const doc = new DOMParser().parseFromString(VORLAGE_HTML, 'text/html');
                     /* Nur hier wird "<" escaped: der Block steckt in einer
                        HTML-Datei, und ein Script-Ende im Inhalt wuerde sie
                        zerreissen. Als JSON-Datei ist das unnoetig und
                        wuerde den Inhalt sogar veraendern. */
-                    const inhalt = JSON.stringify(this.bauDaten()).replace(/</g, '\\u003c');
+                    const inhalt = JSON.stringify(daten || this.bauDaten()).replace(/</g, '\\u003c');
 
                     let halter = doc.getElementById('simplewiki-daten');
                     if (!halter) {
@@ -2678,6 +2767,34 @@ showToc: false,
                     try {
                         this.dateiHerunterladen(this.bauExport(), 'simplewiki.html', 'text/html');
                         this.hinweis(this.t('noticeSaved'));
+                    } catch (e) {
+                        this.hinweis(this.t('noticeSaveError'));
+                    }
+                },
+
+                /* Eine leere Wiki-Datei als Vorlage.
+
+                   Warum: eine andere Anwendung kann keine gültige
+                   HTML-Datei bauen, weil darin der Anwendungscode steckt.
+                   Mit dieser Vorlage kann sie die Dateninsel fuellen und
+                   fertige Wiki-Dateien ausgeben, die ein Kind direkt
+                   oeffnen kann - ohne SimpleWiki zu installieren.
+
+                   Die Dateninsel bleibt der stabile Punkt:
+                   id="simplewiki-daten", type="application/json".
+                   Sprache und Farbe kommen aus den Einstellungen, damit
+                   die Vorlage zur Person passt, die sie erzeugt. */
+                leeresWikiExportieren() {
+                    try {
+                        const leer = {
+                            version: SIMPLEWIKI_FORMAT_VERSION,
+                            seiten: [],
+                            startseite: '',
+                            sprache: this.currentLang,
+                            thema: this.isDarkMode ? 'dark' : 'light'
+                        };
+                        this.dateiHerunterladen(this.bauExport(leer), 'simplewiki-leer.html', 'text/html');
+                        this.hinweis(this.t('noticeLeerSaved'));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
                     }
@@ -2719,6 +2836,7 @@ showToc: false,
                             this.hinweis(grund);
                             return;
                         }
+                        this.fremdeAngabenMerken(daten);
                         this.pages = this.normiereSeiten(daten.seiten);
                         this.savePages();
                         this.uebernehmenAusDatei(daten);
@@ -2751,6 +2869,7 @@ showToc: false,
                     if (saved) {
                         this.pages = JSON.parse(saved);
                     } else if (ausDatei && ausDatei.seiten && ausDatei.seiten.length) {
+                        this.fremdeAngabenMerken(ausDatei);
                         this.pages = this.normiereSeiten(ausDatei.seiten);
                         this.savePages();
                         this.uebernehmenAusDatei(ausDatei);

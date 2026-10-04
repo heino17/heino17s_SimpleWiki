@@ -17,6 +17,12 @@ script1 = r"""
     (function () {
       var log = [], fails = 0;
       function q(s) { return document.querySelector(s); }
+      /* Knopf im Bereich Wiki-Daten nach Text suchen, statt nach Nummer:
+         ein weiterer Knopf soll einen Test nicht umhauen. */
+      function knopf(muster) {
+        return [].slice.call(document.querySelectorAll('.settings-btn'))
+                .filter(function (b) { return new RegExp(muster).test(b.textContent); })[0];
+      }
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
@@ -35,14 +41,18 @@ script1 = r"""
         q('.settings-toggle').click();
         setTimeout(function () {
           ok(!!q('.settings-panel.open'), 'Einstellungen offen');
-          ok(all('.settings-btn').length === 3, 'drei Knöpfe: ' + all('.settings-btn').map(function (b) { return b.textContent.trim(); }).join(' / '));
+          var knoepfe = all('.settings-btn').map(function (b) { return b.textContent.trim(); });
+          ok(!!knopf('Als Datei sichern|Save as file'), 'sichern vorhanden');
+          ok(!!knopf('JSON'), 'JSON-Knopf vorhanden');
+          ok(!!knopf('Datei laden|Load file'), 'laden vorhanden');
+          ok(knoepfe.length >= 3, 'Knöpfe im Bereich: ' + knoepfe.join(' / '));
           ok(!!q('input.datei-feld'), 'unsichtbares Dateifeld vorhanden');
           var hinweise = all('.settings-hint').map(function (h) { return h.textContent; }).join(' || ');
           ok(hinweise.indexOf('simplewiki.html') >= 0, 'Hinweis nennt den Dateinamen');
           ok(hinweise.indexOf('Reihenfolge') >= 0, 'Hinweis spricht die Reihenfolge an');
 
           head('Sichern');
-          all('.settings-btn')[0].click();
+          knopf('Als Datei sichern|Save as file').click();
           setTimeout(function () {
             ok(!!window.__blob, 'eine Datei wurde erzeugt');
             ok(window.__name === 'simplewiki.html', 'Dateiname: ' + window.__name);
@@ -71,19 +81,37 @@ script1 = r"""
               ok(text.indexOf('toastui-editor-all') > 0, 'Editor ist enthalten');
               /* zweite Seite der Pruefung: wieder einlesen */
               head('Gesicherte Datei wieder einlesen');
+              /* Auch hier auf den Hinweis warten statt auf eine feste
+                 Zeit: das Einlesen braucht unter Virtual Time je nach
+                 Last eine bis drei Sekunden. */
+              var gemeldet = [];
+              new MutationObserver(function () {
+                var h = q('.hinweis');
+                if (h) {
+                  var t = h.textContent.trim();
+                  if (t && gemeldet[gemeldet.length - 1] !== t) gemeldet.push(t);
+                }
+              }).observe(document.body, { childList: true, subtree: true, characterData: true });
+
               var feld = q('input.datei-feld');
               var dt = new DataTransfer();
               dt.items.add(new File([text], 'simplewiki.html', { type: 'text/html' }));
               feld.files = dt.files;
               feld.dispatchEvent(new Event('change', { bubbles: true }));
-              setTimeout(function () {
-                var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
-                ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge nach dem Laden: ' + titel.join('|'));
-                ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich gespeichert');
-                ok(!!q('.hinweis') && q('.hinweis').textContent.indexOf('3') >= 0, 'Hinweis nennt die Seitenzahl: ' + (q('.hinweis') ? q('.hinweis').textContent.trim() : '-'));
-                log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-                out();
-              }, 2500);
+              var versuche = 0;
+              (function warten() {
+                versuche++;
+                if (gemeldet.length || versuche > 60) {
+                  var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+                  ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge nach dem Laden: ' + titel.join('|'));
+                  ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich gespeichert');
+                  ok(gemeldet.join(' | ').indexOf('3') >= 0, 'Hinweis nennt die Seitenzahl: ' + (gemeldet.join(' | ') || 'KEINER'));
+                  log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+                  out();
+                  return;
+                }
+                setTimeout(warten, 200);
+              })();
             });
           }, 700);
         }, 700);

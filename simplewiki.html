@@ -49,6 +49,9 @@
             --code-bg: #f0ebe0;
             --blockquote-border: #b8860b;
             --table-header-bg: #f0ebe0;
+            /* Breite der Textspalte. Einmal hier, damit Seitenansicht
+               und Fluss nicht auseinanderlaufen koennen. */
+            --spaltenbreite: 860px;
         }
 
         body.dark-mode {
@@ -523,6 +526,26 @@
             overflow-y: auto;
         }
 
+        /* Dieselbe Lesebreite wie im Fluss, damit eine Seite und ihre
+           Nachbarin im Fluss gleich breit aussehen.
+
+           Die Begrenzung sitzt auf den Kindern und nicht auf
+           .content-body selbst: der Scrollbalken bleibt dann am
+           Fensterrand stehen statt bei der Spalte. */
+        .content-header,
+        .content-body > * {
+            max-width: var(--spaltenbreite);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Die Kopfzeile ist ein Flex-Kind und würde mit automatischen
+           Rändern auf ihren Text zusammenschrumpfen - der Trennstrich
+           waere dann kurz statt über die ganze Spalte. */
+        .content-header {
+            width: 100%;
+        }
+
         .editor {
             width: 100%;
             height: 100%;
@@ -626,7 +649,7 @@
         .fluss-kopf,
         .fluss-eintrag,
         .fluss-leer {
-            max-width: 860px;
+            max-width: var(--spaltenbreite);
             margin-left: auto;
             margin-right: auto;
         }
@@ -636,7 +659,10 @@
             align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
-            padding: 0 20px 16px;
+            /* Seitlich kein Polster: die Spalte ist schon begrenzt und
+               mittig, ein zweites Pollster machen den Text schmaler als
+               in der Seitenansicht. */
+            padding: 0 0 16px;
             margin-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
         }
@@ -659,7 +685,7 @@
         }
 
         .fluss-eintrag {
-            padding: 20px;
+            padding: 20px 0;
             border-bottom: 1px solid var(--border-color);
         }
 

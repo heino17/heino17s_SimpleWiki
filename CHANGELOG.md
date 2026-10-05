@@ -10,6 +10,48 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### „Neue Seite" wandert in den Kopf, links neben das Verzeichnis — 700 Prüfungen
+
+Eine Seite anlegen ist eine Tat, kein Ort. Der Knopf stand zwischen zwei
+Zeilen, die man sich sonst ansieht, und er stand an der einen Stelle, an der
+man ihn am wenigsten vermutet.
+
+Er steht jetzt im Kopf, links von ☰, und im Fuß des Verzeichnisses steht
+nur noch der Hinweis auf die Reihenfolge.
+
+- Wie die anderen Schreibknöpfe **verschwindet er, wer nicht schreiben darf** —
+  `t_anmeldung.py` prüft das am echten Server und war das ohnehin die
+  Bedingung
+- auf schmalen Fenstern **klappt der Text ein** und es bleibt ein „+", wie
+  beim Fluss-Knopf daneben
+- im Fuß des Verzeichnisses ist der untere Rand des Hinweises weg, der
+  gehörte zum Knopf daneben
+
+**Und zwei Fehler, die ich beim Umbau selbst gemacht habe.** Beide wären
+ohne die Tests in die Wiki gegangen:
+
+1. Das Plus stand doppelt da: „+ + Neue Seite". `t('newPage')` enthält es
+   schon. Ein Test prüft die Zeichenkette nicht — dafür ist er nicht da.
+   Bei der Messung stand es da.
+2. `@click="createNewPage; closeAllPanels()"` — **ohne** Klammern ist in Vue
+   eine Methode, die man ansieht und dann wegwirft. Aufgerufen wurde nichts,
+   der Knopf tat gar nichts, und `t_mws.py` meldete nüchtern
+   „erste neue Seite heisst Alpha". Jetzt mit Klammern.
+
+`tests/t_kopf.py` prüft die Reihenfolge der Kopf-Knöpfe mit — sie ist jetzt
+`neu toc fluss refs settings thema` — und dass der Knopf links neben dem
+Verzeichnis sitzt. `t_fluss.py` prüft, dass im Verzeichnis kein Knopf mehr
+steht, nur noch der Hinweis.
+
+Eine Prüfung habe ich gleich mitgezogen, weil sie an der Headerhöhe hing:
+`t_menue.py` verlangte „mehr als 400 Pixel hoch". Mit dem sechsten Knopf im
+Kopf bricht der Kopf in eine zweite Zeile um, die Spalte wird 378 Pixel
+hoch, und die Prüfung wird rot — an einem Umbau, den sie nicht meint.
+Sie prüft jetzt „reicht bis zum Fuß". Eine feste Pixelzahl in einem Test
+gilt immer nur für die Kopie des Tages.
+
+**693 → 700 Prüfungen**, 23 Testdateien.
+
 ### Die Panels werden nicht mehr neben das Fenster geparkt, sondern auf seine Kante — 693 Prüfungen
 
 Im Gerätemodus von Chrome (Galaxy S20 Ultra, 412 Pixel) war rechts ein

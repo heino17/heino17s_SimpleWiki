@@ -34,6 +34,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | | |
 |---|---|
 | **Schreiben** | Markdown, im WYSIWYG-Editor (TOAST UI) oder im reinen Textfeld |
+| **Neue Seite** | ein Knopf im Kopf, links vom Verzeichnis — weg, wer nicht schreiben darf |
 | **Inhaltsverzeichnis** | als Spalte links, drängt den Inhalt zur Seite und lässt die Kopfzeile frei; am Fähnchen zu- und aufklappbar, unter 640px Fensterbreite fängt es zugeklappt an |
 | **Verlinken** | `[[Seite]]` und `[[Beschriftung\|Seite]]` im Text, dazu ein Dialog beim Bearbeiten |
 | **Verweise** | Rück- und Ausgehende in einem eigenen Panel, mit Zähler im Kopf |
@@ -186,7 +187,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **23 Testdateien**, 693 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
+- **23 Testdateien**, 700 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
   (die beiden Drucktests starten Chromium ein zweites Mal für das PDF).
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die

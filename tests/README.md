@@ -110,6 +110,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |
 | `t_scroll.py` | Scrollen im Fluss bei kurzem Fenster, Druck über mehrere Seiten |
+| `t_textur.py` | **die Textur kommt in beiden Modi an — und die CSS-Falle, die sie einmal verschluckt hat** |
 
 ### Headless nimmt kein Fenster unter 500 Pixeln
 

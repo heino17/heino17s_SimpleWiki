@@ -10,6 +10,49 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Die Textur war im dunklen Modus unsichtbar — 721 Prüfungen
+
+Der Nutzer hat gemerkt, dass ein Ändern von `--textur-inhalt` unter
+`body.dark-mode` **nichts bewirkt**, und nachgesehen. Gemessen:
+
+```
+hell    --textur-bild am html  = radial-gradient(rgba( 61, 47, 31, 0.05)
+dunkel  --textur-inhalt am body = rgba(245,240,225, 0.05)     <- richtig
+dunkel  --textur-bild am html  = radial-gradient(rgba( 61, 47, 31, 0.05)  <- trotzdem die Tinte
+```
+
+Die Textur wurde im Dunklen mit **dunkler Tinte auf dunklem Grund**
+gezeichnet. Sie war nicht kaputt, sie war unsichtbar — und eine Änderung am
+Wert tat nichts, weil der Wert gar nicht dort ankam.
+
+**Die Ursache ist eine CSS-Eigenheit, die man nicht sieht.** Eine Custom
+Property löst ihre `var()`-Verweise **dort auf, wo sie deklariert ist**, und
+gibt das Ergebnis als fertigen String weiter. `--textur-bild` stand am `:root`
+und trug deshalb den **hellen** Wert in den dunklen Modus hinein. Der Kopf
+hat es richtig gemacht — er schreibt `var(--textur-kopf)` direkt in seine
+Regel — deshalb war die Schraffur im Dunklen sichtbar und das Punktraster
+nicht.
+
+Der Muster-Umweg ist raus. Das Muster steht jetzt an seinen beiden Benutzern,
+die **Farbe** davor. Was sich je Modus ändert, ist damit an genau zwei
+Stellen: hell und dunkel. Der Kommentar am Raster erklärt, warum.
+
+Das war die dritte Falle in diesem Durchgang, und wieder eine, die man nur am
+Bild sieht. `tests/t_textur.py` prüft jetzt, was der Nutzer geprüft hat:
+**der Wert, der an `body` steht, muss in der fertigen Farbe wiederzuerkennen
+sein** — in beiden Modi, bei Text und Verzeichnis, und die Deckkraft
+einzeln, weil er an *der* gedreht hat. Am zurückgebauten Fehler
+nachgewiesen: die Prüfung meldet genau das, was im Bild zu sehen war.
+
+Und noch eine Sache, die der Test **nicht** behauptet: die Deckkraft der
+Schraffur. Bei einem wiederholten Verlauf liest der Browser einen
+gemittelten Wert zurück (0.045 ergibt 0.043) — das ist eine Eigenschaft der
+Anzeige, nicht der Absicht, und man kann sie nicht sinnvoll vergleichen. Die
+Farbkanäle werden verglichen, die Deckkraft nur beim Punktraster, wo der
+Fleck ein echter Stopp ist.
+
+**708 → 721 Prüfungen**, 24 Testdateien.
+
 ### Tiefe: Schatten unter dem Kopf, Schraffur im Kopf und Punktraster im Text — 708 Prüfungen
 
 Drei Dinge, die die Oberfläche von „flach" zu „mit Tiefe" holen. Alle drei

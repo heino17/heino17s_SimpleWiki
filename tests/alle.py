@@ -40,6 +40,7 @@ REIHENFOLGE = [
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_fluss.py',      # Fluss und Druckansicht
     't_scroll.py',     # Scrollen und Druck ueber Blaetter
+    't_textur.py',     # Die Textur kommt in beiden Modi an
 ]
 
 BESCHRIEBUNG = {
@@ -66,6 +67,7 @@ BESCHRIEBUNG = {
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_fluss.py': 'Fluss und Druckansicht',
     't_scroll.py': 'Scrollen im Fluss, Druck ueber Blaetter',
+    't_textur.py': 'Textur im Kopf, im Text und im Verzeichnis - hell und dunkel',
 }
 
 

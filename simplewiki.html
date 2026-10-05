@@ -368,10 +368,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                schwach und ist deshalb so stark wie die Schraffur. */
             --textur-kopf: rgba(61, 47, 31, 0.045);
             --textur-inhalt: rgba(61, 47, 31, 0.05);
-            /* Das Raster selbst steht hier und nicht an seinen beiden
-               Benutzern, damit Kopf und Inhalt dasselbe Bild zeigen und
-               nicht zweimal dieselbe Zahl. */
-            --textur-bild: radial-gradient(var(--textur-inhalt) 1px, transparent 1px);
             --textur-weite: 14px 14px;
         }
 
@@ -905,10 +901,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             display: flex;
             flex-direction: column;
             transition: width 0.25s ease;
-            /* Dasselbe Raster wie im Textbereich, aus derselben
-               Definition - sonst laeuft hier eine Zahl, die dort eine
-               andere ist, und beim Aendern der einen merkt niemand von
-               der anderen.
+            /* Dasselbe Raster wie im Textbereich. Es steht hier zum
+               zweiten Mal, und das ist Absicht: die eine Stelle, an der
+               sich etwas aendert, ist die Farbe in --textur-inhalt. Das
+               Muster selbst ist ein Muster, und zweimal dieselben zwei
+               Zeilen zu schreiben ist ehrlicher als eine Variable, die
+               sich im dunklen Modus nicht mitdreht.
 
                Beide fangen oben an, also stehen die Punktreihen
                ueber die Kante hinweg in einer Hoehe. Die Spalten
@@ -916,7 +914,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                seitlich, und die ist kein Vielfaches der Rasterweite.
                Bei dieser Staerke sieht man es nicht - wer es doch sieht,
                darf die Breite des Rasters teilen. */
-            background-image: var(--textur-bild);
+            background-image: radial-gradient(var(--textur-inhalt) 1px, transparent 1px);
             background-size: var(--textur-weite);
             background-position: 0 0;
         }
@@ -1099,8 +1097,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             flex-direction: column;
             overflow: hidden;
             /* Das Punktraster. Es liegt unter allem, auch unter dem
-               Rollbalken - das Rollen bewegelt Text, nicht die Seite. */
-            background-image: var(--textur-bild);
+               Rollbalken - das Rollen bewegelt Text, nicht die Seite.
+
+               Die Farbe steht hier und nicht in einer eigenen
+               CSS-Variablen, die das Muster als Ganzes traegt. Eine
+               Variable loest ihre Verweise dort auf, wo sie deklariert
+               ist, und gibt das Ergebnis fertig weiter: eine auf :root
+               gebaute Textur traegt den hellen Wert in den dunklen
+               Modus hinein und wird dort mit dunkler Tinte auf dunklem
+               Grund gezeichnet - also gar nicht. */
+            background-image: radial-gradient(var(--textur-inhalt) 1px, transparent 1px);
             background-size: var(--textur-weite);
             background-position: 0 0;
         }

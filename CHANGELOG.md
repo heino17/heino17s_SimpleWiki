@@ -10,6 +10,31 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Auf einem schmalen Fenster fängt das Verzeichnis zugeklappt an — 677 Prüfungen
+
+Das Verzeichnis stand auch dann offen, wenn es mehr als die Hälfte des
+Fensters wegnahm: bei 420 Pixeln waren das 300 Pixel Verzeichnis und 120
+Pixel Text.
+
+Ab einer Fensterbreite von **640 Pixeln** fängt es deshalb zugeklappt an.
+Die Zahl ist eine Rechnung und keine Empfindung: unterhalb von 768 Pixeln
+wird das Verzeichnis 300 Pixel breit, und bliebe es offen, käme der Text auf
+weniger als 340 Pixel — schmaler als die Spalte auf einem Telefon. Man kann
+es lesen, aber es ist kein Lesen mehr.
+
+Die Grenze steht als `TOC_MENUE_OFFEN_BIS` an **einer** Stelle im Programm,
+und `t_menue.py` prüft das nach — die Grenze selbst im Browser, und dass sie
+an genau einer Stelle steht und nirgends gespeichert wird, in der Datei.
+
+**Nur beim Start.** Wer das Verzeichnis zuklappt, hat das so entschieden, und
+das gilt auch, wenn das Fenster danach schrumpft. Ein Menü, das sich beim
+Ziehen selbst umstellt, ist eines, dem man nicht traut.
+
+Nachgemessen: 600 Pixel → zu, 660 Pixel → offen mit 300 Pixel Spalte,
+900 Pixel → offen mit 360 Pixel.
+
+**669 → 677 Prüfungen.**
+
 ### Drei Zeilen raus: das Menü gehört zur Seite und nicht in eine Karte — 669 Prüfungen
 
 Drei Angaben, die das Menü wie eine Karte aussehen ließen, sind weg.

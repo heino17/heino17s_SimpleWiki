@@ -96,6 +96,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
 | `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge der Knöpfe, **schmale Fenster** |
 | `t_menue.py` | **Inhaltsverzeichnis links als Spalte: offen beim Öffnen, unter 640px zugeklappt, unter der Kopfzeile, drängt den Inhalt zur Seite, Fähnchen, kein Löschkreuz, Taste bleibt in ihrer Liste** |
+| `t_panels.py` | **Panels rechts: geparkt genau auf der Fensterkante statt daneben** |
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
@@ -109,6 +110,29 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |
 | `t_scroll.py` | Scrollen im Fluss bei kurzem Fenster, Druck über mehrere Seiten |
+
+### Headless nimmt kein Fenster unter 500 Pixeln
+
+Das ist keine Eigenheit dieses Projekts, das ist Chromium:
+
+```
+--window-size=320   ->  innerWidth=500
+--window-size=380   ->  innerWidth=500
+--window-size=412   ->  innerWidth=500
+--window-size=600   ->  innerWidth=600
+```
+
+Zwei Tests wollten 380 Pixeln und haben **500** gemessen: `t_kopf.py` und
+`t_menue.py`. Beide fragten `innerWidth <= 560`, und 500 erfüllt das — der
+Test war grün und hatte trotzdem etwas anderes geprüft als behauptet.
+Zwei Hebel wurden versucht und bringen nichts: `--force-device-scale-factor`
+(ändert `innerWidth` nicht) und ein Rahmen um die Wiki (dessen Timer laufen
+unter `--virtual-time-budget` nicht).
+
+Wer es wirklich wissen will, muss es auf einem Bildschirm tun — im
+Gerätemodus von Chrome oder auf einem Telefon. Bis dahin gilt: **ein Test,
+der ein Fenster will, das es hier nicht gibt, sagt es im Bildschirm mit**,
+statt eine Zahl zu behaupten. Beide tun das jetzt.
 
 ### Zwei Fallen, in die diese Suite schon getappt ist
 

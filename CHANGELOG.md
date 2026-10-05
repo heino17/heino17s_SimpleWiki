@@ -10,6 +10,67 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Die Panels werden nicht mehr neben das Fenster geparkt, sondern auf seine Kante — 693 Prüfungen
+
+Im Gerätemodus von Chrome (Galaxy S20 Ultra, 412 Pixel) war rechts ein
+Streifen des Einstellungs-Panels zu sehen, **ohne dass jemand es geöffnet
+hatte**. Das war seit dem ersten Tag so und stand seit zwei Tagen als
+Beobachtung dabei — nicht, weil es harmlos war, sondern weil ich es nicht
+zu Ende angesehen hatte.
+
+Die Ursache ist eine Zahl im Stylesheet. Die Panels parkten mit
+`right: -360px`: so weit rechts, wie sie breit sind. Das stimmt, solange sie
+breit sind — und unterhalb von 768 Pixeln macht eine Media Query daraus
+300 Pixel. Der Versatz blieb 360. Auf einem schmalen Fenster standen die
+Panel damit 60 Pixel **im** Bild statt genau daneben.
+
+Geparkt wird jetzt mit `translateX(100%)` — mit dem eigenen Maß des Panels.
+Das hängt an keiner Zahl und damit an keiner Breite, und es gilt für jedes
+Fenster, auch für eines, das morgen noch schmaler wird.
+
+`tests/t_panels.py` prüft die Massgabe so, dass sie am alten Gesetz
+gescheitert wäre: nicht „das Panel ist nicht zu sehen" (das galt vorher
+auch), sondern „das Panel steht **genau** auf der Kante". Bei 500 Pixeln ist
+das der Unterschied zwischen 765 und 780 — 15 Pixel, die Breite einer
+Bildlaufleiste. Ein Panel steht an `right: 0` am Rand des **Layouts**, und
+dort sitzt die Bildlaufleiste daneben, nicht darüber; `window.innerWidth`
+zählt sie mit. Beides ist richtig, und man darf sie nicht verwechseln.
+
+**Und dabei kam heraus, dass diese Suite seit langem lügt.** Chromium nimmt
+kein Fenster unter 500 Pixeln:
+
+```
+--window-size=320   ->  innerWidth=500
+--window-size=380   ->  innerWidth=500
+--window-size=412   ->  innerWidth=500
+```
+
+`t_kopf.py` und `t_menue.py` wollten **380 Pixel** und haben **500**
+gemessen. Beide fragten `innerWidth <= 560` — und 500 erfüllt das. Zwei Tests
+waren grün und prüften etwas anderes als behauptet: das ist die Lehre aus
+`tests/README.md`, eine Ebene tiefer, weil man sich das Fenster hier nicht
+aussuchen konnte, ohne es zu bemerken.
+
+Zwei Hebel wurden versucht und bringen nichts:
+`--force-device-scale-factor` ändert `innerWidth` nicht, und die Wiki in
+einen 380 Pixel breiten Rahmen zu setzen bringt nichts, weil dessen Timer
+unter `--virtual-time-budget` nicht laufen. Einen Test, der so nicht
+läuft, habe ich deshalb **nicht** geschrieben — lieber keiner als einer, der
+nur so aussieht.
+
+Was bleibt: Beide Tests **sagen es jetzt im Bildschirm**, statt eine Zahl zu
+behaupten, und die Tatsache steht in `tests/README.md`. Das eigentliche
+Verhalten bei 412 Pixeln muss auf einem Bildschirm geprüft werden — im
+Gerätemodus von Chrome, wie es der Nutzer getan hat. Was sich prüfen lässt,
+ist getestet: die Panels stehen bei **jeder** Breite auf der Kante.
+
+Und noch eine Lektion, die dritte in Folge an derselben Stelle: nach dem
+Anklicken wird die Lage eines Panels nicht gemessen. Es fährt 300 ms ein,
+und unter Virtual Time steht die Fahrt am Anfang. Der Test prüft die Klasse
+und die CSS-Regel.
+
+**677 → 693 Prüfungen**, 23 Testdateien.
+
 ### Auf einem schmalen Fenster fängt das Verzeichnis zugeklappt an — 677 Prüfungen
 
 Das Verzeichnis stand auch dann offen, wenn es mehr als die Hälfte des

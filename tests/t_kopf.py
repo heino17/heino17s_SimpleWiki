@@ -40,11 +40,22 @@ script1 = r"""
         var neu = q('.kopf-neu');
         ok(!!neu, 'Knopf vorhanden');
         ok(neu && neu.closest('.header') !== null, 'er sitzt im Kopf');
-        ok(neu && neu.previousElementSibling !== null &&
-           (neu.previousElementSibling.className.indexOf('search-box') >= 0 ||
-            neu.previousElementSibling.className.indexOf('clear-search') >= 0),
-           'und zwar links von der Suchleiste, vor dem Verzeichnis-Knopf');
-        ok(neu && /Neue Seite|New Page/.test(neu.textContent), 'mit seinem Namen: ' + (neu ? neu.textContent.trim() : '-'));
+        ok(neu && /➕/.test(neu.textContent), 'mit seinem Zeichen: ' + (neu ? neu.textContent.trim() : '-'));
+        ok(neu && /Neue Seite|New Page/.test(neu.getAttribute('title')),
+           'und einem Hinweis darauf: ' + (neu ? neu.getAttribute('title') : '-'));
+        ok(neu && /Neue Seite|New Page/.test(neu.getAttribute('aria-label')), 'auch fuer Vorlese-Programme');
+        /* Dicht links neben dem Verzeichnis. Ohne diese Nachbarschaft
+           stand der Knopf allein beim Suchfeld: .menu-toggle trug
+           "margin-left: auto" und schob den Leerraum vor sich her. */
+        ok(neu && neu.nextElementSibling === q('.menu-toggle'),
+           'unmittelbar links vom Verzeichnis-Knopf');
+        ok(neu && Math.abs(neu.getBoundingClientRect().right + 12 -
+           q('.menu-toggle').getBoundingClientRect().left) <= 1,
+           'im selben Abstand wie die anderen: ' +
+           Math.round(neu.getBoundingClientRect().right) + ' -> ' +
+           Math.round(q('.menu-toggle').getBoundingClientRect().left));
+        ok(neu && neu.closest('.kopf-werkzeuge') !== null,
+           'die Knoepfe des Kopfs haengen an einer Gruppe');
         ok(!q('.toc-footer .new-page-btn'), 'im Verzeichnis steht er nicht mehr');
         /* Wie die anderen Schreibknoepfe verschwindet er, wer nicht
            schreiben darf - das prueft t_anmeldung.py am echten Server. */

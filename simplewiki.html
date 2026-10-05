@@ -444,11 +444,27 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             background: var(--accent-hover);
         }
 
-        /* „Neue Seite" im Kopf. Wie der Fluss-Knopf traegt es die Klasse
+        /* „Neue Seite" im Kopf. Wie der Fluss-Knopf traegt sie die Klasse
            new-page-btn und damit zwei Bedeutungen - deshalb spricht kein
-           Test diese Klasse an, sondern den Text. */
+           Test diese Klasse an, sondern .kopf-neu. */
         .header .kopf-neu {
             flex: none;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        /* Die Knoepfe des Kopfs haengen zusammen und stehen rechts vom
+           Leerraum, der nach dem Suchfeld kommt. Ohne diese Gruppe
+           schob der erste Knopf den Leerraum vor sich her: .menu-toggle
+           trug "margin-left: auto" und rutschte damit samt den anderen
+           ans rechte Ende, waehrend der Knopf fuer eine neue Seite - als
+           erster in der Reihe - allein beim Suchfeld liegen blieb. */
+        .kopf-werkzeuge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
         }
 
         .menu-toggle {
@@ -459,7 +475,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             border-radius: 6px;
             cursor: pointer;
             font-size: 1.2rem;
-            margin-left: auto;
             color: var(--text-primary);
         }
 
@@ -1239,13 +1254,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         /* Auf schmalen Fenstern bleibt das Symbol, der Text verschwindet -
            sonst passt der Kopf nicht mehr nebeneinander. */
         @media (max-width: 560px) {
-            .header .kopf-fluss .kopf-text,
-            .header .kopf-neu .kopf-text {
+            .header .kopf-fluss .kopf-text {
                 display: none;
             }
 
-            .header .kopf-fluss,
-            .header .kopf-neu {
+            .header .kopf-fluss {
                 padding: 8px 12px;
                 font-size: 1.1rem;
             }
@@ -1767,7 +1780,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .header .refs-toggle,
             .header .settings-toggle,
             .header .theme-toggle,
-            .header .kopf-fluss {
+            .header .kopf-fluss,
+            .header .kopf-neu {
                 padding: 5px 7px;
             }
 
@@ -1801,7 +1815,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .header .refs-toggle,
             .header .settings-toggle,
             .header .theme-toggle,
-            .header .kopf-fluss {
+            .header .kopf-fluss,
+            .header .kopf-neu {
                 padding: 6px 9px;
                 font-size: 1.05rem;
             }
@@ -1916,23 +1931,32 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 <h1>📚 SimpleWiki</h1>
                 <input type="text" class="search-box" :placeholder="t('search')" v-model="searchQuery" @input="onSearchInput">
                 <button v-if="searchQuery" class="clear-search" :title="t('searchReset')" @click="clearSearch">✕</button>
+
+                <!-- Die Knoepfe des Kopfs als eine Gruppe. Sie haengen
+                     rechts zusammen, statt sich ueber den Leerraum zu
+                     verteilen, der nach dem Suchfeld kommt. -->
+                <div class="kopf-werkzeuge">
                 <!-- Neue Seite. Steht im Kopf und nicht im Verzeichnis: eine
                      Seite anlegen ist eine Tat, kein Ort, und im Verzeichnis
                      stand der Knopf zwischen zwei Zeilen, die man sich sonst
                      ansieht. Wie die anderen Schreibknöpfe verschwindet er,
                      wer nicht schreiben darf.
 
-                     Das Plus steckt in der Uebersetzung ("+ Neue Seite"),
-                     deshalb hier keins. Und die Klammern sind nicht
-                     Kosmetik: "createNewPage; closeAllPanels()" waere in
-                     Vue eine Methode, die man ansieht und dann wegwirft -
+                     Nur ein Zeichen und ein Hinweis darauf. Der Kopf hat
+                     sechs Knöpfe, und die Liste vom Benutzer nach der
+                     Breite geht damit schneller zu Ende als mit Worten.
+
+                     Die Klammern sind nicht Kosmetik:
+                     "createNewPage; closeAllPanels()" waere in Vue eine
+                     Methode, die man ansieht und dann wegwirft -
                      aufgerufen wird nur, was mit Klammern dasteht. -->
                 <button
                     v-if="kannSchreiben"
                     class="new-page-btn kopf-neu"
                     @click="createNewPage(); closeAllPanels()"
                     :title="t('newPage')"
-                ><span class="kopf-text">{{ t('newPage') }}</span></button>
+                    :aria-label="t('newPage')"
+                >➕</button>
                 <button class="menu-toggle" @click="openToc" :title="t('tocTitle')">☰</button>
                 <button
                     class="new-page-btn kopf-fluss"
@@ -1974,6 +1998,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 <button class="theme-toggle" @click="toggleTheme" :title="t('theme')" :aria-label="t('theme')">
                     {{ isDarkMode ? '☀️' : '🌙' }}
                 </button>
+                </div>
             </header>
 
             <!-- Der Körper ist eine Zeile: links das Verzeichnis, rechts

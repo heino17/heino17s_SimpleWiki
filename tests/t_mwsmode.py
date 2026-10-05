@@ -188,9 +188,9 @@ teil2 = r"""
       function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function knopf(re) { return all('.footer .btn').filter(function (b) { return re.test(b.textContent); })[0]; }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
-      /* 'new-page-btn' traegt im Kopf den Fluss-Knopf UND den Knopf fuer
-         eine neue Seite. Nach dem Text suchen, nicht nach der Klasse. */
-      function neuKnopf() { return all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0]; }
+      /* Nach der Klasse .kopf-neu suchen. Der Knopf traegt ein Zeichen
+         und nicht seinen Namen; der Name steht als title daran. */
+      function neuKnopf() { return q('.kopf-neu'); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
@@ -250,7 +250,7 @@ teil3 = r"""
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function bearbeiten() { return all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0]; }
-      function neueSeite() { return all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0]; }
+      function neueSeite() { return q('.kopf-neu'); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {

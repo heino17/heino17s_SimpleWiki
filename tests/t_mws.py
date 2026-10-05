@@ -202,7 +202,7 @@ script2 = r"""
       function neueSeite() {
         q('.menu-toggle').click();
         setTimeout(function () {
-          all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0].click();
+          q('.kopf-neu').click();
         }, 700);
       }
       function ende() {

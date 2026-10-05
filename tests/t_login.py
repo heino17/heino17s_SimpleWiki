@@ -65,7 +65,7 @@ KOPF = r"""
       out();
     }
     function bearbeiten() { return all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0]; }
-    function neueSeite() { return all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0]; }
+    function neueSeite() { return q('.kopf-neu'); }
     window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
     </script>
 """

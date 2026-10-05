@@ -10,6 +10,59 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Der Ladevorgang im Test kam manchmal gar nicht an — 721 Prüfungen
+
+Der Gesamtlauf meldete einmal **710 statt 721**, und der Verursacher war
+nicht die Textur: `t_file.py` prüfte an einem der drei Läufe, ob nach dem
+Wieder-Einlesen ein Hinweis mit der Seitenzahl erschienen ist. Dieser Lauf
+scheiterte.
+
+Die Meldung war bis dahin `Hinweis nennt die Seitenzahl: KEINER` und sonst
+nichts. Das ist die schlechteste Form einer Fehlermeldung: Sie sagt nicht,
+ob **nichts kam** oder ob **etwas kam und nicht aufgefangen wurde** —
+beides sieht gleich aus, und die beiden Fälle haben nichts miteinander zu
+tun. In der Meldung steht jetzt, wie viele Runden liefen, ob es das
+Dateifeld gab und was in dem Augenblick am Schirm war:
+
+```
+FAIL Hinweis nennt die Seitenzahl: KEINER [Runden 91, Dateifeld da, jetzt am Schirm: nichts]
+```
+
+Das ist die Antwort: **neunzig Runden, Dateifeld vorhanden, nichts
+erschienen.** Der Vorgang lief also überhaupt nicht an.
+
+**Und warum?** Der Test hatte das Dateifeld **einmal** geholt, zu Beginn.
+Vue baut den Einstellungsbereich bei Bedarf neu auf; danach hängt der
+Befehl an einem Element, das niemand mehr liest. Am Element sieht man das
+nicht — es ist ein `<input type="file">` wie jedes andere, es hat sogar
+die Datei bekommen, und `dispatchEvent` meldet keinen Fehler. Der Befehl
+geht ins Leere und das Ergebnis ist ein Bildschirm, auf dem sich nichts
+bewegt.
+
+Meine erste Antwort darauf war falsch und das ist der Teil, der
+dokumentiert gehört: Ich habe das `change`-Ereignis **wiederholt** —
+an dasselbe Feld. Damit ist garantiert wieder nichts passiert. Ich habe die
+Zeichenkette mit den richtigen Buchstaben und dem falschen Gedanken
+geschrieben. Gemessen habe ich es erst, als die Wiederholung **nicht**
+geholfen hat: gleiches Bild, neunzig Runden, nichts am Schirm. Der Test
+liest das Element jetzt **bei jedem Versuch neu**.
+
+Ausserdem: die Notiz der Wiederholung in `tests/_hilfe.py` stand auch dann
+da, wenn der zweite Lauf **genauso gescheitert** war — sie sagte
+„beim ersten Lauf unter Last gescheitert" und meinte das Gegenteil von dem,
+was zwei Zeilen darunter stand. Sie erscheint jetzt nur noch, wenn der
+zweite Lauf wirklich grün war.
+
+Und eine Frage für später, weil sie nicht meine ist: die beiden Prüfungen
+daneben — *Reihenfolge nach dem Laden* und *und gleich gespeichert* — können
+**heute nicht fehlschlagen**. Die Startkopie enthält genau dieselben drei
+Seiten in derselben Reihenfolge, die hinterher geprüft werden. Der Weg
+hin und zurück ist also an diesen zwei Stellen nicht belegt; belegt ist er
+erst durch den Hinweis und durch `t_export.py`. Soll die zurückgeladene
+Datei **etwas anderes** enthalten als die gespeicherte, damit der
+Rundweg nachweisen kann, dass wirklich geladen und nicht nur nichts
+schiefgegangen ist?
+
 ### Die Textur war im dunklen Modus unsichtbar — 721 Prüfungen
 
 Der Nutzer hat gemerkt, dass ein Ändern von `--textur-inhalt` unter

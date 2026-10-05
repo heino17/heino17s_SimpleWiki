@@ -135,7 +135,12 @@ def pruefe(*dateien, fenster=None, schon_fehler=0):
             if text2 and vollstaendig(text2) and (not text or not vollstaendig(text)
                                                  or zahlen(text2)[1] == 0):
                 text = text2
-                notiz = ' (Wiederholung, beim ersten Lauf unter Last gescheitert)'
+                # Die Notiz stimmt nur, wenn der zweite Lauf wirklich
+                # gruen war. Vorher stand sie auch dann dort, wenn er
+                # genauso gescheitert war - und sagte damit das Gegenteil
+                # von dem, was zwei Zeilen darunter steht.
+                if zahlen(text2)[1] == 0:
+                    notiz = ' (Wiederholung, beim ersten Lauf unter Last gescheitert)'
                 break
 
         if not text:

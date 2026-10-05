@@ -109,7 +109,7 @@ script1 = r"""
               dt.items.add(new File([text], 'simplewiki.html', { type: 'text/html' }));
               feld.files = dt.files;
               feld.dispatchEvent(new Event('change', { bubbles: true }));
-              var versuche = 0;
+              var versuche = 0, nachher = 0;
               (function warten() {
                 versuche++;
                 /* Auch selbst nachsehen, nicht nur dem Beobachter
@@ -118,16 +118,51 @@ script1 = r"""
                    schnell. Zwischen zwei Beobachter-Meldungen kann er
                    schon wieder weg sein. */
                 merken();
-                /* Auf DEN Hinweis warten, nicht auf irgendeinen. Vorher
-                   stand hier "sobald einer kam" - und der erste war der
-                   vom Sichern zwei Schritte weiter oben, der keine
-                   Seitenzahl nennt. Der Test las daraufhin einen Hinweis,
-                   den er nie geprueft hatte, und meldete zu Unrecht rot. */
-                if (gemeldet.join(' | ').indexOf('3') >= 0 || versuche > 90) {
+                /* Das Dateifeld ist nicht immer das Element, an dem die
+                   Oberflaeche gerade haengt: Vue baut den Bereich neu
+                   auf, und dann laeuft der Befehl an einem Feld vorbei,
+                   das niemand mehr liest. Man sieht das nicht - es
+                   kommt schlicht kein Hinweis, und der Test wartet
+                   achtzehn Sekunden auf einen, der nicht kommen wird.
+                   (Gemessen: 91 Runden, Dateifeld da, nichts am Schirm.)
+
+                   Deshalb wird gemeldet, bis etwas kommt. Dasselbe
+                   File zweimal zu laden ist harmlos - es steht danach
+                   dasselbe drin.
+
+                   Und jedes Mal das Feld neu suchen. Beim ersten
+                   Versuch stand dort das Element, das Vue zuletzt
+                   gebaut hat; nach einem Neuaufbau ist es eines, an
+                   dem niemand mehr haengt. Ein zweites 'change' auf
+                   DASSELBE Element zu schicken ist deshalb genau das
+                   Falsche - man sieht am Element nichts, was ihn
+                   verraten wuerde, und der Befehl geht ins Leere. */
+                if (versuche % 10 === 0 && versuche <= 30) {
+                  var neuFeld = q('input.datei-feld');
+                  if (neuFeld) {
+                    neuFeld.files = dt.files;
+                    neuFeld.dispatchEvent(new Event('change', { bubbles: true }));
+                    feld = neuFeld;
+                  }
+                }
+                /* Gewartet wird auf einen Hinweis, der die Seitenzahl
+                   nennt, und im schlimmsten Fall auf das Ende der
+                   Runden. */
+                if ((gemeldet.join(' | ').indexOf('3') >= 0) || versuche > 90) {
                   var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
                   ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge nach dem Laden: ' + titel.join('|'));
                   ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich gespeichert');
-                  ok(gemeldet.join(' | ').indexOf('3') >= 0, 'Hinweis nennt die Seitenzahl: ' + (gemeldet.join(' | ') || 'KEINER'));
+                  /* Der Beleg steht in der Meldung: wie viele Runden, ob
+                     es das Dateifeld gab, und was gerade zu sehen ist.
+                     Vorher stand hier nur der Inhalt von 'gemeldet' -
+                     und wenn der leer war, sagte die Meldung KEINER und
+                     man wusste nicht, ob nichts kam oder nichts
+                     aufgefangen wurde. */
+                  var jetzt = q('.hinweis');
+                  ok(gemeldet.join(' | ').indexOf('3') >= 0, 'Hinweis nennt die Seitenzahl: ' +
+                     (gemeldet.join(' | ') || 'KEINER') +
+                     ' [Runden ' + versuche + ', Dateifeld ' + (feld ? 'da' : 'fehlt') +
+                     ', jetzt am Schirm: ' + (jetzt ? '"' + jetzt.textContent.trim() + '"' : 'nichts') + ']');
                   log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                   out();
                   return;

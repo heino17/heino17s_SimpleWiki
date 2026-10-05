@@ -352,16 +352,27 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             --toc-breite: 360px;
             /* Die Textur.
 
-               Zwei feine Muster: eine Schraffur fuer den Kopf und ein
-               Punktraster fuer den Textbereich. Beide sind so hell
-               gesetzt, dass man sie nicht suchen muss - man bemerkt sie
-               erst, wenn sie fehlen. Wer sie staerker findet, dreht an
-               genau diesen beiden Werten und an nichts anderem.
+               Zwei Muster: eine Schraffur fuer den Kopf und ein
+               Punktraster fuer den Textbereich und das Verzeichnis.
+               Beide sind so hell gesetzt, dass man sie nicht suchen
+               muss - man bemerkt sie erst, wenn sie fehlen. Wer sie
+               kraeftiger will, dreht an genau diesen beiden Werten.
 
                Der Textbereich bekommt Punkte und keine Linien: schraeg
-               Linien hinter laufendem Text flimmern, Punkte nicht. */
+               Linien hinter laufendem Text flimmern, Punkte nicht. Der
+               Kopf hat keine langen Zeilen und darf darum schraffiert
+               sein.
+
+               Beide stehen auf demselben Wert. Das war nicht gerechnet,
+               sondern gesetzt und angesehen: das Punktraster war zu
+               schwach und ist deshalb so stark wie die Schraffur. */
             --textur-kopf: rgba(61, 47, 31, 0.045);
-            --textur-inhalt: rgba(61, 47, 31, 0.028);
+            --textur-inhalt: rgba(61, 47, 31, 0.05);
+            /* Das Raster selbst steht hier und nicht an seinen beiden
+               Benutzern, damit Kopf und Inhalt dasselbe Bild zeigen und
+               nicht zweimal dieselbe Zahl. */
+            --textur-bild: radial-gradient(var(--textur-inhalt) 1px, transparent 1px);
+            --textur-weite: 14px 14px;
         }
 
         body.dark-mode {
@@ -386,9 +397,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                mit Tinte - ein heller Strich auf hellem Grund waere im
                Hellen ein dunkler. */
             --textur-kopf: rgba(245, 240, 225, 0.05);
-            --textur-inhalt: rgba(245, 240, 225, 0.032);
+            --textur-inhalt: rgba(245, 240, 225, 0.05);
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--bg-primary);
@@ -895,6 +905,20 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             display: flex;
             flex-direction: column;
             transition: width 0.25s ease;
+            /* Dasselbe Raster wie im Textbereich, aus derselben
+               Definition - sonst laeuft hier eine Zahl, die dort eine
+               andere ist, und beim Aendern der einen merkt niemand von
+               der anderen.
+
+               Beide fangen oben an, also stehen die Punktreihen
+               ueber die Kante hinweg in einer Hoehe. Die Spalten
+               passen nicht: der Text beginnt um die Breite des Menues
+               seitlich, und die ist kein Vielfaches der Rasterweite.
+               Bei dieser Staerke sieht man es nicht - wer es doch sieht,
+               darf die Breite des Rasters teilen. */
+            background-image: var(--textur-bild);
+            background-size: var(--textur-weite);
+            background-position: 0 0;
         }
 
         .toc-menu.offen {
@@ -1076,11 +1100,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             overflow: hidden;
             /* Das Punktraster. Es liegt unter allem, auch unter dem
                Rollbalken - das Rollen bewegelt Text, nicht die Seite. */
-            background-image: radial-gradient(
-                var(--textur-inhalt) 1px,
-                transparent 1px
-            );
-            background-size: 14px 14px;
+            background-image: var(--textur-bild);
+            background-size: var(--textur-weite);
             background-position: 0 0;
         }
 

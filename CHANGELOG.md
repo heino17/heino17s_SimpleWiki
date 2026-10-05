@@ -20,17 +20,29 @@ sind eine einzige Sache: Licht von oben.
   Der Schatten hängt am Kopf, nicht am Inhalt — er wandert mit.
 - **Der Kopf bekommt eine Schraffur**: feine Linien im 45-Grad-Winkel, alle
   7 Pixel.
-- **Der Textbereich bekommt ein Punktraster**, alle 14 Pixel, noch feiner.
+- **Der Textbereich und das Verzeichnis bekommen dasselbe Punktraster**, alle
+  14 Pixel.
 
 Warum ausgerechnet Punkte hinter dem Text und keine Linien: schräge Linien
 hinter laufendem Text flimmern, Punkte nicht. Der Kopf hat keine langen
 Zeilen und darf darum schraffiert sein.
 
-**Die Stärke steht an zwei Werten** (`--textur-kopf`, `--textur-inhalt`) und
-nirgends sonst. Sie sind so hell gesetzt, dass man sie nicht suchen muss — man
-bemerkt sie erst, wenn sie fehlen. Wer sie kräftiger will, dreht an genau
-diesen beiden Zahlen. Im Dunklen wird dasselbe Muster mit **Licht** gezeichnet
-statt mit Tinte: ein heller Strich auf hellem Grund wäre im Hellen ein dunkler.
+**Das Punktraster stand zuerst bei 0.028 und war zu schwach** — der Nutzer hat
+es „fast nicht gesehen" und auf **0.05** gesetzt, also so stark wie die
+Schraffur. Das war nicht gerechnet, sondern angesehen; die Zahl im Kommentar
+sagte vorher „noch feiner" und war damit ebenfalls falsch.
+
+Das Muster selbst steht jetzt an **einer** Stelle (`--textur-bild`) und wird von
+beiden Benutzern geholt. Sonst läuft hier eine Zahl und dort eine andere, und
+wer die eine ändert, merkt von der anderen nichts.
+
+**Was nicht stimmt, ist hier benannt:** die Punktreihen treffen sich über die
+Kante zwischen Verzeichnis und Text, die Spalten nicht — der Text beginnt um
+die Breite des Verzeichnisses seitlich, und die ist kein Vielfaches der
+Rasterweite. Bei dieser Stärke sieht man es nicht.
+
+Im Dunklen wird dasselbe Muster mit **Licht** gezeichnet statt mit Tinte: ein
+heller Strich auf hellem Grund wäre im Hellen ein dunkler.
 
 Und auf Papier kommt nichts davon: `t_fluss.py` prüft jetzt, dass die Druckregel
 Textur und Schatten abschaltet. Aus einem Punktraster werden im Druck vier

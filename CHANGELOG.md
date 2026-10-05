@@ -10,6 +10,56 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Das Menü ist eine Spalte, kein Overlay — 669 Prüfungen
+
+Der erste Versuch legte sich vor den Inhalt. Zwei Beschwerden kamen zurück:
+das Menü verdeckte die Kopfzeile, und es drängte nichts zur Seite.
+
+Eine Overfläche kann das nicht. Sie liegt über allem und wird nur
+dazugestellt — und wenn daneben nichts Platz ist, verschwindet Inhalt
+hinter ihr, statt zur Seite zu rücken.
+
+Also ist es jetzt eine **Spalte im Aufbau**. Der Körper der Wiki ist eine
+Zeile aus zwei Teilen: links das Verzeichnis, rechts der Inhalt. Das Menü
+ist ein Flex-Kind und nicht mehr `position: fixed`. Damit kommt von selbst,
+was gefordert war:
+
+- es **beginnt unter der Kopfzeile** — die ist ein eigenes Flex-Kind über
+  der Zeile, und ihre Höhe ist ihr eigener, nicht unsere
+- es **drängt den Inhalt nach rechts** — es nimmt Platz im Aufbau, statt zu
+  überdecken. Wer es zuklappt, gibt den Platz wieder her, und der Text rückt
+  nach links
+- es **verdeckt nichts** — kein Punkt, kein Absatz, keine Taste liegt
+  hinter ihm
+
+Dazu die Kleinarbeiten, die ein Umbau mit sich bringt:
+
+- `min-width: 0` an der Inhaltsspalte. Ohne das weigert sich ein Flex-Kind,
+  schmaler zu werden als sein Inhalt, und die Spalte bliebe breit.
+- `min-height: 0` am Körper, damit der Rollbalken im Fluss greift
+- `max-width: 85%` am Menü und `min(var(--toc-breite), 85%)` am Fähnchen:
+  auf einem 320-Pixel-Fenster soll nicht die ganze Wiki unter dem Verzeichnis
+  verschwinden
+- Der Körper steht im Druck mit auf `display: block` und
+  `height: auto`, sonst sähe das Papier eine Zeile mit zwei Spalten
+
+**Und ein Fehler, den erst die zweite Liste aufgedeckt hat.** `onZeileKeydown`
+nahm die Zeile, auf der der Fokus landen soll, aus dem **ganzen Dokument**:
+`document.querySelectorAll('.toc-item')[ziel]`. Mit einer Liste stimmt das.
+Mit zweien liegen sie nebeneinander, und nach einem Alt+Pfeil im Panel rechts
+sprang der Fokus in die Liste links — man drückt an einer Stelle und tippt an
+einer anderen. Die Zeile hält sich jetzt ihre Liste, aus der sie gedrückt
+wurde, und `t_menue.py` prüft das für beide.
+
+**Und noch eine Lektion, die ich mir gerade selbst gegeben hatte.** Der erste
+Versuch des Tests maß die Breite der Spalte kurz nach dem Zuklappen — genau
+die Sache, vor der die Lehre in `tests/README.md` warnt. Zweimal rot, ohne
+dass etwas kaputt war. Der Test prüft jetzt den Zustand und die CSS-Regel,
+nicht die Mitte einer 250-ms-Fahrt.
+
+**660 → 669 Prüfungen.** Am PDF gegengeprüft: keine Kopfzeile, kein Fähnchen,
+keine Taste — und der Text steht am linken Rand.
+
 ### Das Inhaltsverzeichnis wird ein Menü, und das Löschkreuz verschwindet — 660 Prüfungen
 
 Zwei optische Änderungen, beide in `simplewiki.html`.

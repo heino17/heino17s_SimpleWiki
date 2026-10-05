@@ -95,7 +95,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_wikisyn.py` | `[[Seite]]` und `[[Text\|Seite]]`, Code bleibt Code |
 | `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
 | `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge der Knöpfe, **schmale Fenster** |
-| `t_menue.py` | **Inhaltsverzeichnis links als Menü: offen beim Öffnen, Fähnchen zum Zu- und Aufklappen, kein Löschkreuz** |
+| `t_menue.py` | **Inhaltsverzeichnis links als Spalte: offen beim Öffnen, unter der Kopfzeile, drängt den Inhalt zur Seite, Fähnchen, kein Löschkreuz, Taste bleibt in ihrer Liste** |
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
@@ -134,10 +134,17 @@ Test, der an dieser Stelle „flackert", misst die Mitte der Fahrt.
 
 ### Zwei Listen, ein Zustand
 
-Das Inhaltsverzeichnis steht zweimal im Dokument: als Menü links und im Panel
-rechts. Wo ein Test **zählt oder vergleicht**, schreibt er deshalb
+Das Inhaltsverzeichnis steht zweimal im Dokument: als Spalte links und im
+Panel rechts. Wo ein Test **zählt oder vergleicht**, schreibt er deshalb
 `.toc-panel` davor — sonst wäre jede Seite doppelt. Wo ein Test etwas
 **anklickt**, ist es gleichgültig, welches davon er erwischt.
+
+Für das Programm gilt dieselbe Regel, und sie hat dort schon einmal
+fehltgehalten: `onZeileKeydown` nahm die Zeile für den Fokus aus dem
+**ganzen Dokument** (`querySelectorAll('.toc-item')[ziel]`). Mit zwei Listen
+landete der Fokus nach einem Alt+Pfeil in der anderen. Eine geordnete
+Rangfolge im Dokument ist keine Zugehörigkeit — jede Liste muss ihre Zeilen
+aus sich selbst holen.
 
 ## Zwei Lehren aus den Tests
 

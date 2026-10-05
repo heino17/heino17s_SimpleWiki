@@ -10,6 +10,49 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### `AGENTS.md`: was beim nächsten Mal wieder gewusst sein muss — und ein Knopf mit einem Zeichen
+
+**`AGENTS.md` ist neu.** Sie sammelt das, was eine neue Sitzung nicht weiß
+und nicht raten sollte:
+
+- **vorher fragen**, wenn etwas mit dem MWS zu tun hat — der Austausch ist
+  freigegeben, optische Änderungen auch, der Rest nicht
+- **provisionieren** nach jeder Änderung, sonst sieht man nichts davon
+- **nicht pushen**; committen ja, sobald ein Vorgang fertig ist
+- **der Nutzer ist die Augen**: keine Screenshots, um eine Änderung zu
+  prüfen. Statt eines Bildes die Zahl messen oder den Test schreiben, der
+  sie festhält. Ausgenommen nur, wenn ein Aufbau-Problem die Ursache nicht
+  erkennen lässt und kein Test es fassen kann
+- **drei Fallen**, die in dieser Suite schon zugeschlagen sind: Headless
+  nimmt kein Fenster unter 500 Pixeln; eine Position nach einer Transition
+  ist dem Zufall überlassen; Headless-Chromium ist ein Snap und darf weder
+  `/tmp` lesen noch dorthin schreiben
+- **wie der Nutzer arbeitet**: er benennt Änderungen am Ergebnis, sagt nicht
+  wie, und meldet sich, wenn etwas nicht passt
+
+**Und der Knopf für eine neue Seite trägt jetzt nur noch ➕**, der Hinweis
+drauf bleibt. Mit dem Wort waren es 116 Pixel, mit dem Zeichen 48 — der Kopf
+passt dadurch bei 780 Pixeln wieder in **eine** Zeile, wo er vorher umbrach.
+
+Dabei kam eine Ursache heraus, die nicht am Knopf lag: `.menu-toggle` trug
+`margin-left: auto` und schob damit den ganzen Leerraum vor sich her. Der
+Knopf für eine neue Seite — als erster in der Reihe — blieb allein beim
+Suchfeld liegen, **372 Pixel** vor ☰. Die Knöpfe des Kopfs liegen jetzt in
+einer Gruppe `.kopf-werkzeuge`, die den Leerraum gemeinsam schluckt. Der
+Abstand zwischen ➕ und ☰ ist derselbe wie zwischen allen anderen.
+
+Acht Tests suchten den Knopf **nach dem Text**. Mit einem Zeichen finden sie
+ihn nicht mehr, und vier davon prüften „der Knopf ist weg" — die hätten
+künftig **immer** bestanden. Sie suchen jetzt nach `.kopf-neu`, und der Name
+steht als `title` und `aria-label` daran.
+
+Und noch einmal die Transition, zum dritten Mal an derselben Stelle: der
+Test maß die Breite der Spalte 900 ms nach dem Aufklappen. Beim vorigen Lauf
+war die Fahrt schon fertig, beim ersten nicht. Der Test prüft jetzt den
+Zustand und die CSS-Regel.
+
+**700 → 701 Prüfungen**, 23 Testdateien.
+
 ### „Neue Seite" wandert in den Kopf, links neben das Verzeichnis — 700 Prüfungen
 
 Eine Seite anlegen ist eine Tat, kein Ort. Der Knopf stand zwischen zwei

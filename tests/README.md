@@ -17,6 +17,20 @@ ist fehlgeschlagen – dann nennt die Ausgabe den Namen der Prüfung.
 
 Zwei Abhängigkeiten: **python3** und **chromium** im Pfad.
 
+## Nach jeder Änderung an `simplewiki.html` provisionieren
+
+```bash
+cd <MWS-Quellbaum>
+npm start provision-simplewiki <pfad>/simplewiki.html
+```
+
+Die Wiki liest ihre Schale **aus dem Store**, nicht aus dieser Datei. Nach
+einer Änderung an `simplewiki.html` ist deshalb ohne diesen Befehl alles
+genau wie vorher — auch nach einem Neustart des Servers. Wer sich wundert,
+warum die eigene Änderung nicht ankommt, hat fast immer diesen Schritt
+vergessen; der Befehl meldet `Template "SimpleWiki" updated`, danach muss
+der Browser nur noch hart neu laden (Strg+Umschalt+R).
+
 Ein Test steht nicht in `alle.py`, weil er einen Server startet: `live_mws.py`
 prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur aus
 `mwsserver.py`.

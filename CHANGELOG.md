@@ -1,0 +1,386 @@
+# Änderungen
+
+Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
+das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
+
+Es gibt noch keine Versionsnummer. Eine zu erfinden, die niemand erhöht, wäre
+schlechter als ein Datum — deshalb wird nach Tag datiert.
+
+---
+
+## 2026-10-05
+
+### Tests, die nicht liefen — 621 Prüfungen statt 539
+
+Drei Dateien haben der Suite Arbeit gemeldet, die sie nicht geleistet haben.
+Drei Fehler derselben Art, alle gefunden beim Nachsehen auf eine Zahl, die
+nicht aufging.
+
+**Ein Test, der nie läuft, ist grün.** `pruefe()` beendet das Skript. In
+`t_kopf.py` stand der Aufruf für die Kopie mit dem schmalen Fenster **hinter**
+dem `sys.exit` — die Prüfungen liefen, ihre sechs Ergebnisse waren aber weder in
+der Zahl noch im Exitcode. `_kopf2.html` konnte nicht mehr rot werden.
+
+**Und derselbe Fehler ein drittes Mal, mit mehr Schaden.** In `t_leerwiki.py`
+stand `pruefe(kopie1, kopie2)` hinter demselben `sys.exit`: **Teil 1 lief nie** —
+die 13 Prüfungen für die oberen Fremdfelder (`autor`, `herkunft`, `exportdatum`),
+also genau der Weg, den ein Kind geht, wenn es ein fremdes JSON einliest und
+zurückgibt.
+
+**Eine Prüfung ohne Zahl ist eine Prüfung ohne Wirkung.** `alle.py` zählt nur,
+was als `GESAMT: N bestanden, M fehlgeschlagen` dasteht. Drei Skripte zählten
+ihre Fehler, meldeten aber keine bestandenen Prüfungen und trugen deshalb zur
+Gesamtzahl **null** bei — bei laufenden Prüfungen.
+
+Dazu eine Kleinheit in `t_abnahme.py`: `melde()` hat einen durchgefallenen
+Abnahmepunkt **sowohl als bestanden als auch als fehlgeschlagen** gezählt.
+
+Behoben:
+
+- `pruefe()` kann jetzt ein Fenster je Kopie bekommen (`fenster=`) und Fehler
+  aus den vorangegangenen Teilen eines Skripts mitrechnen (`schon_fehler=`) —
+  damit wieder ein Aufruf am Ende alles zusammenführt, statt am Skript-Ende
+  zu stehen und dort zu sterben
+- `_kopf2.html` und `_weg1.html` laufen durch denselben Weg wie der Rest und
+  zählen mit
+- `t_export.py` und `t_fluss.py` melden eine `GESAMT:`-Zeile
+- in `t_kopf.py` stand `>>> 0 FEHLGESCHLAGEN || ALLE BESTANDEN` — `0` ist in
+  JavaScript ein wahrer String, der Ausweichzweig griff nie
+
+Geprüft, dass es wirkt: ein absichtlich scheiternder Test mit schmalem Fenster
+macht den Lauf rot und nennt die Prüfung.
+
+**539 → 621 Prüfungen.** Die 82 dazugekommenen sind keine neuen Prüfungen,
+sondern längst vorhandene, die nie stattgefunden haben.
+
+### `README.md` und `CHANGELOG.md`
+
+Was fehlte, ist jetzt da.
+
+- **`README.md`** — was das ist, wie man loslegt, wie `simplewiki.html`
+  aufgebaut ist (mit Zeilennummern), die zwei Betriebsarten, das
+  Austauschformat, der Provisionier-Schritt, die Tests, die eingebetteten
+  Bibliotheken mit Lizenz und Version, und die Grenzen, die Absicht sind.
+- **`CHANGELOG.md`** — alles, was seit der ersten Fassung gebaut wurde, nach
+  Tag, mit der Prüfungszahl des damaligen Stands. Nachgeschrieben aus den
+  Commit-Nachrichten, nicht erfunden.
+- **`tests/README.md`** nachgezogen: die vier Testdateien fehlten in der
+  Übersicht, `pdfinfo`/`pdftotext` fehlten als Abhängigkeit, und der Satz
+  „ein Test steht nicht in `alle.py`“ leading zu einem Missverständnis.
+
+Suite zur Zeit des Schreibens: **621 Prüfungen, 0 fehlgeschlagen**, 21
+Testdateien.
+
+### Anmelden führt zurück in die Wiki, aus der man kam — 539 Prüfungen
+
+Der Anmelde-Link trägt den Weg, von dem man kommt, als `redirect`-Parameter mit:
+`/login?redirect=/wiki/<name>`. Ohne das schickt MWS nach dem Anmelden auf die
+Startseite, also auf eine Liste von Konten — wer in einer Wiki auf „Anmelden“
+klickt, will danach wieder in dieser Wiki sein und nicht auf einer.
+
+Nimmt der Server den Parameter nicht, ist das **kein Fehler**: man landet auf
+der Startseite, also auf dem Weg von vorher.
+
+### Anmelden und abmelden — 538 Prüfungen
+
+- **Anmelden ist ein Link**, kein Knopf mit Rumpeln: es ist ein Link auf
+  `/login` mit `title`, damit mittlere Maustaste, Tab und der Link im
+  Statusfenster alle so tun, wie man es erwartet.
+- **Abmelden geht von hier aus** (`⎋` neben dem Namen), weil es nichts zu
+  beweisen gibt: es muss nur eine Sitzung ungültig gemacht werden. Danach wird
+  `/status` neu geholt, und was der Server sagt, entscheidet — nicht, was
+  gerade noch angezeigt war. Stimmt der Kopf also auch dann, wenn die Sitzung
+  schon vorher abgelaufen war.
+- **Scheitert das Abmelden, wird es gesagt** — und nichts angezeigt, was nicht
+  wahr ist. Eine Abmeldung, die nicht stattgefunden hat, darf nicht aussehen
+  wie eine.
+- **Kein Passwortfeld in der Wiki.** MWS prüft es mit OPAQUE; die Bibliothek
+  dafür lädt diese Wiki bewusst nicht (siehe *Grenzen* in der `README.md`).
+- Jeder Schritt bekam einen **eigenen Server**: die Sitzung gehört dem Server,
+  nicht dem Browserfenster.
+
+### Merksatz: nach jeder Änderung provisionieren
+
+```bash
+npm start provision-simplewiki <pfad>/simplewiki.html
+```
+
+Die Wiki liest ihre Schale **aus dem Store**, nicht aus `simplewiki.html`. Ein
+Neustart des Servers ändert daran nichts — der Server liest dieselbe alte
+Schale aus demselben Store.
+
+Genau das ist an diesem Tag passiert: eine Änderung war Stunden fertig und
+getestet (495 Prüfungen grün, der Live-Check gegen das echte MWS ebenfalls) —
+und in der laufenden Instanz war **nichts davon zu sehen**. Der Beutel des
+Templates war vom Vorabend, die neue Datei nirgends eingelesen. `live_mws.py`
+macht den Schritt von selbst, deshalb sah sein Lauf gut aus; der Test allein
+hätte aber nicht geholfen.
+
+Der Satz steht jetzt im README, gleich vor der Beschreibung des Live-Checks —
+weil man genau dort sucht, wenn die Wiki im Browser anders aussieht als im
+Test.
+
+### Anmeldung: der Name steht im Kopf, Schreibtasten nur mit Recht — 495 Prüfungen
+
+Gefragt war die erste Frage schlicht: **unter welchem Namen bin ich
+angemeldet**. Die App wusste es nicht. Sie wusste nur, dass ihr ein
+Schreibversuch mit 403 beantwortet wurde, und bis dahin standen alle Tasten da,
+nur grau.
+
+- `GET /recipe/<name>/status` wird beim Start geholt und beantwortet vier
+  Zustände: **niemand angemeldet**, **angemeldet ohne Recht**, **angemeldet mit
+  Recht**, **Sitzung abgelaufen**.
+- Die **Schreibknöpfe sind nicht abgeschaltet, sondern weg.** Wer nicht schreiben
+  darf, soll gar nicht erst auf einen Knopf zeigen, der ohnehin nichts tut.
+- Ein **Ausfall ist kein Rechteproblem**: antwortet der Server nicht, wird
+  nichts erfunden — kein Nur-Lesen-Zustand, keine verlorenen Knöpfe.
+- Läuft die Sitzung **mitten drin** ab, schaltet die App beim nächsten
+  Schreibversuch um, ohne Neuladen.
+
+---
+
+## 2026-10-04
+
+### B3: aus der leeren Wiki gibt es jetzt einen Ausgang — 455 Prüfungen
+
+Die leere Wiki war eine Sackgasse: nirgends war ein Ausgang. Der Leerzustand
+bekommt jetzt einen Knopf, der die erste Seite anlegt und den Editor öffnet.
+Wer nicht schreiben darf, bekommt ihn nicht zu sehen.
+
+### B2: der Tiddler heißt wie die Seite — 445 Prüfungen
+
+Ein Tiddler heißt nach seinem Inhalt, wie es die TiddlyWiki-Konvention vorgibt —
+der Vertrag im Kopf der Wiki wurde entsprechend festgeschrieben. Die stabile
+Kennung wandert als Feld `sw-id` mit, damit die Seite beim Umbenennen dieselbe
+bleibt; ein Tiddler ohne `sw-id` — von MWS oder von einem Menschen angelegt —
+liefert seine Kennung aus dem Titel.
+
+Ergänzung an der Oberfläche: ein Feld `reihenfolge`, vierstellig. TiddlyWiki
+kennt keine Reihenfolge von Tiddlern, SimpleWiki schon — ohne dieses Feld wäre
+sie nach dem Neuladen weg.
+
+### B1: der Marker existiert jetzt wirklich — 435 Prüfungen
+
+Der Punkt im Dokument, hinter dem MWS seine Tiddler einsetzt, stand als
+Zeichenfolge **im Kommentar**, der ihn erklärt. MWS sucht wörtlich und nimmt
+den ersten Fundort im Dokument — auch einen in einem Kommentar. Die Wiki
+stünde schön und leer da, und jede Eingabe landete im Browser und wäre beim
+nächsten Aufruf weg. Der Text kommt jetzt genau einmal vor, auf den Roh-Bytes.
+
+### Abnahme: die fünf Punkte als nachlesbarer Test — 430 Prüfungen
+
+Aus der Abnahme wurde `tests/t_abnahme.py`. Fünf Punkte, jeder mit benannten
+Prüfungen:
+
+1. **kein Nachladen** — kein `<script src>`, kein `<link rel=stylesheet>`, kein
+   `@import`, keine `http(s)://`-Referenz, jede `url()` in den `<style>`-Blöcken
+   ist `data:`
+2. **die Suite ist grün** — das macht `tests/alle.py`, nicht diese Datei
+3. **Doppelklick ohne Netz** — der alte `localStorage`-Zustand schlägt den
+   Dateiinhalt
+4. **mit injiziertem Store erscheint der Inhalt in der Oberfläche**
+5. **eine Änderung ist nach Neuladen wieder da**
+
+### Tests für die MWS-Auswahl und die Verweise — 413 Prüfungen
+
+- **`tests/mwsfixture.py`** baut eine Datei, die so aussieht, als käme sie vom
+  MWS: der Marker an die echte Head-Grenze, Testskripte wie `mkcopy` es für
+  Dateikopien macht. `mwsserver.py` benutzt dieselbe Funktion — es gibt also
+  nur noch **eine** Stelle, die weiß, wie ein Server auszusehen hat. Die
+  Fixture wird **erzeugt und nicht gespeichert**: eine mitgecheckte Kopie von
+  `simplewiki.html` wäre bei der nächsten Änderung still veraltet, und niemand
+  merkt es, bis ein Test etwas anderes prüft als gedacht.
+- **`tests/t_mwsdatei.py`** prüft die Auswahl am Marker in vier Durchgängen:
+  Marker mit Inhalt (Server liefert), Marker leer (Browser liefert — auch wenn
+  die Datei vom Server kommt), gar kein Marker (die gewöhnliche Datei) und
+  Schreiben aus einer Datei.
+- Der letzte Fall ist der ehrliche: aus einem Doppelklick heraus gibt es keinen
+  Server, also schlägt der Schreibversuch fehl. Wichtig ist nur, dass er
+  **sichtbar** scheitert — und dass nicht so getan wird, als wäre die Wiki nur
+  lesbar.
+- Dabei kam ein Fehler heraus, der nichts mit MWS zu tun hatte und deshalb
+  lange unentdeckt war: **marked lässt eine URL mit Leerzeichen nicht als Link
+  gelten.** `[Text](wiki:Zweite Seite)` blieb reiner Text, der Verweiszähler
+  erkannte dieselbe Stelle aber sehr wohl. Die App widersprach sich selbst: im
+  Verweispanel stand der Link, in der Seite stand Text. `ersetzeWikiSyntax()`
+  zieht jetzt auch die schon geschriebene Form durchs properpe Verfahren und
+  macht daraus `encodeURIComponent`. Da der Schritt nur beim Anzeigen läuft,
+  wird am Text nichts geändert, der zum Server geht.
+- **Drei Versuche statt zwei**, bevor ein Test als gescheitert gilt. Die Suite
+  arbeitet dutzende Browserläufe ab, und zweimal unter Last durchfallen war
+  häufig genug, dass ein roter Lauf nichts mehr bedeutet hätte.
+
+### Tiddler und Seite: das Mapping an seinen Ecken geprüft — 394 Prüfungen
+
+Zeitstempel mit 17 Stellen, Tags mit Leerzeichen und Emoji, doppelte Tags,
+Tiddler ohne `sw-id`, Systemtiddler, `created` von einem 14-stelligen Wert, das
+app-Feld `content` gegen das Tiddler-Feld `text`.
+
+### MWS-Schnittstelle: Fehler sichtbar, `list` und `read` — 380 Prüfungen
+
+Antwortet der Server mit 500, steht der Grund im Hinweis — und es wird **kein
+Nur-Lesen-Zustand erfunden**. „Ein Ausfall ist kein Rechteproblem.“
+
+### Speicher: eine Abstraktion, zwei Ausprägungen — 368 Prüfungen
+
+`laden`, `uebernehmen`, `seiteSichern`, `seiteLoeschen`, `startseiteSetzen`,
+`themaSetzen`, `spracheSetzen` — sieben Methoden, die der Rest des Programms
+kennt und der Rest nicht unterscheidet. Zwei Ausprägungen: `LocalStore` und
+`MwsStore`. Geprüft wird nicht nur, dass beide sie haben, sondern dass die
+laufende App sie wirklich benutzt.
+
+### MWS-Betrieb: Seiten liegen auf dem Server — 338 Prüfungen
+
+Zwölf Wiki-Zustände gegen einen Testserver: Reihenfolge aus dem Store, Tiddler
+ohne Kennung, Startseite aus `$:/DefaultTiddlers`, Dunkelmodus und Sprache aus
+den Feldern der Startseite, 403 bei fehlendem Schreibrecht, Store leer →
+Browser gewinnt, Server kaputt → Hinweis statt Rechtebehauptung.
+
+### Bibliotheken einbetten: kein CDN mehr — 302 Prüfungen
+
+Vue, marked und TOAST UI stecken fest in der Datei statt von einem CDN zu
+kommen. Eine strikte Content-Security-Policy erlaubt nur `self`, und eine Wiki
+soll auch ohne Netz laufen.
+
+### Aus dem Inhaltsverzeichnis: nur noch der Druck-Knopf
+
+Im Fluss bleiben Kopfzeile, Suche und Einstellungen stehen; im
+Inhaltsverzeichnis verschwindet der Fluss-Knopf, damit er nicht an zwei Orten
+auftaucht. Abstand zu den Seitenrändern, wie man ihn beim Lesen erwartet.
+
+### Fluss-Knopf in den Kopf
+
+Der Fluss wird aus dem Inhaltsverzeichnis in die **Kopfzeile** verschoben: ein
+Knopf, eine Wirkung, und er ist auch erreichbar, wenn das Inhaltsverzeichnis
+zu ist. Geprüft wird auch die **Reihenfolge der Knöpfe im Kopf**
+(`toc · fluss · refs · settings · thema`) und dass alles davon in einem Fenster
+mit 380 Pixeln Breite noch passt.
+
+### Exportweg fertig: Fremdangaben oben, leere Vorlage, Vertrag
+
+- **Fremdangaben** auf der obersten Ebene (`autor`, `herkunft`, `exportdatum`)
+  überstehen einen Hin-und-Her-Weg.
+- **Leere Vorlage** (`simplewiki-leer.html`) zum Füllen für ein anderes
+  Programm — nicht zum Laden: eine Datei ohne Seiten wird abgelehnt, sonst
+  ersetzt ein missglückter Export die ganze Wiki.
+- **Fremde JSON-Datei laden** und als Wiki-Datei weitergeben.
+
+### Lesebreite in der Seitenansicht wie im Fluss
+
+Die Textspalte war nur im Fluss begrenzt (860px); die normale Seitenansicht
+lief über die volle Fensterbreite. Jetzt ist **beide gleich breit**, damit eine
+Seite und ihre Nachbarin im Fluss gleich aussehen.
+
+- `--spaltenbreite` als CSS-Angabe an genau einer Stelle, damit die beiden
+  Ansichten nicht auseinanderlaufen können
+- die Begrenzung sitzt auf den **Kindern** von `.content-body` und nicht auf
+  `.content-body` selbst: der Scrollbalken bleibt am Fensterrand statt bei der
+  Spalte zu stehen
+- seitliches Polster im Fluss gestrichen — es hat den Text dort noch 40px
+  schmaler gemacht, deshalb passten die Breiten trotz gleicher Zahl nicht
+  wirklich zusammen
+
+**Gemessen statt geschätzt:** 860px in beiden Ansichten.
+
+Dabei kam ein Nebenschaden heraus, den ein bloßes Anschauen nicht gezeigt
+hätte: die Kopfzeile ist ein Flex-Kind und schrumpfte mit den automatischen
+Rändern auf 57px — der Trennstrich unter dem Titel war nur noch kurz. Sie
+bekommt jetzt `width: 100%`.
+
+### Austausch mit MWS: JSON, Version, fremde Felder
+
+Das Austauschformat steht jetzt im Kopf der Datei, als Kommentar, der
+beides ist: die Doku und der Vertrag. Drei Zusagen, die ein Test prüft —
+JSON und HTML gleichwertig, fremde Felder bleiben, zu neue Dateien werden ganz
+abgelehnt.
+
+Zwei Entscheidungen, die nicht in der Vorgabe standen: eine Datei **ohne
+Seiten** wird abgelehnt statt als leeres Wiki übernommen, und beim **Anlegen**
+wird ein vergebener Name still eindeutig gemacht, beim **Umbenennen** wird
+abgelehnt und der Name genannt.
+
+### Fluss: scrollbar und Druck über mehrere Seiten
+
+Der Fluss ließ sich in einem kurzen Fenster nicht scrollen, und der Druck
+verlor alles nach Bildschirmhöhe. Beides fiel nur auf, weil der Test mit einem
+Fenster von 900×420 Pixeln und absichtlich langen Seiten prüft — und weil am
+Ende nicht nur „sieht vollständig aus“ steht, sondern der letzte Satz der
+letzten Seite wirklich im ausgelesenen PDF.
+
+### Sichern: die Datei behält ihre Oberfläche
+
+Die gesicherte Datei ist dieselbe Datei: dieselbe Oberfläche, dieselben
+eingebetteten Bibliotheken, nur die Dateninsel ist gefüllt. Ein
+`<script>` im Seiteninhalt übersteht das als `</script` in der Datei.
+
+### Reihenfolge per Ziehen ändern und das Wiki als Datei sichern
+
+Griff ⠿ zum Ziehen, **Alt + Pfeiltaste** als zweiter Weg für die Tastatur, und
+ein Hinweis, der beide nennt. Während der Suche ist die Reihenfolge gesperrt —
+und der Hinweis sagt, warum.
+
+### Verweise als eigenes Panel
+
+Rück- und Ausgehende mit Zähler im Kopf, mit `→` und `←`, fehlende Ziele als
+`?` mit der Möglichkeit, sie anzulegen. Der Zustand (offen oder zu) überlebt
+das Neuladen.
+
+### TiddlyWiki-Syntax `[[Seite]]` und `[[Text|Seite]]` verlinken
+
+Innerhalb von Code ist `[[…]]` kein Verweis, sondern Beispieltext.
+
+### Tests ins Projekt holen, bevor `/tmp` sie wegwischt
+
+Die 224 Prüfungen lagen in `/tmp/opencode` — beim nächsten Neustart wären sie
+weg, und gerade **sie** haben mehr gerettet als meine Vorsicht. Sie liegen jetzt
+unter `tests/` und werden mitversioniert.
+
+```bash
+python3 tests/alle.py          # alles
+python3 tests/alle.py fluss    # nur ein Teil
+python3 tests/t_order.py       # ein einzelner Test
+```
+
+Endecode 0 heißt: alles bestanden.
+
+- Pfade sind relativ, der Ordner darf liegen, wo er will
+- Kopien, PDFs und Bilder landen in `tests/_kopien/` und werden nicht committet
+- `mkcopy.py` setzt `localStorage` vollständig zurück; vorher schleppte ein
+  Testlauf seinen Zustand in den nächsten — daher kam das Verweis-Panel
+  manchmal schon offen herein
+- README mit der Übersicht und zwei Lehren aus den Tests
+
+Zwei Fehler beim Umstellen gefunden und behoben: durch das Zusammenfassen der
+`build`-Aufrufe kam die Zustandsvorgabe auch in die erste Kopie, und eine
+Prüfung erwartete noch „nichts gespeichert“, obwohl der Seed inzwischen
+bewusst einen Wert schreibt.
+
+---
+
+## 2026-10-03
+
+### Seiten duplizieren
+
+Der ⧉-Knopf legt eine Kopie mit eigenem Namen an. Sie bekommt **eigene
+Kennung, eigene Verknüpfungen** — ein Link in der Kopie zu entfernen fasst die
+Vorlage nicht an.
+
+### Seiten verlinken: Verknüpfungen und Rückverweise
+
+Der Verweis auf eine andere Seite steckt in den **Seiten-Metadaten**
+(`page.links`), nicht im Markdown-Text: die direkte Schreiboperation in den
+Toast-Editor scheitert unter `file://` mit
+`RangeError: Applying a mismatched transaction`.
+
+- Link-Dialog im Bearbeitungsmodus: Seiten verknüpfen und lösen, nicht
+  vorhandene Seiten werden dabei angelegt
+- Abschnitt „Verlinkt auf“ mit den Zielen und „Verlinkt von“ mit den
+  Rückverweisen
+- der Leer-Zustand hängt an `v-if="!currentPage"` und wird deshalb **nur**
+  gezeigt, wenn es wirklich keine Seite gibt
+
+### SimpleWiki: erste Fassung als einzelne HTML-Datei
+
+Oberfläche, Editor, Markdown, Speicher im Browser und alle Bibliotheken in
+**einer** Datei. Kein Server, kein Build, keine Installation: wer die Datei
+doppelklickt, hat ein Wiki; wer sie weiterreicht, gibt ein Wiki weiter.

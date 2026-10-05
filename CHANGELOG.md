@@ -10,6 +10,33 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Der Fuß des Verzeichnisses ist weg — 705 Prüfungen
+
+Der Hinweis auf die Reihenfolge stand als Zeile unter der Liste, mit einer
+Trennlinie darüber. Er steht jetzt **am Griff**, wo er hingehört: `⠿ tragen,
+Alt + ↑/↓, oder mit einem Klick ansehen` — man braucht ihn nur, wenn man
+anfasst, und dann ist er genau dort. Bei einer laufenden Suche nennt der
+Tooltip den anderen Weg.
+
+Damit ist `.toc-footer` ganz weg, mit ihm seine CSS-Regeln und sein Eintrag
+in der Druckliste. `.toc-hint` ebenfalls — es gab nichts mehr, wofür es
+galt.
+
+**Und ein Fehler von mir, den der Nutzer im Bildschirm gefunden hat.** Beim
+Einfügen der Suchfeld-Liste hatte ich **zwei Kommentar-Anfänge und ein
+Ende** geschrieben. Der mittlere Absatz stand als **Text in der Kopfzeile** —
+zwischen Titel und Suchfeld, in jedem Fenster. Kein Test hat es gesehen: die
+Knöpfe waren alle da, die Reihenfolge stimmte, nur der Raum dazwischen war
+voller Text.
+
+Deshalb prüft `t_kopf.py` jetzt den **ganzen Text** des Kopfs gegen das, was
+auf seinen Knöpfen steht. Ein Kommentar, der zu früh oder zu spät
+geschlossen wird, fällt damit auf — und nicht erst beim Ansehen. Am
+kaputten Stand nachgewiesen: die Prüfung meldet genau das, was der Nutzer
+gesehen hat.
+
+**704 → 705 Prüfungen**, 23 Testdateien.
+
 ### Das rechte Verzeichnis ist weg, die Suche steht unter dem Feld — 703 Prüfungen
 
 Das Panel rechts und der Knopf ☰ im Kopf sind entfernt. Was bleibt, ist

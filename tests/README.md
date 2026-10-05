@@ -97,7 +97,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge der Knöpfe, **schmale Fenster** |
 | `t_menue.py` | **Inhaltsverzeichnis links als Spalte: offen beim Öffnen, unter 640px zugeklappt, unter der Kopfzeile, drängt den Inhalt zur Seite, Fähnchen, kein Löschkreuz, Taste bleibt in ihrer Liste** |
 | `t_panels.py` | **Panels rechts: geparkt genau auf der Fensterkante statt daneben** |
-| `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
+| `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche, **Hinweis am Griff statt unter der Liste** |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
 | `t_mwsmode.py` | **Betrieb auf einem MWS-Server** in zwölf Durchgängen: Marker, Speicher, Schreiben, 403, leere Wiki, Umbenennen, Serverausfall |

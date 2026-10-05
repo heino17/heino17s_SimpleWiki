@@ -44,7 +44,9 @@ script = r"""
         setTimeout(function () {
           var knoepfe = knopfImVerzeichnis();
           ok(knoepfe.length === 0, 'im Verzeichnis steht kein Knopf: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
-          ok(!!q('.toc-menu .toc-hint'), 'nur noch der Hinweis auf die Reihenfolge');
+          ok(!q('.toc-menu .toc-footer') && !q('.toc-hint'),
+             'und darunter steht nichts mehr');
+          ok(!!q('.toc-menu .toc-grip'), 'nur die Zeilen mit ihren Griffen');
           ok(!q('.toc-menu').textContent.match(/Fluss|River/), 'im Verzeichnis steht kein Fluss-Knopf');
           ok(!!q('.kopf-fluss'), 'der Fluss-Knopf sitzt im Kopf');
           ok(!!q('.kopf-neu'), 'und "Neue Seite" auch');

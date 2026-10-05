@@ -1016,13 +1016,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             box-shadow: inset 0 -3px 0 0 var(--accent-color);
         }
 
-        .toc-hint {
-            margin: 0 0 10px;
-            font-size: 0.78rem;
-            line-height: 1.4;
-            color: var(--text-muted);
-        }
-
         /* Stern kennzeichnet die Startseite; die Spalte bleibt immer frei,
            damit die Zeilen beim Ein- und Ausblenden nicht springen. */
         .toc-item-start {
@@ -1047,18 +1040,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             padding: 40px 20px;
             text-align: center;
             color: var(--text-muted);
-        }
-
-        .toc-footer {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Im Fuss des Verzeichnisses steht nur noch der Hinweis auf die
-           Reihenfolge - der Knopf fuer eine neue Seite ist in den Kopf
-           gewandert. Der untere Rand gehoerte zum Knopf daneben. */
-        .toc-footer .toc-hint {
-            margin: 0;
         }
 
         .main-content {
@@ -1911,8 +1892,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .toc-faehnchen,
             .hinweis,
             .fluss-kopf,
-            .fluss-verweise,
-            .toc-hint {
+            .fluss-verweise {
                 display: none !important;
             }
 
@@ -2004,7 +1984,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                      und die Treffer erschienen dort, wenn man erst ☰
                      gedrueckt hatte. Das war an zwei Orten dieselbe Sache,
                      und der davon entbehrliche war der Kopf: wer sucht,
-                     tippt, und sieht. -->
+                     tippt, und sieht.
 
                      Zugleich die einzige Stelle, an der man etwas findet,
                      wenn das Verzeichnis zugeklappt ist - auf einem
@@ -2129,11 +2109,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                         <div v-if="filteredPages.length === 0" class="toc-empty">
                             {{ t('tocEmpty') }}
                         </div>
-                    </div>
-                    <!-- Der Hinweis auf die Reihenfolge gehoert zu den Zeilen
-                         mit den Griffen, und die stehen hier. -->
-                    <div class="toc-footer">
-                        <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
                     </div>
                 </div>
 

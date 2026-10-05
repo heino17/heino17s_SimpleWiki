@@ -50,8 +50,12 @@ script = r"""
         setTimeout(function () {
           head('Griff und Hinweis');
           ok(grips().length === 4, 'jede Zeile hat einen Griff: ' + grips().length);
-          ok(!!q('.toc-hint'), 'Hinweis vorhanden');
-          ok(q('.toc-hint').textContent.indexOf('Alt') >= 0, 'nennt den Tastaturweg: ' + q('.toc-hint').textContent.trim());
+          /* Der Hinweis auf die Reihenfolge steht am Griff, nicht als
+             Zeile unter der Liste. Man braucht ihn nur, wenn man anfasst,
+             und dann ist er genau dort. */
+          ok(!q('.toc-hint') && !q('.toc-footer'), 'unter der Liste steht kein Hinweis mehr');
+          ok(grips()[0].getAttribute('title').indexOf('Alt') >= 0,
+             'am Griff steht er und nennt den Tastaturweg: ' + grips()[0].getAttribute('title'));
           ok(grips()[0].getAttribute('draggable') === 'true', 'Griff ist ziehbar');
           ok(zeile(0).getAttribute('tabindex') === '0', 'Zeile ist fokussierbar');
           ok(titel().join('|') === 'Eins|Zwei|Drei|Vier', 'Startreihenfolge: ' + titel().join('|'));
@@ -165,7 +169,8 @@ script2 = r"""
             ok(titel().join('|') === 'Drei', 'gefiltert: ' + titel().join('|'));
             ok(all('.toc-menu .toc-grip')[0].getAttribute('draggable') === 'false', 'Griff ist gesperrt');
             ok(all('.toc-menu .toc-grip')[0].className.indexOf('ist-ruhig') >= 0, 'Griff sieht gesperrt aus');
-            ok(q('.toc-hint').textContent.indexOf('Suche') >= 0, 'Hinweis nennt die Suche: ' + q('.toc-hint').textContent.trim());
+            ok(all('.toc-menu .toc-grip')[0].getAttribute('title').indexOf('Suche') >= 0,
+               'am Griff nennt er die Suche: ' + all('.toc-menu .toc-grip')[0].getAttribute('title'));
             all('.toc-menu .toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
             all('.toc-menu .toc-item')[0].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }));
             setTimeout(function () {

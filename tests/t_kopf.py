@@ -66,6 +66,21 @@ script1 = r"""
         /* Wie die anderen Schreibknoepfe verschwindet er, wer nicht
            schreiben darf - das prueft t_anmeldung.py am echten Server. */
 
+        /* Nichts im Kopf, was nicht dazugehoert.
+
+           Ein Kommentar, der zu frueh oder zu spaet geschlossen wird,
+           laesst seinen Text als Text stehen - man sieht ihn dann als
+           Absatz ueber der Oberflaeche. Ein Test, der nur auf Knöpfe
+           schaut, sieht das nicht: die Knöpfe sind alle da. Geprueft
+           wird deshalb der ganze Text des Kopfs gegen das, was auf
+           seinen Knöpfen steht. */
+        function eng(s) { return s.replace(/\s+/g, ''); }
+        var eigen = eng(q('.header h1').textContent) +
+                    eng(all('.header button, .header a').map(function (b) { return b.textContent; }).join(''));
+        var ganz = eng(q('.header').textContent);
+        ok(ganz === eigen, 'im Kopf steht nur, was dazugehoert: "' +
+           q('.header').textContent.replace(/\s+/g, ' ').trim() + '"');
+
         head('Reihenfolge der Knoepfe im Kopf');
         var reihenfolge = all('.header .btn, .header button').map(function (b) {
           if (b.className.indexOf('kopf-neu') >= 0) return 'neu';

@@ -10,6 +10,56 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Das Inhaltsverzeichnis wird ein Menü, und das Löschkreuz verschwindet — 660 Prüfungen
+
+Zwei optische Änderungen, beide in `simplewiki.html`.
+
+**1. Kein Löschkreuz mehr im Verzeichnis.** Es stand eine Zeile entfernt vom
+Löschen einer ganzen Seite, mit einem Dialog dazwischen, der nach einem
+Versehen trotzdem wegklickt. Gelöscht wird jetzt nur noch dort, wo man es
+gerade tut: im Editor, neben Bearbeiten und Speichern, mit Abbrechen daneben.
+
+**2. Das Verzeichnis steht links als Menü.** Vorher musste man es erst über
+☰ aufmachen — ein Verzeichnis, das man sich suchen muss, ist keines. Es ist
+jetzt beim Öffnen da und fährt am **Fähnchen** an der Innenkante weg und
+wieder heran. Kein Overlay: es dunkelt nichts ab, ein Klick daneben wirft es
+nicht zu, und wenn man darin eine Seite wählt, bleibt es offen. Ein Menü
+verhält sich so.
+
+Das Panel rechts (☰) bleibt, wie es war, mit allem was darin war — die Liste
+steht jetzt an zwei Orten. Das ist gewollt: das Menü ist der bequeme Weg,
+das Panel rechts der Ort, an dem die Suche steht.
+
+- dieselbe Breite wie das Panel rechts, an einer Stelle als `--toc-breite`
+  festgelegt, damit Menü und Fähnchen nicht auseinanderlaufen können; das
+  Fähnchen rechnet sogar in sehr schmalen Fenstern mit (`min(…, 90vw)`)
+- `side-panel` bleibt dran — damit erbt das Menü die Druckregel und
+  verschwindet auf Papier, wie die anderen Panels
+- Fähnchen mit `title`, `aria-label` und `aria-expanded`, beide Richtungen
+  übersetzt (deutsch und englisch)
+- Der Zustand gilt nur für dieses eine Fenster. Er wird nicht gemerkt: wer es
+  zuklappt, will es auch beim nächsten Mal aufgeklappt haben.
+
+`tests/t_menue.py` prüft das nach — und steckt dabei zweimal den Finger in
+eine Wunde, die schon im Haus war:
+
+> **Eine Position nach einer Animation ist dem Zufall überlassen.** Die
+> Transition fährt 300 ms, und unter Virtual Time läuft die Animationsuhr
+> nicht zuverlässig mit den Timern des Testskripts. Der erste Versuch des
+> Tests hat genau daran zweimal rot gemeldet, ohne dass etwas kaputt war.
+> Gemessen wird jetzt nur dort, wo noch nichts gefahren ist; die *Wirkung* des
+> Zustands wird an der Klasse und an der CSS-Regel geprüft.
+
+Weil die Liste nun zweimal im Dokument steht, zählt in den Tests jedes
+`.toc-item` doppelt. Wo ein Test zählt oder vergleicht, schreibt er jetzt
+`.toc-panel` davor — das Panel rechts, der Ort, den diese Tests seit jeher
+beschreiben. Zwei Löschtests gingen vorher über das Kreuz im Verzeichnis und
+löschen jetzt über den Editor; im Zuge dessen kam ein Fehler in `t_suite.py`
+zum Vorschein, wo beim Umbau zwei Klammern zu viel geschlossen waren — der
+Test meldete daraufhin „KEIN REPORT" statt einer Zahl.
+
+**621 → 660 Prüfungen.**
+
 ### Tests, die nicht liefen — 621 Prüfungen statt 539
 
 Drei Dateien haben der Suite Arbeit gemeldet, die sie nicht geleistet haben.

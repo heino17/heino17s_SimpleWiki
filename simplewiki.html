@@ -346,6 +346,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             /* Breite der Textspalte. Einmal hier, damit Seitenansicht
                und Fluss nicht auseinanderlaufen koennen. */
             --spaltenbreite: 860px;
+            /* Breite des Inhaltsverzeichnisses links. Auch das Faehnchen
+               rechnet damit - es sitzt an der Innenkante des Menues und
+               muss mitwandern, wenn das Fenster schmaler wird. */
+            --toc-breite: 360px;
         }
 
         body.dark-mode {
@@ -717,6 +721,76 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             right: 0;
         }
 
+        /* ---------- Das Inhaltsverzeichnis links ----------
+
+           Dasselbe Panel wie rechts, nur von der anderen Seite. 'right'
+           wird auf auto gesetzt, sonst haelt .side-panel das Panel noch
+           an der rechten Kante fest. 'left' ist hier der Schalter:
+           zu liegt es links neben dem Fenster, offen liegt es darin. */
+        .toc-menu {
+            right: auto;
+            left: calc(-1 * var(--toc-breite));
+            width: var(--toc-breite);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 2px 0 10px var(--shadow-color);
+            transition: left 0.3s ease;
+        }
+
+        .toc-menu.offen {
+            left: 0;
+        }
+
+        /* Die Kopfzeile des Menues ist eine Zeile und sonst nichts -
+           sie macht das Verzeichnis zum Menue und nicht zu einem
+           zweiten Panel. */
+        .toc-menu-kopf {
+            padding: 14px 20px;
+            background: var(--bg-primary);
+        }
+
+        .toc-menu-kopf h2 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Das Faehnchen. Es steht ausserhalb des Panels, damit es
+           sichtbar bleibt, wenn das Panel aus dem Bild ist. */
+        .toc-faehnchen {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            width: 20px;
+            min-height: 84px;
+            padding: 10px 0;
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            background: var(--accent-color);
+            color: white;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 1002;
+            transition: left 0.3s ease, background 0.2s;
+        }
+
+        .toc-faehnchen:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Das min() gilt fuer sehr schmale Fenster: dort ist das Panel
+           hoechstens 90% breit, und das Faehnchen muss an dessen
+           Innenkante bleiben, nicht am Fensterrand verschwinden. */
+        .toc-faehnchen.offen {
+            left: min(var(--toc-breite), 90vw);
+        }
+
+        .toc-faehnchen:focus-visible {
+            outline: 2px solid var(--text-primary);
+            outline-offset: 2px;
+        }
+
         .side-header {
             padding: 20px;
             border-bottom: 1px solid var(--border-color);
@@ -850,25 +924,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-        }
-
-        .toc-item-delete {
-            opacity: 0;
-            background: none;
-            border: none;
-            color: var(--danger-color);
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        .toc-item:hover .toc-item-delete {
-            opacity: 1;
-        }
-
-        .toc-item-delete:hover {
-            background: var(--bg-hover);
         }
 
         .toc-empty {
@@ -1666,6 +1721,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .side-panel {
                 width: 300px;
             }
+
+            /* Auch links: das Menue wird schmaler, und das Faehnchen
+               rechnet mit derselben Zahl. */
+            :root {
+                --toc-breite: 300px;
+            }
         }
 
         /* Sehr schmale Fenster: noch weniger Luft, damit alle Knoepfe
@@ -1742,6 +1803,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .footer,
             .side-overlay,
             .side-panel,
+            .toc-faehnchen,
             .hinweis,
             .fluss-kopf,
             .fluss-verweise,
@@ -1978,6 +2040,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </footer>
         </div>
 
+
         <div class="side-overlay" :class="{ open: showToc || showSettings || showRefs }" @click="closeAllPanels"></div>
 
         <div class="side-panel toc-panel" :class="{ open: showToc }">
@@ -1998,9 +2061,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
                     <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
                     <span class="toc-item-title">{{ page.title }}</span>
-                    <button v-if="kannSchreiben" class="toc-item-delete" @click.stop="deletePage(page.id)" :title="t('delete')">
-                        ✕
-                    </button>
                 </div>
                 <div v-if="filteredPages.length === 0" class="toc-empty">
                     {{ t('tocEmpty') }}
@@ -2013,6 +2073,48 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 </button>
             </div>
         </div>
+
+        <!-- Das Inhaltsverzeichnis als Menü links.
+
+             Kein Overlay: es dunkelt den Bildschirm nicht ab und wird
+             nicht angeklickt, sondern am Fähnchen weggeklappt. Es steht
+             beim Öffnen da, weil ein Verzeichnis, das man sich erst
+             suchen muss, keines ist.
+
+             Dieselbe Liste wie im Panel rechts - dieselben Zeilen, dieselben
+             Griffe, dieselbe Reihenfolge. Zwei Orte für dieselbe Sache
+             sind hier gewollt: das Menü ist der bequeme Weg, das Panel
+             rechts der Ort, an dem die Suche steht. -->
+        <div class="side-panel toc-menu" :class="{ offen: tocMenuOffen }">
+            <div class="side-header toc-menu-kopf">
+                <h2>{{ t('tocTitle') }}</h2>
+            </div>
+            <div class="toc-list">
+                <div v-for="(page, i) in filteredPages" :key="page.id" class="toc-item" :class="{
+                        active: currentPage &amp;&amp; currentPage.id === page.id,
+                        'wird-gezogen': dragIndex === i,
+                        'einfuegen-oben': dropIndex === i &amp;&amp; dropHint === i &amp;&amp; dragIndex !== i,
+                        'einfuegen-unten': dropIndex === i &amp;&amp; dropHint === i + 1 &amp;&amp; dragIndex !== i
+                    }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
+                    <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
+                    <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
+                    <span class="toc-item-title">{{ page.title }}</span>
+                </div>
+                <div v-if="filteredPages.length === 0" class="toc-empty">
+                    {{ t('tocEmpty') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Das Fähnchen. Ist das Menü zu, klebt es am linken Fensterrand
+             und lädt zum Aufklappen ein; ist es offen, sitzt es an der
+             Innenkante des Menüs und klappt es zu. -->
+        <button class="toc-faehnchen" :class="{ offen: tocMenuOffen }" @click="tocMenuUmschalten"
+                :title="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
+                :aria-label="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
+                :aria-expanded="tocMenuOffen ? 'true' : 'false'">
+            <span aria-hidden="true">{{ tocMenuOffen ? '‹' : '›' }}</span>
+        </button>
 
         <!-- Kurzer Hinweis, wenn gesichert, geladen oder etwas nicht geklappt hat -->
         <div v-if="hinweisText" class="hinweis">{{ hinweisText }}</div>
@@ -2239,6 +2341,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "cancel": "❌ Abbrechen",
                     "delete": "🗑️ Löschen",
                     "tocTitle": "Inhaltsverzeichnis",
+                    "tocMenuHide": "Inhaltsverzeichnis einklappen",
+                    "tocMenuShow": "Inhaltsverzeichnis ausklappen",
                     "tocSearch": "Seiten durchsuchen...",
                     "tocEmpty": "Keine Seiten gefunden",
                     "deleteConfirm": "Seite löschen?",
@@ -2334,6 +2438,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "cancel": "❌ Cancel",
                     "delete": "🗑️ Delete",
                     "tocTitle": "Table of Contents",
+                    "tocMenuHide": "Collapse the table of contents",
+                    "tocMenuShow": "Expand the table of contents",
                     "tocSearch": "Search pages...",
                     "tocEmpty": "No pages found",
                     "deleteConfirm": "Delete page?",
@@ -3171,6 +3277,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 showToc: false,
                 showSettings: false,
                 showRefs: false,
+                /* Das Inhaltsverzeichnis links steht beim Oeffnen da.
+                   Nur fuer dieses eine Fenster - wer es zuklappt, will
+                   es auch beim naechsten Mal aufgeklappt haben, und
+                   nicht jedes Mal neu zuklappen muessen. */
+                tocMenuOffen: true,
                 fluss: false,
                 druckModus: false,
                 /* Unbekannte Angaben oben aus einer eingelesenen Datei. */
@@ -3708,6 +3819,15 @@ showToc: false,
 
                 openToc() {
                     this.panelSetzen('toc', true);
+                },
+
+                /* Das Verzeichnis links am Faehnchen.
+                   Absichtlich ohne Bezug zu den Panels rechts: die
+                   schliessen sich gegenseitig aus, das Menue nicht - es
+                   ist kein Overlay, sondern ein Menue, und ein Menue
+                   verschwindet nicht, weil woanders etwas aufgeht. */
+                tocMenuUmschalten() {
+                    this.tocMenuOffen = !this.tocMenuOffen;
                 },
 
                 openRefs() {

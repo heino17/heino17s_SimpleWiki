@@ -129,17 +129,40 @@ MWS stellt die Tiddler nicht als Datenblock bereit, sondern als
           wieder mitgegeben, damit sie einen Hin-und-Her-Weg ueberstehen.
 
         Aufrufe an den Server
-          POST /recipe/<name>/batch/list     {}
-          POST /recipe/<name>/batch/read     { "titles": ["…"] }
-          POST /recipe/<name>/batch/save     { "tiddlers": [ {feld: …} ] }
-          POST /recipe/<name>/batch/delete   { "titles": ["…"] }
+          GET  /recipe/<name>/status        wer angemeldet ist und ob dieser
+                                            Tab schreiben darf
+          PUT  /recipe/<name>/batch/list     {}
+          PUT  /recipe/<name>/batch/read     { "titles": ["…"] }
+          PUT  /recipe/<name>/batch/save     { "tiddlers": [ {feld: …} ] }
+          PUT  /recipe/<name>/batch/delete   { "titles": ["…"] }
+          POST /logout                       Sitzung löschen, Antwort 204
           mit dem Kopf X-Requested-With: fetch
+
+        PUT, nicht POST, für die Stapelaufrufe: so ist es in RecipeRoutes.ts
+        festgeschrieben. POST /logout ist eine eigene Route in sessions.ts.
 
         <name> steht im Pfad: /wiki/<name>/
 
         Antwortet der Server mit 403 und BAG_NO_WRITE_PERMISSION, ist das kein
         Fehler, sondern ein Betriebszustand: das Wiki gehört jemand anderem.
         Dann wird das Bearbeiten abgeschaltet und der Grund genannt.
+
+        Anmelden und abmelden
+          Anmelden ist ein Link auf /login und damit Sache des Servers, nicht
+          der Wiki. MWS prüft ein Passwort mit OPAQUE: der Browser startet
+          einen Handshake und beweist damit, das Passwort zu kennen, ohne es
+          zu schicken. Das Programm dafür liegt in einem TiddlyWiki-Plugin –
+          und diese Wiki lädt keine Plugins, sie holt ihre Seiten über
+          /recipe. Es nachzubauen hieße, ein zweites Megabyte WebAssembly in
+          jede Wiki-Seite zu legen. Also wird das Passwort dort eingegeben,
+          wo es hingehört, und die Sitzung gilt danach für das ganze Wiki,
+          weil das Cookie dem ganzen Server gehört.
+
+          Abmelden geht von hier aus, weil es nichts zu beweisen gibt: es muss
+          nur eine Sitzung ungültig gemacht werden. Danach wird /status neu
+          geholt, und was der Server sagt, entscheidet – nicht, was gerade
+          noch angezeigt war. Scheitert das Abmelden, wird das gesagt und
+          nichts angezeigt, was nicht wahr ist.
 
         Nicht gemacht: ein Abgleich mit anderen Ansichten. Der Endpunkt
         /recipe/<name>/updates?since=<seq> wird nicht aufgerufen, weil sein
@@ -562,9 +585,50 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             white-space: nowrap;
         }
 
-.benutzer-anzeige.ist-anonym {
+        .benutzer-anzeige.ist-anonym {
             border-style: dashed;
             opacity: 0.8;
+        }
+
+        /* Dieselbe Schale, aber als Link: "Nicht angemeldet" ist ein
+           Wegweiser zum Anmelden. Ohne diese Ruecksetzung kaeme der
+           Link mit Unterstreichung und eigener Schrift daher. */
+        a.benutzer-anzeige {
+            font: inherit;
+            font-size: 0.8rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        a.benutzer-anzeige:hover {
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+            opacity: 1;
+        }
+
+        .abmelden-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font: inherit;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            cursor: pointer;
+        }
+
+        .abmelden-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--text-primary);
+        }
+
+        .abmelden-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .nurlesen-hinweis {
@@ -1771,12 +1835,30 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <span v-if="refCount" class="menu-badge">{{ refCount }}</span>
                 </button>
                 <!-- Wer hier arbeitet. Steht erst da, wenn der Server geantwortet hat -
-                     im Browser gibt es niemanden zu nennen. -->
-                <span v-if="statusBekannt" class="benutzer-anzeige" :class="angemeldet ? 'ist-angemeldet' : 'ist-anonym'"
-                      :title="angemeldet ? benutzerName : t('nichtAngemeldet')">
-                    <span v-if="angemeldet" class="zeichen" aria-hidden="true">👤</span>
-                    {{ angemeldet ? benutzerName : t('nichtAngemeldetKurz') }}
-                </span>
+                     im Browser gibt es niemanden zu nennen.
+
+                     "Nicht angemeldet" ist ein Link: es ist der einzige Weg
+                     zur Anmeldung, und wer ihn nicht sieht, weiss gar nicht,
+                     dass es eine gibt. Warum die Anmeldung dem Server
+                     gehoert und nicht hier, steht im Vertrag oben unter
+                     "Anmelden und abmelden".
+
+                     Ein Link und kein Knopf mit Rumpeln: wo es hingehort,
+                     ist es Sache des Browsers - mittlere Maustaste, Tab
+                     und der Link im Statusfenster gehoeren dazu, wenn es
+                     ein Link ist. -->
+                <a v-if="statusBekannt && !angemeldet" class="benutzer-anzeige ist-anonym anmelde-link"
+                   href="/login" :title="t('anmeldenTitel')">
+                    <span class="zeichen" aria-hidden="true">🔒</span>
+                    {{ t('nichtAngemeldetKurz') }}
+                </a>
+                <template v-else-if="statusBekannt">
+                    <span class="benutzer-anzeige ist-angemeldet" :title="benutzerName">
+                        <span class="zeichen" aria-hidden="true">👤</span>{{ benutzerName }}
+                    </span>
+                    <button class="abmelden-btn" @click="abmelden" :disabled="meldeAb"
+                            :title="t('abmeldenTitel')" :aria-label="t('abmeldenTitel')">⎋</button>
+                </template>
                 <button class="settings-toggle" @click="openSettings" :title="t('settings')" :aria-label="t('settings')">⚙️</button>
                 <button class="theme-toggle" @click="toggleTheme" :title="t('theme')" :aria-label="t('theme')">
                     {{ isDarkMode ? '☀️' : '🌙' }}
@@ -2165,6 +2247,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "nurLesenKurz": "Nur lesen",
                     "nichtAngemeldet": "Du bist an diesem Wiki nicht angemeldet. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nichtAngemeldetKurz": "Nicht angemeldet",
+                    "anmeldenTitel": "Beim Server anmelden",
+                    "abmeldenTitel": "Abmelden",
+                    "abmeldenFehler": "Abmelden hat nicht geklappt. Versuch es noch einmal.",
                     "emptyCreate": "Erste Seite anlegen",
                     "speicherFehler": "Nicht auf dem Server gespeichert: {grund}. " +
                         "Die Änderung steht in dieser Seite, aber nicht beim Server.",
@@ -2256,6 +2341,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "nurLesenKurz": "Read only",
                     "nichtAngemeldet": "You are not logged in to this wiki. You can read everything, but not create, change or delete anything.",
                     "nichtAngemeldetKurz": "Not logged in",
+                    "anmeldenTitel": "Sign in on the server",
+                    "abmeldenTitel": "Sign out",
+                    "abmeldenFehler": "Signing out did not work. Please try again.",
                     "emptyCreate": "Create the first page",
                     "speicherFehler": "Not saved on the server: {grund}. " +
                         "The change is in this page, but not on the server.",
@@ -2637,14 +2725,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                    keine Schreibanfrage) - er steht aber mit drin, damit
                    dieser Aufruf von den anderen nicht abweicht. */
                 headers: { 'X-Requested-With': 'fetch' },
-                /* Das Sitzungs-Cookie muss mit. Ohne Referer erkennt der
-                   Server den Aufruf nicht als unseren. */
+                /* Das Sitzungs-Cookie muss mit. same-origin genuegt:
+                   Seite und Server liegen am selben Ort, und ohne
+                   dieses Cookie sieht der Server jeden Gast als
+                   niemanden. */
                 credentials: 'same-origin'
             }).then(function (antwort) {
                 if (!antwort.ok) return null;
                 return antwort.json();
             }).catch(function () {
                 return null;
+            });
+        };
+
+        /* Abmelden: den Server die Sitzung loeschen lassen.
+
+           Anders als die Anmeldung braucht das keine Kryptografie -
+           es wird nichts bewiesen, es wird nur eine Sitzung fuer
+           ungueltig erklaert. Ein schlichter POST genuegt, und genau
+           das macht der MWS-Client
+           (plugins/client/tiddlers/syncer/new-multiwikiclientadaptor.js).
+
+           204 ist die Antwort des echten Servers fuer eine
+           erfolgreiche Abmeldung. */
+        MwsStore.prototype.abmelden = function () {
+            return fetch('/logout', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'fetch' },
+                credentials: 'same-origin'
+            }).then(function (antwort) {
+                return antwort.status === 204 || antwort.ok;
+            }).catch(function () {
+                return false;
             });
         };
 
@@ -3069,6 +3181,10 @@ showToc: false,
                    ihren Grund fuer eine Schreibsperre nicht und behauptet
                    deshalb keinen. */
                 statusBekannt: false,
+                /* Laeuft gerade eine Abmeldung. Solange das schwebt,
+                   bleibt der Knopf stumm - sonst schickt ein zweiter
+                   Klick einen zweiten POST hinterher. */
+                meldeAb: false,
                 /* Der Server hat einmal abgelehnt. Das bleibt: wer die
                    Berechtigung spaeter zurueckbekommt, sieht die Knöpfe
                    beim naechsten Laden wieder. */
@@ -4226,6 +4342,45 @@ showToc: false,
                         /* Der Server hat nicht geantwortet. Dann bleibt
                            alles beim Alten: ein Ausfall ist kein
                            Rechteproblem. */
+                    });
+                },
+
+                /* Abmelden.
+
+                   Anders als die Anmeldung geht das von hier aus: es
+                   muss nichts bewiesen werden, nur eine Sitzung
+                   ungueltig gemacht werden.
+
+                   Der Server ist die Quelle. Nach dem POST wird der
+                   Status neu geholt, und was er sagt, entscheidet -
+                   nicht, was hier gerade noch angezeigt war. Damit
+                   stimmt der Kopf auch dann, wenn die Sitzung schon
+                   vorher abgelaufen war.
+
+                   Scheitert der POST, wird das gesagt und nichts
+                   angezeigt, was nicht wahr ist: eine Abmeldung, die
+                   nicht stattgefunden hat, darf nicht aussehen wie
+                   eine. */
+                abmelden() {
+                    if (this.meldeAb) return Promise.resolve(false);
+                    this.meldeAb = true;
+                    const selbst = this;
+                    return SPEICHER.abmelden().then(function (ok) {
+                        if (!ok) {
+                            selbst.hinweis(selbst.t('abmeldenFehler'));
+                            return false;
+                        }
+                        selbst.angemeldet = false;
+                        selbst.benutzerName = '';
+                        return selbst.statusHolen().then(function () {
+                            return true;
+                        });
+                    }).catch(function () {
+                        selbst.hinweis(selbst.t('abmeldenFehler'));
+                        return false;
+                    }).then(function (ergebnis) {
+                        selbst.meldeAb = false;
+                        return ergebnis;
                     });
                 },
 

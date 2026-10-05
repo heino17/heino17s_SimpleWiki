@@ -10,16 +10,25 @@ verhalten, wie man es fuer den Test braucht.
     python3 tests/live_mws.py mein-wiki
     MWS=/pfad/zum/mws python3 tests/live_mws.py
 
+    MWS_USER=admin MWS_PASS=geheim python3 tests/live_mws.py
+
 Ablauf: der Dev-Store wird nach tests/_kopien/live kopiert (der
 Originalstore wird nur gelesen), die gebaute simplewiki.html wird in
 die Kopie provisioniert, der Server auf einem freien Port gestartet,
 die Wiki in Chromium geoeffnet und nachgesehen. Danach wird alles
 wieder weggeraeumt - der Store, der Server und der Runner.
 
-Geprueft wird der anonyme Besuch. Einen angemeldeten zu erzeugen
-braucht ein Passwort, und die Anmeldung selbst ist noch nicht gebaut
-(Schritt 2). Der Fall "angemeldet, aber kein Schreibrecht" und der
-Fall "angemeldet und zustaendig" stehen deshalb in t_anmeldung.py.
+Geprueft wird der anonyme Besuch und - wenn MWS_USER und MWS_PASS
+gesetzt sind - eine echte Anmeldung. Fuer die braucht es ein
+Passwort, und ein Passwort gehoert in die Umgebung und nicht in
+eine Datei. Ohne die beiden wird dieser Teil uebersprungen und
+nicht als Fehler gezaehlt: der anonyme Lauf ist auch ohne
+Passwort vollstaendig.
+
+Die Anmeldung selbst macht die Wiki nicht: ihr Kopf verweist auf
+/login, wo MWS das Passwort per OPAQUE prueft. Geprueft wird hier
+deshalb das, was die Wiki wirklich tut - der Weg auf /login und die
+zwei Aufrufe, die MwsStore.abmelden() macht.
 """
 import json
 import os
@@ -85,6 +94,67 @@ def text_von(dom, klasse):
     """Der Text im Element mit dieser Klasse, ohne Tags."""
     m = re.search(r'<[a-z]+ class="[^"]*\b%s\b[^"]*"[^>]*>(.*?)</[a-z]+>' % klasse, dom, re.S)
     return re.sub(r'<[^>]+>', ' ', m.group(1)).split() if m else None
+
+
+# Der OPAQUE-Handshake mit dem echten Server, gesprochen mit genau der
+# Bibliothek, die auch der MWS-Client benutzt. Als Text hier und nicht
+# als Datei im Baum: sie gehoert nur zu diesem Lauf, und ein zusaetzlicher
+# JavaScript-Einstieg in den Testordner waere eine zweite Sache, die man
+# pflegen muss.
+#
+# Gesendet wird genau das, was die Wiki auch sendet: JSON, der Kopf
+# X-Requested-With und das Sitzungs-Cookie. Kein Referer von Hand -
+# den setzt ein Browser von selbst, und die Pruefung in RequestState.ts
+# sieht ihn als freiwillig an.
+OPAQUE_LAUF = r"""
+const opaque = require(process.argv[2]);
+const basis = process.argv[3];
+const nutzer = process.argv[4];
+const passwort = process.argv[5];
+const wiki = process.argv[6];
+
+const kopf = { "Content-Type": "application/json", "X-Requested-With": "fetch" };
+
+(async () => {
+  const r = {};
+  try {
+    await opaque.ready;
+    const { clientLoginState, startLoginRequest } = opaque.client.startLogin({ password: passwort });
+    const r1 = await fetch(basis + "/login/1", {
+      method: "POST", headers: kopf,
+      body: JSON.stringify({ username: nutzer, startLoginRequest }),
+    });
+    r.login1 = r1.status;
+    if (r1.status === 200) {
+      const { loginResponse, loginSession } = await r1.json();
+      const fertig = opaque.client.finishLogin({ clientLoginState, loginResponse, password: passwort });
+      r.finishLogin = !!fertig;
+      const r2 = await fetch(basis + "/login/2", {
+        method: "POST", headers: kopf,
+        body: JSON.stringify({ finishLoginRequest: fertig.finishLoginRequest, loginSession }),
+      });
+      r.login2 = r2.status;
+      const setc = r2.headers.getSetCookie ? r2.headers.getSetCookie() : [];
+      r.cookie = (setc || []).map(c => c.split(";")[0]).join("; ");
+      r.cookieNamen = (setc || []).map(c => c.split("=")[0].trim());
+    }
+    if (r.cookie) {
+      const mit = { "X-Requested-With": "fetch", Cookie: r.cookie };
+      const rs = await fetch(basis + "/recipe/" + wiki + "/status", { headers: mit });
+      r.statusAntwort = rs.status;
+      r.status = await rs.json();
+      // Abmelden, genau wie die Wiki es macht.
+      const rl = await fetch(basis + "/logout", { method: "POST", headers: mit });
+      r.logout = rl.status;
+      const rs2 = await fetch(basis + "/recipe/" + wiki + "/status", { headers: mit });
+      r.statusNachher = (await rs2.json()).isLoggedIn;
+    }
+  } catch (e) {
+    r.fehler = String((e && e.message) || e);
+  }
+  process.stdout.write(JSON.stringify(r));
+})();
+"""
 
 
 def main():
@@ -184,8 +254,12 @@ def main():
         name = text_von(dom, 'benutzer-anzeige')
         hinweis = text_von(dom, 'nurlesen-hinweis')
         pruefe(bool(name), 'im Kopf steht eine Anzeige: %s' % (' '.join(name or []) or 'KEINE'))
-        pruefe('class="benutzer-anzeige ist-anonym"' in dom,
+        anzeige_tag = re.search(r'<(?:a|span) class="[^"]*benutzer-anzeige[^"]*"[^>]*>', dom)
+        pruefe(bool(anzeige_tag) and 'ist-anonym' in anzeige_tag.group(0),
                'sie ist als anonym markiert, nicht als angemeldet')
+        pruefe(bool(anzeige_tag) and 'href="/login"' in anzeige_tag.group(0),
+               'und fuehrt als Link zur Anmeldeseite des Servers: %s'
+               % (anzeige_tag.group(0)[:70] if anzeige_tag else 'kein Tag'))
         pruefe(bool(name) and '(anon)' not in ' '.join(name),
                'der Platzhalter "(anon)" steht nirgends')
         pruefe(bool(hinweis), 'der Hinweis steht da')
@@ -205,6 +279,71 @@ def main():
                'die Seite laesst sich lesen: %s' % (titel.group(1).strip() if titel else 'keine'))
         pruefe(dom.count('toc-item-title') > 0,
                'das Verzeichnis zeigt %d Seiten' % dom.count('toc-item-title'))
+
+        # ---- Wo der Link im Kopf hingeht
+        print('--- Der Weg zur Anmeldung')
+        code, loginseite = hole(basis + '/login')
+        pruefe(code == 200, 'GET /login -> %s (%d Bytes)'
+               % (code, len(loginseite)))
+        # Die Seite ist eine TiddlyWiki-Seite: das Formular entsteht erst
+        # im Browser. Im HTML des Servers steht davon nichts - wer nur den
+        # Rohtext liest, wuerde den ganzen Aufbau fuer nichtig halten.
+        login_dom = _hilfe.dumpdom_url(basis + '/login', '1280,900', budget=25000)
+        pruefe('login-password' in login_dom or 'type="password"' in login_dom,
+               'und der Browser zeigt ein Passwortfeld')
+        pruefe('login-username' in login_dom, 'sowie ein Feld fuer den Benutzernamen')
+        pruefe('/login' in seite,
+               'die ausgelieferte Schale zeigt auf /login')
+
+        # ---- Die Anmeldung selbst, wenn ein Passwort da ist
+        passwort = os.environ.get('MWS_PASS')
+        nutzer = os.environ.get('MWS_USER', 'admin')
+        if not passwort:
+            print('--- Anmeldung: uebersprungen (MWS_PASS nicht gesetzt)')
+        else:
+            print('--- Die echte Anmeldung als %s' % nutzer)
+            # .cjs, nicht .mjs: der Lauf benutzt require fuer die
+            # OPAQUE-Bibliothek, und require gibt es nur im CommonJS.
+            helfer = os.path.join(KOPIEN, 'anmelden.cjs')
+            with open(helfer, 'w') as f:
+                f.write(OPAQUE_LAUF)
+            befund = subprocess.run(
+                ['node', helfer,
+                 os.path.join(MWS, 'plugins', 'client', 'tiddlers', 'library', 'opaque.js'),
+                 basis, nutzer, passwort, wiki],
+                capture_output=True)
+            roh = befund.stdout.decode('utf-8', 'replace').strip()
+            try:
+                r = json.loads(roh)
+            except ValueError:
+                r = {'fehler': (roh or befund.stderr.decode('utf-8', 'replace'))[-400:]}
+            if r.get('fehler'):
+                pruefe(False, 'die Anmeldung lief durch: %s' % r['fehler'])
+            else:
+                pruefe(r.get('login1') == 200, 'POST /login/1 -> %s' % r.get('login1'))
+                pruefe(r.get('finishLogin') is True, 'der Handshake ging auf')
+                pruefe(r.get('login2') == 200, 'POST /login/2 -> %s' % r.get('login2'))
+                pruefe('session' in (r.get('cookieNamen') or []),
+                       'und es kam ein Sitzungs-Cookie: %s'
+                       % ', '.join(r.get('cookieNamen') or []) or 'keins')
+                angemeldet = r.get('status') or {}
+                pruefe(angemeldet.get('isLoggedIn') is True,
+                       'der Server erkennt die Sitzung: isLoggedIn=%r'
+                       % angemeldet.get('isLoggedIn'))
+                pruefe(angemeldet.get('username') == nutzer,
+                       'und nennt %r: %r' % (nutzer, angemeldet.get('username')))
+                beutel = (angemeldet.get('bags') or [{}])[0]
+                pruefe(beutel.get('canUserWrite') is True,
+                       'und darf in diesem Wiki schreiben: %r'
+                       % beutel.get('canUserWrite'))
+
+                # Genau der Aufruf, den MwsStore.abmelden() macht.
+                pruefe(r.get('logout') in (200, 204),
+                       'POST /logout mit dem Kopf X-Requested-With -> %s'
+                       % r.get('logout'))
+                pruefe(r.get('statusNachher') is False,
+                       'danach wieder niemand angemeldet: %r'
+                       % r.get('statusNachher'))
     finally:
         server.terminate()
         try:

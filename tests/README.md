@@ -48,6 +48,24 @@ sieht die Wiki in Chromium nach und räumt danach alles wieder weg. Der
 Originalstore wird dabei nur gelesen. Liegt der MWS-Quellbaum woanders:
 `MWS=/pfad/zum/mws python3 tests/live_mws.py`.
 
+### Die Anmeldung live prüfen
+
+Zusätzlich prüft er mit `MWS_USER` und `MWS_PASS` eine **echte Anmeldung**
+am echten MWS — mit OPAQUE und der Bibliothek, die auch der MWS-Client
+benutzt. Ohne die beiden wird dieser Teil übersprungen und nicht als
+Fehler gezählt; der anonyme Lauf ist auch ohne Passwort vollständig.
+
+```bash
+MWS_USER=admin MWS_PASS=geheim python3 tests/live_mws.py
+```
+
+Ein Passwort gehört in die Umgebung und nicht in eine Datei. `MWS_PASS`
+steht deshalb in keinem Test, keinem Skript und keinem Bericht.
+
+Warum das überhaupt ein Node-Programm ist: der OPAQUE-Handshake gehört in
+den Browser. Für einen Test mit Server braucht es aber keinen Browser,
+sondern die Bibliothek — die wird hier geladen und über HTTP gesprochen.
+
 ## Wie die Tests arbeiten
 
 | Datei | Wofür |
@@ -76,6 +94,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
 | `t_anmeldung.py` | **Anmeldung und Schreibrechte: Statusabfrage, Name im Kopf, ausgeblendete Schreibknöpfe** |
+| `t_login.py` | **Anmelden und abmelden: Link auf `/login`, `POST /logout`, der Fall, dass es nicht klappt** |
 | `t_leerwiki.py` | Leere Wiki-Datei, Vorlage füllen und öffnen, Angaben oben |
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |

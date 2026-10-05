@@ -6,6 +6,8 @@ im Kopf von simplewiki.html verspricht:
   GET  /wiki/<name>/               simplewiki.html mit gesetztem Marker
   GET  /recipe/<name>/status       wer angemeldet ist und ob hier
                                    geschrieben werden darf
+  GET  /login                      MWS' eigene Anmeldeseite
+  POST /logout                    Sitzung loeschen, 204
   PUT  /recipe/<name>/batch/<op>   list | read | save | delete
   PUT  /recipe/<name>/batch/<op>   bei /nurlesen/<name>/ stattdessen 403
 
@@ -38,6 +40,17 @@ except ImportError:                                    # pragma: no cover
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mkcopy                                             # noqa: E402
 import mwsfixture                                         # noqa: E402
+
+LOGIN_SEITE = """<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<title>Anmelden - Testfigur</title></head>
+<body>
+<h1>Anmelden (Testfigur)</h1>
+<p>Die echte Seite fragt das Passwort mit OPAQUE ab und setzt danach
+ein Sitzungs-Cookie. Diese Testfigur kann kein Passwort pruefen; sie
+stellt die Sitzung einfach her, so wie es das Original nach
+erfolgreicher Anmeldung tut.</p>
+</body></html>"""
 
 PROJEKT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 QUELLE = os.path.join(PROJEKT, 'simplewiki.html')
@@ -108,6 +121,25 @@ class Wiki:
             'bags': [{'slug': self.slug, 'canUserWrite': schreiben}],
         }
 
+    def anmelden(self, name='admin'):
+        """Jetzt gibt es eine Sitzung, und sie hat einen Namen.
+
+        Wer schreiben darf, bleibt dabei beim, was der Wiki erlaubt:
+        eine Sitzung aendert keine Rechte, sie macht sichtbar, welche
+        Rechte man hat.
+        """
+        self.status = {'isLoggedIn': True, 'username': name,
+                       'canUserWrite': not self.nurLesen}
+
+    def abmelden(self):
+        """Die Sitzung ist weg.
+
+        Wer danach noch schreiben darf, weiss es nicht - das weiss
+        erst wieder der naechste Status.
+        """
+        self.status = {'isLoggedIn': False, 'username': '(anon)',
+                       'canUserWrite': False}
+
     def ablauf_ausloesen(self):
         """Die Sitzung stirbt: ab jetzt 403 und 'nicht angemeldet'."""
         self.status = {'isLoggedIn': False, 'username': '(anon)',
@@ -123,6 +155,7 @@ class Handler(BaseHTTPRequestHandler):
     # vom Test gesetzt
     wikis = {}
     anfragen = None
+    fehler = {}
 
     def log_message(self, *args):
         """Nichts auf die Konsole - der Testlauf soll lesbar bleiben."""
@@ -185,9 +218,50 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._json(200, wiki.status_antwort())
             return
+        # MWS' eigene Anmeldeseite. Das Original fragt dort das
+        # Passwort per OPAQUE ab und setzt danach ein Sitzungs-Cookie.
+        # Diese Testfigur kann das Passwort nicht pruefen - sie tut
+        # aus dem blossen Aufruf eine Sitzung, und das ist alles, was
+        # die Wiki von der Anmeldung zu sehen bekommt.
+        if self.path == '/login':
+            self.eintrag = None
+            self.anfragen.append({'weg': 'GET', 'pfad': self.path})
+            for w in self.wikis.values():
+                w.anmelden()
+            self._html(200, LOGIN_SEITE)
+            return
         self._json(404, {'error': 'not found'})
 
     # -------------------------------------------------------------- Schreiben
+    def do_POST(self):
+        # Abmelden ist der einzige POST, den die Wiki an MWS schickt.
+        m = re.match(r'^/logout$', self.path)
+        if m:
+            self.eintrag = None
+            self.anfragen.append({'weg': 'POST', 'pfad': self.path,
+                                  'xhr': self.headers.get('X-Requested-With'),
+                                  'cookie': self.headers.get('Cookie') or ''})
+            # Der Kopf ist auch hier Pflicht: ohne ihn ist es eine fremde
+            # Anfrage, kein Wunsch dieser Wiki.
+            if self.headers.get('X-Requested-With') != 'fetch':
+                self._json(400, {'error': 'INVALID_X_REQUESTED_WITH'})
+                return
+            if 'logout' in (Handler.fehler or {}):
+                self._json(self.fehler['logout'], {'error': 'SERVER_TEAMPOT_logout'})
+                return
+            # Eine Sitzung gilt fuer den ganzen Server, nicht fuer ein
+            # Wiki. Wer sich abmeldet, ist ueberall abgemeldet - deshalb
+            # dreht die Testfigur an allen Wikis den Schalter um.
+            for w in self.wikis.values():
+                w.abmelden()
+            # 204 ist die Antwort des echten Servers.
+            self.send_response(204)
+            self.send_header('Set-Cookie',
+                             'session=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax')
+            self.end_headers()
+            return
+        self._json(404, {'error': 'not found'})
+
     def do_PUT(self):
         m = re.match(r'^/recipe/([^/]+)/batch/(\w+)$', self.path)
         if not m:
@@ -267,12 +341,18 @@ class Handler(BaseHTTPRequestHandler):
 
 # ------------------------------------------------------------------ Start
 
-def starten(wikis, port=0):
-    """Server hochfahren. Liefert (server, thread, port)."""
+def starten(wikis, port=0, fehler=None):
+    """Server hochfahren. Liefert (server, thread, port).
+
+    fehler gilt fuer den ganzen Server und nicht fuer einen Wiki -
+    so etwas wie das Abmelden, das zu keinem Wiki gehoert:
+    {'logout': 500}.
+    """
     if ThreadingHTTPServer is None:                     # pragma: no cover
         raise RuntimeError('http.server fehlt - Python 2?')
     Handler.wikis = wikis
     Handler.anfragen = []
+    Handler.fehler = dict(fehler or {})
     server = ThreadingHTTPServer(('127.0.0.1', port), Handler)
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True

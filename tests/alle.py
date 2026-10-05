@@ -26,6 +26,7 @@ REIHENFOLGE = [
     't_refs.py',       # Verweis-Panel
     't_kopf.py',        # Knopf im Kopf: Fluss umschalten, schmale Fenster
     't_menue.py',       # Inhaltsverzeichnis links als Menue, am Faehnchen zu- und aufklappbar
+    't_panels.py',      # Panels rechts: geparkt am Rand, nicht neben dem Fenster
     't_order.py',      # Reihenfolge per Ziehen
     't_file.py',       # Als Datei sichern und laden
     't_mws.py',        # Austausch mit MWS: JSON, Version, Fremdfelder
@@ -51,6 +52,7 @@ BESCHRIEBUNG = {
     't_refs.py': 'Verweis-Panel mit Zaehler und Speichern',
     't_kopf.py': 'Fluss-Knopf im Kopf, Reihenfolge, schmale Fenster',
     't_menue.py': 'Inhaltsverzeichnis links als Menue, Faehnchen, kein Loeschkreuz',
+    't_panels.py': 'Panels rechts: geparkt genau auf der Fensterkante',
     't_order.py': 'Reihenfolge per Ziehen und Alt + Pfeil',
     't_file.py': 'Wiki als Datei sichern und laden',
     't_mws.py': 'Austauschformat: JSON, Version, fremde Felder, doppelte Titel',

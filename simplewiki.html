@@ -705,20 +705,29 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .side-panel {
             position: fixed;
             top: 0;
-            right: -360px;
+            right: 0;
             width: 360px;
             max-width: 90%;
             height: 100vh;
             background: var(--bg-secondary);
             box-shadow: -2px 0 10px var(--shadow-color);
             z-index: 1001;
-            transition: right 0.3s ease;
+            /* Wegparken mit einem Weg, der zur eigenen Breite gehört,
+               nicht mit einer Zahl im Stylesheet. 'right: -360px' war
+               eine: sie stimmte, solange die Breite 360px war - und
+               eine Media Query macht daraus 300px. Auf einem schmalen
+               Fenster stand daraufhin ein Streifen der Panels im Bild,
+               ohne dass jemand sie geoeffnet haette. translateX(100%)
+               ist um so viel breit wie das Panel selbst und liegt damit
+               immer genau ausserhalb, bei jeder Breite. */
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
             display: flex;
             flex-direction: column;
         }
 
         .side-panel.open {
-            right: 0;
+            transform: translateX(0);
         }
 
         /* ---------- Der Körper: Verzeichnis links, Inhalt daneben ----------

@@ -171,6 +171,10 @@ kopie1 = build('_menue1.html', script1, seiten, startpage='a')
 # Scharfes Fenster: dort faengt das Verzeichnis zugeklappt an, weil es
 # offen zu viel wegnehmen wuerde - und es laesst sich am Faehnchen
 # aufklappen, ohne dass etwas verdeckt wird.
+#
+# ACHTUNG: gewollt sind 380 Pixel, gemessen werden 500. Headless nimmt
+# kein Fenster unter 500. Siehe t_kopf.py und tests/README.md,
+# "Headless nimmt kein Fenster unter 500 Pixeln".
 script2 = r"""
     <script>
     (function () {
@@ -188,7 +192,8 @@ script2 = r"""
       }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       setTimeout(function () {
-        ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth);
+        ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth +
+           ' - und 500 ist das schmalste, was Headless zulässt (siehe oben)');
 
         head('Auf einem schmalen Fenster faengt es zu an');
         var m = q('.toc-menu');
@@ -196,8 +201,10 @@ script2 = r"""
         ok(q('.toc-faehnchen').getAttribute('aria-expanded') === 'false', 'und das Faehnchen sagt es');
         ok(/ausklappen|expand/i.test(q('.toc-faehnchen').getAttribute('title')),
            'mit dem richtigen Hinweis: ' + q('.toc-faehnchen').getAttribute('title'));
-        /* Sonst haette man auf diesem Fenster 300 von 420 Pixeln fuer ein
-           Verzeichnis und 120 fuer den Text. */
+        /* Auf einem Fenster von 420 Pixeln waeren es 300 fuer das
+           Verzeichnis und 120 fuer den Text. Hier sind es 500 und 500 -
+           das Verzeichnis faengt aber aus demselben Grund zu, weil 500
+           unter der Grenze von 640 liegt. */
         ok(m.getBoundingClientRect().width === 0, 'und die Spalte nimmt nichts: ' + m.getBoundingClientRect().width);
         ok(Math.round(q('.main-content').getBoundingClientRect().left) === 0,
            'der Text hat das ganze Fenster: ' + Math.round(q('.main-content').getBoundingClientRect().left));

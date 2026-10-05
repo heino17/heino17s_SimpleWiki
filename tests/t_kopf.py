@@ -74,6 +74,18 @@ kopie1 = build('_kopf1.html', script1, seiten, startpage='1')
 
 # ---------------------------------------------------------------- Teil 2
 # Scharfes Fenster: der Text verschwindet, der Knopf bleibt bedienbar
+#
+# ACHTUNG, und das hat lange getrogen: Chromium nimmt kein Fenster unter
+# 500 Pixeln. Ein Aufruf mit 380 liefert 500:
+#
+#     --window-size=320  ->  innerWidth=500
+#     --window-size=380  ->  innerWidth=500
+#     --window-size=412  ->  innerWidth=500
+#
+# Dieser Lauf hat also immer ein Fenster von 500 Pixeln geprueft und
+# eines von 380 gewollt. Die Pruefung unten sagt das jetzt, statt eine
+# Zahl zu behaupten, die nicht stimmt - siehe tests/README.md,
+# "Headless nimmt kein Fenster unter 500 Pixeln".
 script2 = r"""
     <script>
     (function () {
@@ -84,7 +96,8 @@ script2 = r"""
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       setTimeout(function () {
-        ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth);
+        ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth +
+           ' - und 500 ist das schmalste, was Headless zulässt (siehe oben)');
         var k = q('.kopf-fluss');
         ok(!!k, 'Knopf da');
         ok(k && getComputedStyle(k.querySelector('.kopf-text')).display === 'none', 'Text ist ausgeblendet');

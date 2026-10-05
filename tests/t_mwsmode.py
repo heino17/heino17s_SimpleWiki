@@ -233,7 +233,8 @@ teil2 = r"""
 """
 
 # ---------------------------------------------------------------- Teil 3
-# Wiki ohne Schivrecht: Bearbeiten abgeschaltet, Grund sichtbar
+# Wiki ohne Schivrecht: die Schreibknöpfe sind weg, der Grund steht da -
+# und zwar, BEVOR jemand irgendetwas probiert hat, weil /status es sagt
 teil3 = r"""
     <script>
     (function () {
@@ -242,6 +243,8 @@ teil3 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function bearbeiten() { return all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0]; }
+      function neueSeite() { return all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0]; }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
@@ -249,32 +252,30 @@ teil3 = r"""
         ok(q('.header') !== null, 'Oberflaeche ist da (lesbar)');
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Alpha',
            'Startseite lesbar: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
-        ok(!q('.nurlesen-hinweis'),
-           'vor dem ersten Schreibversuch gibt es keinen Hinweis (es wird nicht blind geprobt)');
 
-        log.push('--- Der erste Schreibversuch sagt, woran es liegt');
-        /* Die Farbe zu wechseln geht auch ohne Seitenrechte - und genau
-           da faellt der Server mit 403 auf. */
-        q('.theme-toggle').click();
+        log.push('--- Der Server sagt es von sich aus, ohne dass jemand fragt');
+        var hinweis = q('.nurlesen-hinweis');
+        ok(!!hinweis, 'Hinweis steht da, ohne Schreibversuch: ' + (hinweis ? hinweis.textContent.trim() : 'KEINER'));
+        /* Dieses Wiki ist englisch - der Hinweis darf in beiden
+           Sprachen kommen, nur nicht ohne Grund. */
+        ok(hinweis && /nicht geschrieben|cannot be written/.test(hinweis.textContent),
+           'nennt den Grund (hier: angemeldet, aber kein Schreibrecht): ' + (hinweis ? hinweis.textContent.trim() : '-'));
+        var name = q('.benutzer-anzeige');
+        ok(!!name && /Testnutzer/.test(name.textContent),
+           'der Name steht im Kopf: ' + (name ? name.textContent.trim() : 'KEINER'));
+
+        log.push('--- Die Schreibknoepfe sind weg, nicht nur blass');
+        ok(!bearbeiten(), 'Bearbeiten ist weg (nicht abgeschaltet)');
+        ok(!neueSeite(), 'Neue Seite ist weg');
+        q('.menu-toggle').click();
         setTimeout(function () {
-          var hinweis = q('.nurlesen-hinweis');
-          ok(!!hinweis, 'Hinweis erscheint: ' + (hinweis ? hinweis.textContent.trim() : 'KEINER'));
-          /* Dieses Wiki ist englisch - der Hinweis darf in beiden
-             Sprachen kommen, nur nicht ohne Grund. */
-          ok(hinweis && /nicht geschrieben|cannot be written/.test(hinweis.textContent),
-             'nennt den Grund: ' + (hinweis ? hinweis.textContent.trim() : '-'));
-          var bearbeiten = all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0];
-          ok(bearbeiten && bearbeiten.disabled === true, 'Bearbeiten ist jetzt abgeschaltet');
-          q('.menu-toggle').click();
-          setTimeout(function () {
-            var neu = all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0];
-            ok(!!neu && neu.disabled === true, 'Neue Seite ist jetzt abgeschaltet');
-            log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-            out();
-          }, 500);
+          ok(!q('.toc-item-delete'), 'das Kreuz im Verzeichnis ist auch weg');
+          log.push('--- Lesen geht trotzdem');
+          ok(!!q('.content-title'), 'die Seite laesst sich weiter lesen');
           log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
           out();
-        }, 1200);
+        }, 500);
+        out();
       }, 2500);
     })();
     </script>

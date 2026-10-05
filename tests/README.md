@@ -17,12 +17,30 @@ ist fehlgeschlagen – dann nennt die Ausgabe den Namen der Prüfung.
 
 Zwei Abhängigkeiten: **python3** und **chromium** im Pfad.
 
+Ein Test steht nicht in `alle.py`, weil er einen Server startet: `live_mws.py`
+prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur aus
+`mwsserver.py`.
+
+```bash
+python3 tests/live_mws.py            # die Wiki wikiwise-booklet
+python3 tests/live_mws.py mein-wiki  # eine andere
+```
+
+Er braucht ein gebautes `dist/mws.js` aus dem MWS-Quellbaum (dort
+`npm run build`) und standardmäßig `dev/wiki` von dort. Er kopiert den
+Dev-Store nach `tests/_kopien/live`, provisioniert die gebaute
+`simplewiki.html` hinein, startet den Server auf einem freien Port,
+sieht die Wiki in Chromium nach und räumt danach alles wieder weg. Der
+Originalstore wird dabei nur gelesen. Liegt der MWS-Quellbaum woanders:
+`MWS=/pfad/zum/mws python3 tests/live_mws.py`.
+
 ## Wie die Tests arbeiten
 
 | Datei | Wofür |
 |---|---|
 | `alle.py` | führt alle Tests nacheinander aus und sammelt die Zahlen |
 | `_hilfe.py` | Chromium starten, Bericht auslesen, Gesamtzahl melden |
+| `live_mws.py` | **Live-Check gegen ein echtes MWS** (nicht in `alle.py`, siehe oben) |
 | `mkcopy.py` | baut die Testkopie: Testseiten in `localStorage`, optional Daten aus der Datei, Testskript vor `</body>` |
 
 Alle Kopien, PDFs und Zwischenstände landen in `tests/_kopien/` und werden
@@ -43,6 +61,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
+| `t_anmeldung.py` | **Anmeldung und Schreibrechte: Statusabfrage, Name im Kopf, ausgeblendete Schreibknöpfe** |
 | `t_leerwiki.py` | Leere Wiki-Datei, Vorlage füllen und öffnen, Angaben oben |
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |

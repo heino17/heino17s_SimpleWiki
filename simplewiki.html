@@ -543,6 +543,30 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             line-height: 1.45;
         }
 
+        /* Wer im Kopf steht. Kein Knopf - der Kopf sagt nur, wer da ist,
+           und das Anmelden kommt erst mit dem naechsten Schritt. */
+        .benutzer-anzeige {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            line-height: 1.2;
+            max-width: 34vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+.benutzer-anzeige.ist-anonym {
+            border-style: dashed;
+            opacity: 0.8;
+        }
+
         .nurlesen-hinweis {
             border: 1px solid #d98b2b;
             background: rgba(217, 139, 43, 0.14);
@@ -1602,6 +1626,18 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 gap: 6px;
             }
 
+            /* Der Name bleibt, das Zeichen und die Luft davor gehen:
+               ein Kopf aus fuenf Teilen passt in keine Reihe. */
+            .benutzer-anzeige {
+                max-width: 26vw;
+                padding: 4px 7px;
+                font-size: 0.72rem;
+            }
+
+            .benutzer-anzeige .zeichen {
+                display: none;
+            }
+
             .header .menu-toggle,
             .header .refs-toggle,
             .header .settings-toggle,
@@ -1734,6 +1770,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     🔗
                     <span v-if="refCount" class="menu-badge">{{ refCount }}</span>
                 </button>
+                <!-- Wer hier arbeitet. Steht erst da, wenn der Server geantwortet hat -
+                     im Browser gibt es niemanden zu nennen. -->
+                <span v-if="statusBekannt" class="benutzer-anzeige" :class="angemeldet ? 'ist-angemeldet' : 'ist-anonym'"
+                      :title="angemeldet ? benutzerName : t('nichtAngemeldet')">
+                    <span v-if="angemeldet" class="zeichen" aria-hidden="true">👤</span>
+                    {{ angemeldet ? benutzerName : t('nichtAngemeldetKurz') }}
+                </span>
                 <button class="settings-toggle" @click="openSettings" :title="t('settings')" :aria-label="t('settings')">⚙️</button>
                 <button class="theme-toggle" @click="toggleTheme" :title="t('theme')" :aria-label="t('theme')">
                     {{ isDarkMode ? '☀️' : '🌙' }}
@@ -1741,8 +1784,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </header>
 
             <main class="main-content">
-                <!-- Nur-Lesen-Wiki: der Server hat das Schreiben abgelehnt -->
-                <p v-if="nurLesen" class="nurlesen-hinweis">{{ t('nurLesen') }}</p>
+                <!-- Nur-Lesen-Wiki: der Server hat das Schreiben abgelehnt.
+                     Zwei Gründe, zwei Texte - siehe leseGrund. -->
+                <p v-if="nurLesen" class="nurlesen-hinweis">{{ t(leseGrund) }}</p>
                 <!-- Serverbetrieb: woher die Seiten kommen -->
                 <p v-else="" v-if="mwsModus" class="mws-hinweis">☁ {{ t('mwsHinweis') }}</p>
 
@@ -1803,9 +1847,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <h2>{{ t('welcomeTitle') }}</h2>
                     <p>{{ t('welcomeText') }}</p>
                     <!-- Ohne diesen Knopf ist eine leere Wiki eine
-                         Sackgasse: nirgends waere ein Ausgang. -->
+                         Sackgasse: nirgends waere ein Ausgang. Wer nicht
+                         schreiben darf, bekommt ihn nicht zu sehen - ein
+                         leeres Wiki, in dem man nichts anlegen darf,
+                         braucht keinen Ausgang. -->
                     <button class="btn btn-primary empty-state-btn"
-                            :disabled="nurLesen" @click="ersteSeiteAnlegen">
+                            v-if="kannSchreiben" @click="ersteSeiteAnlegen">
                         {{ t('emptyCreate') }}
                     </button>
                 </div>
@@ -1813,22 +1860,27 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </main>
 
             <footer v-if="currentPage &amp;&amp; !zeigeFluss" class="footer">
-                <button v-if="!isEditing" class="btn btn-primary" :disabled="nurLesen" @click="startEditing">
+                <!-- Die Schreibknöpfe sind nicht abgeschaltet, sondern weg. Wer nicht
+                     schreiben darf, soll gar nicht erst auf einen Knopf
+                     zeigen, der ohnehin nichts tut. -->
+                <button v-if="kannSchreiben && !isEditing" class="btn btn-primary" @click="startEditing">
                     {{ t('edit') }}
                 </button>
-                <template v-else="">
-                    <button class="btn btn-secondary" :disabled="nurLesen" @click="openLinkDialog">
+                <template v-else-if="isEditing"="">
+                    <button v-if="kannSchreiben" class="btn btn-secondary" @click="openLinkDialog">
                         🔗 {{ t('linkButton') }}
                     </button>
-                    <button class="btn btn-secondary" :disabled="nurLesen" @click="duplicatePage" :title="t('duplicateHint')">
+                    <button v-if="kannSchreiben" class="btn btn-secondary" @click="duplicatePage" :title="t('duplicateHint')">
                         ⧉ {{ t('duplicate') }}
                     </button>
-                    <button class="btn btn-danger" :disabled="nurLesen" @click="deletePage(currentPage.id)">
+                    <button v-if="kannSchreiben" class="btn btn-danger" @click="deletePage(currentPage.id)">
                         {{ t('delete') }}
                     </button>
-                    <button class="btn btn-primary" @click="savePage">
+                    <button v-if="kannSchreiben" class="btn btn-primary" @click="savePage">
                         {{ t('save') }}
                     </button>
+                    <!-- Abbrechen bleibt: es schreibt nichts, und wer die
+                         Rechte verliert, muss den Editor verlassen koennen. -->
                     <button class="btn btn-secondary" @click="cancelEditing">
                         {{ t('cancel') }}
                     </button>
@@ -1856,7 +1908,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
                     <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
                     <span class="toc-item-title">{{ page.title }}</span>
-                    <button class="toc-item-delete" @click.stop="deletePage(page.id)" :title="t('delete')">
+                    <button v-if="kannSchreiben" class="toc-item-delete" @click.stop="deletePage(page.id)" :title="t('delete')">
                         ✕
                     </button>
                 </div>
@@ -1866,7 +1918,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </div>
             <div class="toc-footer">
                 <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
-                <button class="new-page-btn" :disabled="nurLesen" @click="createNewPage">
+                <button class="new-page-btn" v-if="kannSchreiben" @click="createNewPage">
                     {{ t('newPage') }}
                 </button>
             </div>
@@ -2111,6 +2163,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Sprache",
                     "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nurLesenKurz": "Nur lesen",
+                    "nichtAngemeldet": "Du bist an diesem Wiki nicht angemeldet. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
+                    "nichtAngemeldetKurz": "Nicht angemeldet",
                     "emptyCreate": "Erste Seite anlegen",
                     "speicherFehler": "Nicht auf dem Server gespeichert: {grund}. " +
                         "Die Änderung steht in dieser Seite, aber nicht beim Server.",
@@ -2200,6 +2254,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "untitled": "New Page",
                     "nurLesen": "This wiki cannot be written to. You can read everything, but not create, change or delete anything.",
                     "nurLesenKurz": "Read only",
+                    "nichtAngemeldet": "You are not logged in to this wiki. You can read everything, but not create, change or delete anything.",
+                    "nichtAngemeldetKurz": "Not logged in",
                     "emptyCreate": "Create the first page",
                     "speicherFehler": "Not saved on the server: {grund}. " +
                         "The change is in this page, but not on the server.",
@@ -2412,6 +2468,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                   wikiTitel   Name des Wikis, '' wenn keiner da ist
                   art         'browser' oder 'mws'
 
+             status()
+                  Nur der Serverspeicher: fragen, wer in diesem Tab
+                  arbeitet und ob dieser Tab schreiben darf. Antwortet
+                  null, wenn der Server nicht erreichbar ist - das ist
+                  kein Rechteproblem, sondern ein Ausfall.
+
              uebernehmen(seiten)
                   Die Seitenliste der App übernehmen. Ab dann zeigt der
                   Speicher auf dieselbe Liste. Wichtig: die Liste wird
@@ -2559,12 +2621,33 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             return '/recipe/' + encodeURIComponent(this.slug) + '/batch/' + op;
         };
 
-        /* Ein Aufruf an den Server.
+        /* Wer in diesem Tab arbeitet und ob dieser Tab schreiben darf.
 
-           403 mit BAG_NO_WRITE_PERMISSION ist kein Fehler, sondern ein
-           Betriebszustand: das Wiki gehört jemand anderem. Dann wird das
-           Bearbeiten abgeschaltet und der Grund gesagt - jede andere
-           Fehlermeldung bleibt ein Fehler. */
+           GET, nicht PUT - es wird hier nichts geschrieben, nur gefragt.
+           Die Route antwortet auch dann, wenn niemand angemeldet ist:
+           dann eben mit "(anon)" und false.
+
+           Ein Fehler ist kein Rechteproblem. Antwortet der Server nicht,
+           kommt null zurueck und die App bleibt beim, was sie wusste -
+           sonst waere ein Serverausfall auf einmal eine leere
+           Schreibsperre, und das waere gelogen. */
+        MwsStore.prototype.status = function () {
+            return fetch('/recipe/' + encodeURIComponent(this.slug) + '/status', {
+                /* Der Kopf ist bei dieser Route nicht Pflicht (sie liest
+                   keine Schreibanfrage) - er steht aber mit drin, damit
+                   dieser Aufruf von den anderen nicht abweicht. */
+                headers: { 'X-Requested-With': 'fetch' },
+                /* Das Sitzungs-Cookie muss mit. Ohne Referer erkennt der
+                   Server den Aufruf nicht als unseren. */
+                credentials: 'same-origin'
+            }).then(function (antwort) {
+                if (!antwort.ok) return null;
+                return antwort.json();
+            }).catch(function () {
+                return null;
+            });
+        };
+
         /* Ein Aufruf an den Server.
 
            Der Kopf X-Requested-With: fetch ist Pflicht; ohne ihn antwortet
@@ -2974,6 +3057,22 @@ showToc: false,
                 fremdeDaten: {},
                 /* Der Server hat kein Schreiben erlaubt. */
                 nurLesen: false,
+                /* Wer hier gerade arbeitet. Der Name ist das einzige,
+                   was der Server freiwillig nennt, und er steht nur da,
+                   wenn der Server ihn genannt hat. */
+                angemeldet: false,
+                benutzerName: '',
+                /* Darf dieser Tab schreiben? Im Browser gibt es niemanden
+                   zu fragen, dort bleibt es bei true. */
+                kannSchreiben: true,
+                /* Hat der Server schon geantwortet? Vorher kennt die App
+                   ihren Grund fuer eine Schreibsperre nicht und behauptet
+                   deshalb keinen. */
+                statusBekannt: false,
+                /* Der Server hat einmal abgelehnt. Das bleibt: wer die
+                   Berechtigung spaeter zurueckbekommt, sieht die Knöpfe
+                   beim naechsten Laden wieder. */
+                rechteWeg: false,
                 /* Kommt der Inhalt vom Server statt aus dem Browser? */
                 mwsModus: false,
                 dragIndex: null,
@@ -3054,6 +3153,17 @@ showToc: false,
                 refCount() {
                     if (!this.currentPage) return 0;
                     return this.backlinks.length + this.outgoingLinks.length;
+                },
+
+                /* Der Grund, aus dem hier nicht geschrieben werden darf.
+                   Zwei, nicht einer: wer nicht angemeldet ist, hat ein
+                   anderes Problem als jemand, der angemeldet ist und
+                   trotzdem kein Schreibrecht hat. Der Server kann beides
+                   nicht unterscheiden - der Name kann es. */
+                leseGrund() {
+                    return (this.statusBekannt && !this.angemeldet)
+                        ? 'nichtAngemeldet'
+                        : 'nurLesen';
                 }
             },
 
@@ -3063,6 +3173,18 @@ showToc: false,
                    Farbe und Sprache bekannt - vorher wüsste die App
                    nicht, was der Server geschickt hat. */
                 this.loadPages();
+                /* Wer hier arbeitet und ob dieser Tab schreiben darf,
+                   sagt der Server, nicht die App. Im Browser gibt es
+                   niemanden zu fragen - dort bleibt alles beim Alten.
+
+                   Bis die Antwort da ist, zeigt die App keinen
+                   Schreibweg. Sie weiss es nicht besser, und einen Knopf
+                   kurz zu zeigen und dann wieder wegzunehmen ist schlechter
+                   als gar keinen. */
+                if (SPEICHER.art === 'mws') {
+                    this.kannSchreiben = false;
+                    this.statusHolen();
+                }
                 this.updateTheme();
                 /* Fehlt die gespeicherte Sprache (z. B. weil eine entfernt
                    wurde), zurück auf die Hauptsprache. */
@@ -4067,6 +4189,44 @@ showToc: false,
                    darf: das Bearbeiten abstellen. */
                 nurLesenMerken() {
                     this.nurLesen = true;
+                    this.kannSchreiben = false;
+                    this.rechteWeg = true;
+                    /* Der Grund kann sich dabei geaendert haben: die
+                       Sitzung ist abgelaufen, der Name war weg. Nur der
+                       Server weiss das - also nachfragen. */
+                    if (SPEICHER.art === 'mws') this.statusHolen();
+                },
+
+                /* Die Antwort des Servers auswerten. Drei Dinge kommen
+                   zurueck: ob jemand angemeldet ist, wie er heisst, und
+                   ob dieser Tab schreiben darf.
+
+                   Nur enger, nie weiter: wer einmal abgelehnt wurde,
+                   bekommt die Knöpfe durch diese Antwort nicht zurueck.
+                   Das ist Absicht - das 403 vom Server ist die hoehere
+                   Instanz, und eine spaetere Antwort darf es nicht
+                   aufheben. */
+                statusHolen() {
+                    return SPEICHER.status().then((antwort) => {
+                        if (antwort) {
+                            this.angemeldet = !!antwort.isLoggedIn;
+                            this.benutzerName = this.angemeldet
+                                ? String(antwort.username || '')
+                                : '';
+                            this.statusBekannt = true;
+                            this.rechteWeg = this.rechteWeg
+                                || !(antwort.bags || []).some(b => b.canUserWrite);
+                        }
+                        /* Auch ohne Antwort gilt: es wurde nichts
+                           abgelehnt, also darf geschrieben werden. Ein
+                           Ausfall nimmt nichts weg. */
+                        this.kannSchreiben = !this.rechteWeg;
+                        this.nurLesen = this.rechteWeg;
+                    }).catch(() => {
+                        /* Der Server hat nicht geantwortet. Dann bleibt
+                           alles beim Alten: ein Ausfall ist kein
+                           Rechteproblem. */
+                    });
                 },
 
                 /* Ein Schreibfehler, der nichts mit den Rechten zu tun

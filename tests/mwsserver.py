@@ -4,6 +4,8 @@ Startet auf einem freien Port und liefert genau das, was der Vertrag
 im Kopf von simplewiki.html verspricht:
 
   GET  /wiki/<name>/               simplewiki.html mit gesetztem Marker
+  GET  /recipe/<name>/status       wer angemeldet ist und ob hier
+                                   geschrieben werden darf
   PUT  /recipe/<name>/batch/<op>   list | read | save | delete
   PUT  /recipe/<name>/batch/<op>   bei /nurlesen/<name>/ stattdessen 403
 
@@ -46,9 +48,23 @@ class Wiki:
 
     def __init__(self, slug, tiddler, nurLesen=False, titel='Testwiki',
                  skript='', vorab='', store_leer=False, ersetzungen=None,
-                 fehler=None):
+                 fehler=None, status=None, ablauf=False, status_aus=False):
         self.slug = slug
         self.nurLesen = nurLesen
+        # Was /status antwortet. Ohne Vorgabe wird aus nurLesen abgeleitet
+        # (angemeldet, aber kein Schreibrecht), damit die vorhandenen
+        # Tests ihr Verhalten behalten und nur der neue Test den Fall
+        # "nicht angemeldet" aufbaut:
+        #   {'isLoggedIn': bool, 'username': str, 'canUserWrite': bool}
+        self.status = dict(status) if status else None
+        # Der Server bricht die Verbindung zu /status ab, statt zu
+        # antworten. Ein Ausfall ist kein Rechteproblem - daran darf die
+        # App nichts erfinden und nichts wegnehmen.
+        self.status_aus = status_aus
+        # Die Sitzung stirbt beim ersten Schreibversuch: der Server gibt
+        # 403, und /status meldet danach "nicht angemeldet". So laesst
+        # sich pruefen, was die App im laufenden Betrieb macht.
+        self.ablauf = ablauf
         # Was die Testfigur in die ausgelieferte Seite einhaengt - so
         # wie mkcopy es fuer Dateikopien macht.
         self.skript = skript
@@ -70,6 +86,33 @@ class Wiki:
 
     def alle(self):
         return [self.tiddler[k] for k in self.tiddler]
+
+    def status_antwort(self):
+        """Die Antwort von GET /recipe/<name>/status.
+
+        So gebaut wie die echte Route in RecipeRoutes.ts: die Rechte
+        stehen nicht oben, sondern pro Bag.
+        """
+        s = dict(self.status) if self.status is not None else {
+            'isLoggedIn': True,
+            'username': 'Testnutzer',
+            'canUserWrite': not self.nurLesen,
+        }
+        schreiben = s.pop('canUserWrite', not self.nurLesen)
+        s.setdefault('isAdmin', False)
+        return {
+            'user_id': None if not s['isLoggedIn'] else 1,
+            'username': s['username'],
+            'isAdmin': s['isAdmin'],
+            'isLoggedIn': s['isLoggedIn'],
+            'bags': [{'slug': self.slug, 'canUserWrite': schreiben}],
+        }
+
+    def ablauf_ausloesen(self):
+        """Die Sitzung stirbt: ab jetzt 403 und 'nicht angemeldet'."""
+        self.status = {'isLoggedIn': False, 'username': '(anon)',
+                       'canUserWrite': False}
+        self.nurLesen = True
 
 
 # ------------------------------------------------------------------ Server
@@ -124,6 +167,24 @@ class Handler(BaseHTTPRequestHandler):
             self.anfragen.append({'weg': 'GET', 'pfad': self.path})
             self._html(200, self._mit_store(self.wikis[m.group(1)]))
             return
+        # Der Status steht in der Antwort, nicht im Request - deshalb ist
+        # das ein GET ohne Koerper.
+        m = re.match(r'^/recipe/([^/]+)/status$', self.path)
+        if m:
+            wiki = self.wikis.get(m.group(1))
+            if wiki is None:
+                self._json(404, {'error': 'not found'})
+                return
+            self.eintrag = None
+            self.anfragen.append({'weg': 'GET', 'pfad': self.path,
+                                  'xhr': self.headers.get('X-Requested-With')})
+            if wiki.status_aus:
+                # Keine Antwort, sondern ein Abbruch: das, was ein
+                # abgestuerzter Server macht.
+                self.close_connection = True
+                return
+            self._json(200, wiki.status_antwort())
+            return
         self._json(404, {'error': 'not found'})
 
     # -------------------------------------------------------------- Schreiben
@@ -161,6 +222,13 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if wiki.nurLesen and op in ('save', 'delete'):
+            self._json(403, {'error': 'BAG_NO_WRITE_PERMISSION'})
+            return
+
+        # Die Sitzung stirbt im Moment des Schreibens - das 403 und der
+        # Status kommen aus demselben Augenblick.
+        if wiki.ablauf and op in ('save', 'delete'):
+            wiki.ablauf_ausloesen()
             self._json(403, {'error': 'BAG_NO_WRITE_PERMISSION'})
             return
 

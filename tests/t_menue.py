@@ -168,8 +168,9 @@ script1 = r"""
 kopie1 = build('_menue1.html', script1, seiten, startpage='a')
 
 # ---------------------------------------------------------------- Teil 2
-# Scharfes Fenster: das Menue wird schmaler, und das Faehnchen muss mit
-# an die Innenkante wandern.
+# Scharfes Fenster: dort faengt das Verzeichnis zugeklappt an, weil es
+# offen zu viel wegnehmen wuerde - und es laesst sich am Faehnchen
+# aufklappen, ohne dass etwas verdeckt wird.
 script2 = r"""
     <script>
     (function () {
@@ -178,23 +179,46 @@ script2 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function head(m) { log.push('--- ' + m); out(); }
+      function ende() {
+        var n = log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length;
+        var f = log.filter(function (l) { return /^FAIL/.test(l); }).length;
+        log.push(''); log.push('>>> ' + (f ? f + ' FEHLGESCHLAGEN' : 'ALLE ' + n + ' BESTANDEN'));
+        out();
+      }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       setTimeout(function () {
         ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth);
-        var mr = q('.toc-menu').getBoundingClientRect();
-        var fr = q('.toc-faehnchen').getBoundingClientRect();
-        var kr = q('.header').getBoundingClientRect();
-        ok(mr.width < 360, 'das Menue ist schmaler geworden: ' + Math.round(mr.width) + 'px');
-        ok(Math.abs(fr.left - mr.right) <= 2, 'das Faehnchen ist mitgewandert: ' + Math.round(fr.left) + ' von ' + Math.round(mr.right));
-        ok(Math.round(mr.top) >= Math.round(kr.bottom) - 1, 'die Kopfzeile bleibt auch hier frei');
-        ok(Math.round(q('.main-content').getBoundingClientRect().left) === Math.round(mr.right),
-           'und die Spalte haengt weiterhin dran: ' + Math.round(q('.main-content').getBoundingClientRect().left));
-        ok(all('.toc-menu .toc-item-title').length === 2, 'die Liste ist vollstaendig');
-        var n = log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length;
-        var f = log.filter(function (l) { return /^FAIL/.test(l); }).length;
-        log.push('');
-        log.push('>>> ' + (f ? f + ' FEHLGESCHLAGEN' : 'ALLE ' + n + ' BESTANDEN'));
-        out();
+
+        head('Auf einem schmalen Fenster faengt es zu an');
+        var m = q('.toc-menu');
+        ok(!m.classList.contains('offen'), 'das Verzeichnis ist nicht offen');
+        ok(q('.toc-faehnchen').getAttribute('aria-expanded') === 'false', 'und das Faehnchen sagt es');
+        ok(/ausklappen|expand/i.test(q('.toc-faehnchen').getAttribute('title')),
+           'mit dem richtigen Hinweis: ' + q('.toc-faehnchen').getAttribute('title'));
+        /* Sonst haette man auf diesem Fenster 300 von 420 Pixeln fuer ein
+           Verzeichnis und 120 fuer den Text. */
+        ok(m.getBoundingClientRect().width === 0, 'und die Spalte nimmt nichts: ' + m.getBoundingClientRect().width);
+        ok(Math.round(q('.main-content').getBoundingClientRect().left) === 0,
+           'der Text hat das ganze Fenster: ' + Math.round(q('.main-content').getBoundingClientRect().left));
+        ok(Math.round(q('.toc-faehnchen').getBoundingClientRect().left) === 0, 'das Faehnchen sitzt am Rand');
+
+        head('Und laesst sich aufklappen');
+        q('.toc-faehnchen').click();
+        setTimeout(function () {
+          ok(m.classList.contains('offen'), 'jetzt ist es offen');
+          var mr = m.getBoundingClientRect();
+          var fr = q('.toc-faehnchen').getBoundingClientRect();
+          var kr = q('.header').getBoundingClientRect();
+          ok(Math.round(mr.width) === 300, 'es wurde schmaler als im weiten Fenster: ' + Math.round(mr.width) + 'px');
+          ok(Math.round(q('.main-content').getBoundingClientRect().left) === Math.round(mr.right),
+             'die Spalte haengt dran: ' + Math.round(q('.main-content').getBoundingClientRect().left));
+          ok(Math.abs(fr.left - mr.right) <= 2, 'das Faehnchen ist mitgewandert: ' + Math.round(fr.left) + ' von ' + Math.round(mr.right));
+          ok(Math.round(mr.top) >= Math.round(kr.bottom) - 1, 'und die Kopfzeile ist frei');
+          ok(all('.toc-menu .toc-item-title').length === 2, 'die Liste ist vollstaendig');
+          ok(!!q('.content-title'), 'und der Text steht trotzdem da: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+          ende();
+        }, 900);
       }, 1500);
     })();
     </script>
@@ -241,6 +265,18 @@ merde('das Faehnchen sitzt an der Innenkante',
       bool(re.search(r'\.toc-faehnchen\.offen\s*{[^}]*left:\s*min\(var\(\-\-toc-breite\), 85%\)', faehn)), True)
 merde('und sitzt zu am Fensterrand',
       bool(re.search(r'\.toc-faehnchen\s*{[^}]*left:\s*0', faehn, re.S)), True)
+
+# Der Startzustand. Er haengt an einer Fenstermasse, nicht an einer
+# Empfindung, und die steht an genau einer Stelle.
+merde('die Grenze steht an einer Stelle',
+      len(re.findall(r'const TOC_MENUE_OFFEN_BIS', quelle)), 1)
+merde('und sie ist eine Fenstermasse',
+      bool(re.search(r'const TOC_MENUE_OFFEN_BIS = \d+;', quelle)), True)
+merde('der Start richtet sich danach',
+      bool(re.search(r'tocMenuOffen:\s*window\.innerWidth > TOC_MENUE_OFFEN_BIS', quelle)), True)
+merde('und es wird nirgends gemerkt',
+      bool(re.search(r'simplewiki_\w*toc\w*', quelle)), False)
+
 merde('im Druck ist das Menue weg',
       bool(re.search(r'@media print[\s\S]*?\.toc-menu,', quelle)), True)
 merde('und das Faehnchen auch',

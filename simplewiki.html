@@ -3272,6 +3272,21 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            Anwendung ihren JSON-Block einsetzt. */
         const SIMPLEWIKI_FORMAT_VERSION = 1;
 
+        /* Bis zu dieser Fensterbreite steht das Verzeichnis links offen,
+           darunter faengt es zugeklappt an.
+
+           Der Grund ist eine Rechnung und keine Empfindung: unterhalb von
+           768px wird das Verzeichnis 300px breit, und bliebe es offen,
+           kaeme der Text auf weniger als 340px. Das ist schmaler als die
+           Spalte auf einem Telefon - man kann es lesen, aber es ist kein
+           Lesen mehr.
+
+           Nur beim Start. Wer das Verzeichnis zuklappt, hat das so
+           entschieden, und das gilt auch, wenn das Fenster danach
+           schrumpft: ein Menue, das sich beim Ziehen selbst umstellt,
+           ist eines, dem man nicht traut. */
+        const TOC_MENUE_OFFEN_BIS = 640;
+
         /* Kopie des Dokuments, BEVOR Vue startet.
 
            Wichtig: Vue nimmt den Aufbau aus dem HTML-DOM weg, sobald es
@@ -3308,11 +3323,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 showToc: false,
                 showSettings: false,
                 showRefs: false,
-                /* Das Inhaltsverzeichnis links steht beim Oeffnen da.
-                   Nur fuer dieses eine Fenster - wer es zuklappt, will
-                   es auch beim naechsten Mal aufgeklappt haben, und
-                   nicht jedes Mal neu zuklappen muessen. */
-                tocMenuOffen: true,
+/* Das Inhaltsverzeichnis links steht beim Oeffnen da, ausser das
+                   Fenster ist zu schmal dafuer (TOC_MENUE_OFFEN_BIS). Nur
+                   fuer dieses eine Fenster - wer es zuklappt, will es auch
+                   beim naechsten Mal aufgeklappt haben, und nicht jedes
+                   Mal neu zuklappen muessen. */
+                tocMenuOffen: window.innerWidth > TOC_MENUE_OFFEN_BIS,
                 fluss: false,
                 druckModus: false,
                 /* Unbekannte Angaben oben aus einer eingelesenen Datei. */

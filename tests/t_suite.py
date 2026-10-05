@@ -63,7 +63,7 @@ script = r"""
       setTimeout(function () {
         head('Grundzustand');
         ok(!!q('.content-title'), 'Startseite wird angezeigt: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '?'));
-        ok(all('.toc-panel .toc-item').length === 3, 'Inhaltsverzeichnis zeigt 3 Seiten');
+        ok(all('.toc-menu .toc-item').length === 3, 'Inhaltsverzeichnis zeigt 3 Seiten');
         ok(!!q('.toc-item-start'), 'Stern-Markierung vorhanden');
         ok(localStorage.getItem('simplewiki_startpage') === 'a', 'Startseite gespeichert: ' + localStorage.getItem('simplewiki_startpage'));
 
@@ -77,7 +77,7 @@ script = r"""
           sp.value = 'b'; sp.dispatchEvent(new Event('change', { bubbles: true }));
           setTimeout(function () {
             ok(localStorage.getItem('simplewiki_startpage') === 'b', 'Startseite geändert: ' + localStorage.getItem('simplewiki_startpage'));
-            var sterne = all('.toc-panel .toc-item').filter(function (i) {
+            var sterne = all('.toc-menu .toc-item').filter(function (i) {
               return !i.querySelector('.toc-item-start').classList.contains('is-empty');
             }).map(function (i) { return i.querySelector('.toc-item-title').textContent.trim(); });
             ok(sterne.join() === 'Beta', 'Stern wandert mit: ' + sterne.join());
@@ -87,15 +87,36 @@ script = r"""
             var s = q('.search-box');
             s.value = 'Inhalt'; s.dispatchEvent(new Event('input', { bubbles: true }));
             setTimeout(function () {
-              ok(q('.toc-panel').classList.contains('open'), 'Suche öffnet das Verzeichnis');
-              var treffer = all('.toc-panel .toc-item-title').map(function (e) { return e.textContent.trim(); });
+              ok(!!q('.such-treffer'), 'die Treffer stehen unter dem Feld');
+              ok(q('.such-kopf').textContent.trim() === '1 Seite gefunden',
+                 'und sagen, wie viele: ' + q('.such-kopf').textContent.trim());
+              ok(all('.such-treffer-zeile').length === 1, 'als eine Zeile: ' + all('.such-treffer-zeile').length);
+              /* Sie haengt unter dem Feld, nicht daneben und nicht
+                 darueber: wer tippt, schaut dorthin, wo er schreibt. */
+              /* Gemessen wird der Rahmen des Suchfelds, nicht das Feld
+                 selbst: der Rahmen nimmt auch den Knopf zum Leeren auf,
+                 und die Liste soll genau so breit sein wie der ganze
+                 Suchbereich. */
+              var feld = q('.such-bereich').getBoundingClientRect();
+              var liste = q('.such-treffer').getBoundingClientRect();
+              ok(Math.round(liste.left) === Math.round(feld.left) &&
+                 Math.round(liste.right) === Math.round(feld.right),
+                 'unter dem Suchbereich und genauso breit: ' +
+                 Math.round(liste.left) + '..' + Math.round(liste.right) +
+                 ' gegen ' + Math.round(feld.left) + '..' + Math.round(feld.right));
+              ok(liste.top >= q('.search-box').getBoundingClientRect().bottom,
+                 'und nicht darueber: ' + Math.round(liste.top) + ' von ' +
+                 Math.round(q('.search-box').getBoundingClientRect().bottom));
+              ok(!q('.such-treffer').closest('.side-panel'),
+                 'und sie ist kein Panel - sie gehoert zum Kopf');
+              var treffer = all('.toc-menu .toc-item-title').map(function (e) { return e.textContent.trim(); });
               ok(treffer.join() === 'Beta', 'Suche findet genau Beta: ' + treffer.join('|'));
               s.value = 'gibtsnicht'; s.dispatchEvent(new Event('input', { bubbles: true }));
               setTimeout(function () {
                 ok(!!q('.toc-empty'), 'Leerhinweis: "' + q('.toc-empty').textContent.trim() + '"');
                 q('.clear-search').click();
                 setTimeout(function () {
-                  ok(all('.toc-panel .toc-item-title').length === 3, 'Suche zurückgesetzt');
+                  ok(all('.toc-menu .toc-item-title').length === 3, 'Suche zurückgesetzt');
 
                   head('Editor');
                   tswitch().then(function () {
@@ -119,7 +140,6 @@ script = r"""
                           ok(ps[1].content === '# Beta\n\nInhalt von Beta', 'Inhalt unverändert: ' + JSON.stringify(ps[1].content));
 
                           head('Leere Seite / Platzhalter');
-                          q('.menu-toggle').click();
                           setTimeout(function () {
                             all('.toc-item-title')[2].click();
                             setTimeout(function () {
@@ -156,7 +176,6 @@ script = r"""
                                           q('.theme-toggle').click();
 
                                           head('Seite löschen');
-                                          q('.menu-toggle').click();
 setTimeout(function () {
                                                  /* und wieder zurueck - sonst prueft der
                                                     Test nur die eine Richtung */
@@ -179,7 +198,7 @@ all('.toc-item')[0].querySelector('.toc-item-title').click();
                                                        ok(!!q('.modal-overlay'), 'Löschen-Dialog');
                                                        all('.modal .btn').filter(function (b) { return /Delete|Delete|öschen/.test(b.textContent); })[0].click();
                                                        setTimeout(function () {
-                                                         ok(all('.toc-panel .toc-item').length === 2, 'Seite gelöscht, verbleiben: ' + all('.toc-panel .toc-item-title').map(function (e) { return e.textContent.trim(); }).join('|'));
+                                                         ok(all('.toc-menu .toc-item').length === 2, 'Seite gelöscht, verbleiben: ' + all('.toc-menu .toc-item-title').map(function (e) { return e.textContent.trim(); }).join('|'));
                                                          log.push('');
                                                          log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                                                          out();

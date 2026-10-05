@@ -81,7 +81,6 @@ script = r"""
                       btn(/Abbrechen/).click();
                       setTimeout(function () {
                         head('Bedienung der Kopie');
-                        q('.menu-toggle').click();
                         setTimeout(function () {
                           all('.toc-item-title').filter(function (t) { return t.textContent.trim() === 'Alpha (Kopie)'; })[0].click();
                           setTimeout(function () {

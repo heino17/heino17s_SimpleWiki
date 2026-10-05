@@ -29,12 +29,11 @@ script = r"""
       function marke() { var b = q('.menu-badge'); return b ? b.textContent.trim() : ''; }
       function eintraege() { return all('.refs-item').map(function (b) { return b.textContent.replace(/\s+/g, ' ').trim(); }); }
       function gruppen() { return all('.refs-group h3').map(function (h) { return h.textContent.replace(/\s+/g, ' ').trim(); }); }
+      /* Das Verzeichnis ist eine Spalte und immer da - es gibt nichts
+         zu oeffnen. Wer eine Seite waehlt, klickt sie an. */
       function zuSeite(titel, dann) {
-        q('.menu-toggle').click();
-        setTimeout(function () {
-          all('.toc-item-title').filter(function (t) { return t.textContent.trim() === titel; })[0].click();
-          setTimeout(dann, 600);
-        }, 500);
+        all('.toc-item-title').filter(function (t) { return t.textContent.trim() === titel; })[0].click();
+        setTimeout(dann, 600);
       }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
@@ -94,18 +93,26 @@ script = r"""
                   ok(q('.refs-empty').textContent.indexOf('Keine Verweise') >= 0, 'Text: ' + q('.refs-empty').textContent.replace(/\s+/g, ' ').trim().slice(0, 32) + '...');
                   ok(q('.refs-empty').textContent.indexOf('[[Seitenname]]') >= 0, 'nennt beide Wege zum Verlinken');
 
+                  /* Gegenseitig ist nur noch, was wirklich ein Panel
+                     ist: Verweise und Einstellungen. Das Verzeichnis ist
+                     eine Spalte und kein Panel mehr - es laesst sich gar
+                     nicht schliessen und steht einem Panel nicht im Weg. */
                   head('Gegenseitigkeit');
-                  q('.menu-toggle').click();
+                  q('.settings-toggle').click();
                   setTimeout(function () {
-                    ok(!panelOffen() && q('.toc-panel').classList.contains('open'), 'Inhaltsverzeichnis schliesst das Verweis-Panel');
+                    ok(!panelOffen() && q('.settings-panel').classList.contains('open'),
+                       'Einstellungen schliessen das Verweis-Panel');
                     knopf().click();
                     setTimeout(function () {
-                      ok(panelOffen() && !q('.toc-panel').classList.contains('open'), 'Verweis-Panel schliesst das Inhaltsverzeichnis');
+                      ok(panelOffen() && !q('.settings-panel').classList.contains('open'),
+                         'Verweis-Panel schliesst die Einstellungen');
+                      ok(q('.toc-menu').classList.contains('offen'),
+                         'das Verzeichnis bleibt unberuehrt: ' + q('.toc-menu').className);
                       log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                       out();
                     }, 500);
                   }, 500);
-                }, 500);
+                  }, 500);
               });
             }, 500);
           }, 500);

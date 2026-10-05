@@ -84,10 +84,9 @@ anonym = r"""
         ok(!neueSeite(), 'Neue Seite ist weg');
         ok(!!q('.content-title') && q('.content-title').textContent.trim() === 'Alpha',
            'die Startseite laesst sich lesen');
-        q('.menu-toggle').click();
         setTimeout(function () {
           ok(!q('.toc-item-delete'), 'das Loeschkreuz im Verzeichnis ist weg');
-          ok(all('.toc-panel .toc-item').length === 2, 'beide Seiten im Verzeichnis: ' + all('.toc-panel .toc-item').length);
+          ok(all('.toc-menu .toc-item').length === 2, 'beide Seiten im Verzeichnis: ' + all('.toc-menu .toc-item').length);
           log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
           out();
         }, 500);
@@ -168,9 +167,8 @@ schreiben = r"""
           ok(!!knopf, 'der Speichern-Knopf ist da');
           if (knopf) knopf.click();
           setTimeout(function () {
-            q('.menu-toggle').click();
             setTimeout(function () {
-              var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
+              var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
               ok(titel.indexOf('Gamma') >= 0, 'die neue Seite steht im Verzeichnis: ' + titel.join('|'));
               log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
               out();
@@ -219,7 +217,6 @@ abgelaufen = r"""
           log.push('--- Und die Knöpfe kommen auch nicht von selbst zurueck');
           /* Ein zweiter Schreibversuch kann nicht stattfinden - es gibt
              keinen Knopf mehr. Genau darum wird hier nichts geklickt. */
-          q('.menu-toggle').click();
           setTimeout(function () {
             ok(!q('.toc-item-delete'), 'das Loeschkreuz bleibt weg');
             log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));

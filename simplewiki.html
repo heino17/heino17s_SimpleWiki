@@ -401,16 +401,106 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             white-space: nowrap;
         }
 
-        .search-box {
-            flex: 1;
+        /* Der Rahmen um das Suchfeld. Er traegt die Trefferliste und
+           deshalb "position: relative" - ohne das hinge sie am Fenster
+           und nicht am Feld. */
+        .such-bereich {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             min-width: 150px;
             max-width: 400px;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 0;
             padding: 8px 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 0.9rem;
             background: var(--bg-primary);
             color: var(--text-primary);
+        }
+
+        /* ---------- Die Trefferliste ----------
+
+           Sie haengt unter dem Feld, nicht ueber der Seite: wer sucht,
+           will nicht, dass sich das Bild unter seinen Fingern dreht.
+           Sie ist der einzige Ort, an dem etwas gefunden wird, wenn das
+           Verzeichnis links zugeklappt ist - und das ist es auf jedem
+           schmalen Fenster. */
+        .such-treffer {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            z-index: 1003;
+            max-height: 60vh;
+            overflow-y: auto;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+
+        .such-kopf {
+            margin: 0;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .such-treffer-zeile {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            padding: 9px 12px;
+            background: none;
+            border: none;
+            border-radius: 0;
+            text-align: left;
+            font: inherit;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .such-treffer-zeile:hover {
+            background: var(--bg-hover);
+        }
+
+        .such-treffer-zeile.active {
+            color: var(--accent-color);
+        }
+
+        /* Der Stern kennzeichnet die Startseite. Die Spalte bleibt immer
+           frei, damit die Zeilen beim Wechsel nicht springen - wie im
+           Verzeichnis daneben. */
+        .such-treffer-start {
+            flex: none;
+            color: var(--accent-color);
+        }
+
+        .such-treffer-start.is-empty {
+            visibility: hidden;
+        }
+
+        .such-treffer-titel {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .such-treffer-leer {
+            margin: 0;
+            padding: 16px 12px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
         .clear-search {
@@ -455,27 +545,21 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         }
 
         /* Die Knoepfe des Kopfs haengen zusammen und stehen rechts vom
-           Leerraum, der nach dem Suchfeld kommt. Ohne diese Gruppe
-           schob der erste Knopf den Leerraum vor sich her: .menu-toggle
-           trug "margin-left: auto" und rutschte damit samt den anderen
-           ans rechte Ende, waehrend der Knopf fuer eine neue Seite - als
-           erster in der Reihe - allein beim Suchfeld liegen blieb. */
+           Leerraum, der nach dem Suchfeld kommt.
+
+           Sie sind eine Gruppe, weil sie vorher eine Kette waren: der
+           Knopf fuer das Verzeichnis trug "margin-left: auto" und schob
+           damit den Leerraum vor sich her, waehrend der Knopf fuer eine
+           neue Seite - als erster in der Reihe - allein beim Suchfeld
+           liegen blieb, 372 Pixel entfernt. Inzwischen gibt es den Knopf
+           fuer das Verzeichnis nicht mehr, die Gruppe ist aber aus
+           demselben Grund noetig: der Leerraum gehoert vor die ganze
+           Reihe, nicht vor ihre Mitte. */
         .kopf-werkzeuge {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-left: auto;
-        }
-
-        .menu-toggle {
-            display: block;
-            padding: 8px 12px;
-            background: var(--bg-hover);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--text-primary);
         }
 
         .theme-toggle {
@@ -866,21 +950,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             color: var(--text-primary);
         }
 
-        .toc-search {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .toc-search input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
         .toc-list {
             flex: 1;
             overflow-y: auto;
@@ -1241,8 +1310,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         /* Der Fluss-Knopf im Kopf sieht anders aus als die runden
            Symbolknoepfe - er ist eine Aktion, keine Schaltflaeche. Im
            Fluss selbst leuchtet er, damit man ihn wieder findet. */
+        /* Kein eigener Abstand: die Knoepfe des Kopfs bekommen ihren
+           Abstand von der Gruppe. Das hier war ein Rest von 2 Pixeln
+           aus der Zeit, als der Fluss-Knopf noch allein im Kopf stand
+           - und es war der einzige Knopf mit einem anderen Abstand als
+           die uebrigen. */
         .header .kopf-fluss {
-            margin-left: 2px;
             font-size: 0.9rem;
         }
 
@@ -1730,11 +1803,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 font-size: 1.1rem;
             }
 
-            .menu-toggle {
-                display: block;
-            }
-
-            .search-box {
+            .such-bereich {
                 order: 3;
                 flex-basis: 100%;
                 max-width: none;
@@ -1776,7 +1845,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 padding: 10px 12px;
             }
 
-            .header .menu-toggle,
             .header .refs-toggle,
             .header .settings-toggle,
             .header .theme-toggle,
@@ -1811,7 +1879,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 display: none;
             }
 
-            .header .menu-toggle,
             .header .refs-toggle,
             .header .settings-toggle,
             .header .theme-toggle,
@@ -1839,6 +1906,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .footer,
             .side-overlay,
             .side-panel,
+            .such-treffer,
             .toc-menu,
             .toc-faehnchen,
             .hinweis,
@@ -1929,8 +1997,33 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         <div class="app">
             <header class="header">
                 <h1>📚 SimpleWiki</h1>
-                <input type="text" class="search-box" :placeholder="t('search')" v-model="searchQuery" @input="onSearchInput">
-                <button v-if="searchQuery" class="clear-search" :title="t('searchReset')" @click="clearSearch">✕</button>
+                <!-- Suche. Das Feld steht im Kopf, und die Treffer kommen
+                     direkt darunter.
+
+                     Vorher stand dasselbe Feld noch einmal im Verzeichnis,
+                     und die Treffer erschienen dort, wenn man erst ☰
+                     gedrueckt hatte. Das war an zwei Orten dieselbe Sache,
+                     und der davon entbehrliche war der Kopf: wer sucht,
+                     tippt, und sieht. -->
+
+                     Zugleich die einzige Stelle, an der man etwas findet,
+                     wenn das Verzeichnis zugeklappt ist - auf einem
+                     schmalen Fenster ist es das immer. -->
+                <div class="such-bereich">
+                    <input type="text" class="search-box" :placeholder="t('search')" v-model="searchQuery">
+                    <button v-if="searchQuery" class="clear-search" :title="t('searchReset')" @click="clearSearch">✕</button>
+                    <div v-if="zeigeTreffer" class="such-treffer">
+                        <p class="such-kopf">{{ t('searchFound').replace('{zahl}', seitenZahl(filteredPages.length)) }}</p>
+                        <button v-for="page in filteredPages" :key="page.id"
+                                class="such-treffer-zeile"
+                                :class="{ active: currentPage &amp;&amp; currentPage.id === page.id }"
+                                @click="trefferWaehlen(page)">
+                            <span class="such-treffer-start" :class="{ 'is-empty': page.id !== startPageId }" aria-hidden="true">★</span>
+                            <span class="such-treffer-titel">{{ page.title || t('untitled') }}</span>
+                        </button>
+                        <p v-if="filteredPages.length === 0" class="such-treffer-leer">{{ t('tocEmpty') }}</p>
+                    </div>
+                </div>
 
                 <!-- Die Knoepfe des Kopfs als eine Gruppe. Sie haengen
                      rechts zusammen, statt sich ueber den Leerraum zu
@@ -1957,7 +2050,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     :title="t('newPage')"
                     :aria-label="t('newPage')"
                 >➕</button>
-                <button class="menu-toggle" @click="openToc" :title="t('tocTitle')">☰</button>
                 <button
                     class="new-page-btn kopf-fluss"
                     @click="flussUmschalten"
@@ -2037,6 +2129,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                         <div v-if="filteredPages.length === 0" class="toc-empty">
                             {{ t('tocEmpty') }}
                         </div>
+                    </div>
+                    <!-- Der Hinweis auf die Reihenfolge gehoert zu den Zeilen
+                         mit den Griffen, und die stehen hier. -->
+                    <div class="toc-footer">
+                        <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
                     </div>
                 </div>
 
@@ -2159,41 +2256,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         </div>
 
 
-        <div class="side-overlay" :class="{ open: showToc || showSettings || showRefs }" @click="closeAllPanels"></div>
-
-        <div class="side-panel toc-panel" :class="{ open: showToc }">
-            <div class="side-header">
-                <h2>{{ t('tocTitle') }}</h2>
-                <button class="side-close" @click="showToc = false" :title="t('close')">×</button>
-            </div>
-            <div class="toc-search">
-                <input type="text" :placeholder="t('tocSearch')" v-model="searchQuery">
-            </div>
-            <div class="toc-list">
-                <div v-for="(page, i) in filteredPages" :key="page.id" class="toc-item" :class="{
-                        active: currentPage &amp;&amp; currentPage.id === page.id,
-                        'wird-gezogen': dragIndex === i,
-                        'einfuegen-oben': dropIndex === i &amp;&amp; dropHint === i &amp;&amp; dragIndex !== i,
-                        'einfuegen-unten': dropIndex === i &amp;&amp; dropHint === i + 1 &amp;&amp; dragIndex !== i
-                    }" tabindex="0" @click="selectPage(page); closeAllPanels()" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
-                    <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
-                    <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
-                    <span class="toc-item-title">{{ page.title }}</span>
-                </div>
-                <div v-if="filteredPages.length === 0" class="toc-empty">
-                    {{ t('tocEmpty') }}
-                </div>
-            </div>
-            <div class="toc-footer">
-                <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
-            </div>
-        </div>
-
+        <div class="side-overlay" :class="{ open: showSettings || showRefs }" @click="closeAllPanels"></div>
 
         <!-- Kurzer Hinweis, wenn gesichert, geladen oder etwas nicht geklappt hat -->
         <div v-if="hinweisText" class="hinweis">{{ hinweisText }}</div>
 
-        <!-- Verweise: Rück- und Ausgehende in einem Menü -->
         <div class="side-panel refs-panel" :class="{ open: showRefs }">
             <div class="side-header">
                 <h2>{{ t('refsTitle') }}</h2>
@@ -2408,6 +2475,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "startPageHint": "Diese Seite wird beim Öffnen des Wikis zuerst angezeigt.",
                     "appName": "SimpleWiki",
                     "search": "Suchen...",
+                    "searchFound": "{zahl} gefunden",
                     "searchReset": "Suche zurücksetzen",
                     "newPage": "+ Neue Seite",
                     "edit": "✏️ Bearbeiten",
@@ -2504,6 +2572,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "startPageHint": "This page is shown first when the wiki is opened.",
                     "appName": "SimpleWiki",
                     "search": "Search...",
+                    "searchFound": "{zahl} found",
                     "searchReset": "Reset search",
                     "language": "Language",
                     "newPage": "+ New Page",
@@ -3363,8 +3432,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     linkSearch: '',
                     linkNewTitle: '',
                     pageToDelete: null,
-showToc: false,
-                showSettings: false,
+showSettings: false,
                 showRefs: false,
 /* Das Inhaltsverzeichnis links steht beim Oeffnen da, ausser das
                    Fenster ist zu schmal dafuer (TOC_MENUE_OFFEN_BIS). Nur
@@ -3461,6 +3529,15 @@ showToc: false,
                         p.title.toLowerCase().includes(query) ||
                         p.content.toLowerCase().includes(query)
                     );
+                },
+
+                /* Steht die Trefferliste unter dem Feld?
+
+                   Nur, wenn wirklich etwas gesucht wird. Sie haengt
+                   ueber allem und geht nicht von selbst weg - ein Feld,
+                   das man beim Lesen im Weg hat, ist ein Fehler. */
+                zeigeTreffer() {
+                    return this.searchQuery.trim().length > 0;
                 },
 
                 renderedContent() {
@@ -3901,14 +3978,9 @@ showToc: false,
                    den Knopf, die Schließen-Schaltfläche, den
                    Hintergrund oder die Escape-Taste. */
                 panelSetzen(name, offen) {
-                    this.showToc = name === 'toc' && offen;
                     this.showSettings = name === 'settings' && offen;
                     this.showRefs = name === 'refs' && offen;
                     SimpleWikiStore.set('simplewiki_refs', this.showRefs ? '1' : '0');
-                },
-
-                openToc() {
-                    this.panelSetzen('toc', true);
                 },
 
                 /* Das Verzeichnis links am Faehnchen.
@@ -4034,13 +4106,15 @@ showToc: false,
 
                 onKeydown(event) {
                     if (event.key === 'Escape') {
+                        /* Erst die Suche, dann die Panels. Die Trefferliste
+                           liegt ueber allem und geht sonst nicht weg, und
+                           wer sie wegklickt, hat die Suchabsicht beendet -
+                           die Panels sind danach auch nicht mehr offen. */
+                        if (this.searchQuery.trim()) {
+                            this.searchQuery = '';
+                            return;
+                        }
                         this.closeAllPanels();
-                    }
-                },
-
-                onSearchInput() {
-                    if (this.searchQuery.trim()) {
-                        this.panelSetzen('toc', true);
                     }
                 },
 
@@ -4069,6 +4143,16 @@ showToc: false,
                 },
 
                 clearSearch() {
+                    this.searchQuery = '';
+                },
+
+                /* Ein Treffer wird gewählt. Die Suche ist damit erledigt
+                   und wird geraeumt: haelt man sie fest, bleibt das
+                   Verzeichnis auf die Treffer gefiltert und man sieht
+                   die uebrigen Seiten nicht mehr - obwohl man gerade in
+                   einer davon liest. */
+                trefferWaehlen(page) {
+                    this.selectPage(page);
                     this.searchQuery = '';
                 },
 

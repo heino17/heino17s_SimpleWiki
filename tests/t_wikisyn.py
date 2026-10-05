@@ -48,7 +48,6 @@ script = r"""
           return k.textContent.replace(/\s+/g, ' ');
         }
         function zurueck(titel, dann) {
-          q('.menu-toggle').click();
           setTimeout(function () {
             all('.toc-item-title').filter(function (t) { return t.textContent.trim() === titel; })[0].click();
             setTimeout(dann, 600);

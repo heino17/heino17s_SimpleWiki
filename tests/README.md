@@ -88,12 +88,12 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | Datei | Deckt ab |
 |---|---|
 | `t_empty.py` | Leerzustand, wenn keine Seite existiert |
-| `t_suite.py` | Grundfunktionen: Oberfläche, Suche, Editor, Dunkelmodus |
+| `t_suite.py` | Grundfunktionen: Oberfläche, **Suche mit Trefferliste unter dem Feld**, Editor, Dunkelmodus |
 | `t_link4.py` | Verlinken: Dialog, Seite anlegen, Rückverweise |
 | `t_dup.py` | Kopieren einer Seite, unabhängige Verknüpfungen |
 | `t_dupen.py` | dasselbe in englischer Oberfläche |
 | `t_wikisyn.py` | `[[Seite]]` und `[[Text\|Seite]]`, Code bleibt Code |
-| `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
+| `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand, Gegenseitigkeit der Panels |
 | `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge der Knöpfe, **schmale Fenster** |
 | `t_menue.py` | **Inhaltsverzeichnis links als Spalte: offen beim Öffnen, unter 640px zugeklappt, unter der Kopfzeile, drängt den Inhalt zur Seite, Fähnchen, kein Löschkreuz, Taste bleibt in ihrer Liste** |
 | `t_panels.py` | **Panels rechts: geparkt genau auf der Fensterkante statt daneben** |
@@ -156,19 +156,20 @@ deshalb Positionen nur dort, wo noch nichts gefahren ist — beim ersten Bild �
 und prüft die *Wirkung* des Zustands an der Klasse und an der CSS-Regel. Ein
 Test, der an dieser Stelle „flackert", misst die Mitte der Fahrt.
 
-### Zwei Listen, ein Zustand
+### Eine Liste, ein Ort — und vorher zwei
 
-Das Inhaltsverzeichnis steht zweimal im Dokument: als Spalte links und im
-Panel rechts. Wo ein Test **zählt oder vergleicht**, schreibt er deshalb
-`.toc-panel` davor — sonst wäre jede Seite doppelt. Wo ein Test etwas
-**anklickt**, ist es gleichgültig, welches davon er erwischt.
+Das Inhaltsverzeichnis stand eine Weile **zweimal** im Dokument: als Spalte
+links und als Panel rechts, beide aus demselben Zustand. Wo ein Test
+**zählte**, schrieb er deshalb `.toc-panel` davor — sonst wäre jede Seite
+doppelt. Das Panel ist inzwischen weg, und mit ihm die Einschränkung.
 
-Für das Programm gilt dieselbe Regel, und sie hat dort schon einmal
-fehltgehalten: `onZeileKeydown` nahm die Zeile für den Fokus aus dem
-**ganzen Dokument** (`querySelectorAll('.toc-item')[ziel]`). Mit zwei Listen
-landete der Fokus nach einem Alt+Pfeil in der anderen. Eine geordnete
-Rangfolge im Dokument ist keine Zugehörigkeit — jede Liste muss ihre Zeilen
-aus sich selbst holen.
+Die Regel ist trotzdem nicht verschwunden, sie ist nur nicht mehr nötig:
+**eine geordnete Rangfolge im Dokument ist keine Zugehörigkeit.**
+`onZeileKeydown` nahm die Zeile für den Fokus aus dem ganzen Dokument
+(`querySelectorAll('.toc-item')[ziel]`), und mit zwei Listen landete der
+Fokus nach einem Alt+Pfeil in der anderen. Beim dritten Anlass — als es
+wieder eine Auswahl gab, nämlich die Suche — heißt es wieder dasselbe: hol dir
+deine Elemente aus deinem Bereich.
 
 ## Zwei Lehren aus den Tests
 

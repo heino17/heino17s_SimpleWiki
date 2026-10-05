@@ -65,7 +65,7 @@ s2 = r"""
         ok(!!q('.empty-state'),'Leer-Zustand sichtbar');
         ok(!!q('.empty-state h2') && /Willkommen/.test(q('.empty-state h2').textContent),
            'Begruessung: '+(q('.empty-state h2')?q('.empty-state h2').textContent.trim():'-'));
-        ok(all('.toc-panel .toc-item-title').length===0,'Verzeichnis leer');
+        ok(all('.toc-menu .toc-item-title').length===0,'Verzeichnis leer');
         ok(!!q('.toc-empty'),'Hinweis im Verzeichnis: '+(q('.toc-empty')?q('.toc-empty').textContent.trim():'-'));
         ok(!q('.content-title'),'keine Seitenanzeige');
         log.push('');log.push('>>> '+(fails?fails+' FEHLGESCHLAGEN':'ALLE '+log.filter(function(l){return /^OK|^FAIL/.test(l);}).length+' BESTANDEN'));

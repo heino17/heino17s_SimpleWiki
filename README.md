@@ -40,7 +40,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Verweise** | Rück- und Ausgehende in einem eigenen Panel, mit Zähler im Kopf |
 | **Reihenfolge** | per Ziehen oder mit Alt + Pfeiltaste; die Reihenfolge überlebt das Neuladen |
 | **Duplizieren** | legt eine Kopie mit eigenem Namen an, ohne Verknüpfung zur Vorlage |
-| **Suche** | im Kopf; filtert Inhaltsverzeichnis und Fluss |
+| **Suche** | im Kopf; die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
 | **Hell / Dunkel** | auch im Editor |
 | **Sprache** | Deutsch und Englisch, fest eingebaut |
@@ -187,7 +187,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **23 Testdateien**, 701 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
+- **23 Testdateien**, 703 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
   (die beiden Drucktests starten Chromium ein zweites Mal für das PDF).
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die

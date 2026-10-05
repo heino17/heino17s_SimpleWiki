@@ -95,7 +95,6 @@ script = r"""
                                'Verknüpfungen überleben das Speichern: ' + JSON.stringify(alphaNach ? alphaNach.links : []));
 
                             head('Klick auf verlinkte Seite');
-                            q('.menu-toggle').click();
                             setTimeout(function () {
                               all('.toc-item-title').filter(function (e) { return e.textContent.trim() === 'Alpha'; })[0].click();
                               setTimeout(function () {

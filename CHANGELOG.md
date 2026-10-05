@@ -10,6 +10,54 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Das rechte Verzeichnis ist weg, die Suche steht unter dem Feld — 703 Prüfungen
+
+Das Panel rechts und der Knopf ☰ im Kopf sind entfernt. Was bleibt, ist
+**ein** Inhaltsverzeichnis: die Spalte links.
+
+Das war nur möglich, weil vorher zwei Orte dasselbe zeigten — und weil die
+Suche in dem einen stand, den man erst aufmachen musste. Jetzt steht sie da,
+wo man ohnehin hinsieht.
+
+**Die Treffer kommen direkt unter das Suchfeld.** Sie hängen an einem Rahmen,
+der das Feld und den Knopf zum Leeren umfasst, und sind so breit wie dieser
+Rahmen. Sie erscheinen nur, wenn wirklich etwas gesucht wird — ein Feld, das
+beim Lesen im Weg hängt, ist ein Fehler.
+
+- **Die Auswahl räumt die Suche weg.** Hielt man sie fest, bliebe das
+  Verzeichnis auf die Treffer gefiltert und man sähe die übrigen Seiten
+  nicht mehr — obwohl man gerade in einer davon liest.
+- **Escape nimmt sie zuerst**, denn sie liegt über allem, und die Panels sind
+  danach ohnehin zu. Suche geht vor Panels.
+- Die Liste steht **nicht** im Druck, wie alles Bedienende dort.
+- Das Verzeichnis links filtert **weiterhin** mit — das war schon so und
+  wird von mehreren Tests geprüft. Die Liste unter dem Feld ist der
+  zusätzliche Weg, und der einzige, der noch da ist, wenn das Verzeichnis
+  zugeklappt ist: auf einem schmalen Fenster ist es das immer.
+
+Der **Hinweis auf die Reihenfolge** ist aus dem Fuß des rechten Panels in
+den Fuß des Menüs gewandert — er gehört zu den Zeilen mit den Griffen, und
+die stehen links.
+
+Mitgegangen: `showToc`, `openToc`, `onSearchInput`, die CSS für `.menu-toggle`
+und für das zweite Suchfeld im Panel, und der Knopf für die Seitenzahl.
+
+**Und eine Ungleichmäßigkeit, die dabei auffiel.** Der Abstand zwischen den
+Knöpfen im Kopf wird jetzt an den anderen Knöpfen **gemessen** statt
+festgeschrieben — und der Fluss-Knopf hatte einen eigenen Abstand von 2
+Pixeln, ein Rest aus der Zeit, als er allein im Kopf stand. Alle anderen
+Abstände kommen aus der Gruppe. Der Rest ist weg.
+
+Ein Fehler war meiner: beim Ausreißen des Panels habe ich die **Hinweiszeile
+mitgenommen**, die zwischen Panel und Verweis-Panel stand. 23 Prüfungen
+meldeten daraufhin „kein Hinweis" — so viele, dass es eindeutig war.
+
+Zwei Prüfungen kamen dafür dazu: die Trefferliste hängt unter dem Suchbereich
+und ist genauso breit — vorher stand nirgends, dass „darunter" eine
+Forderung war, sondern nur, dass sie irgendwo sichtbar ist.
+
+**700 → 703 Prüfungen**, 23 Testdateien.
+
 ### `AGENTS.md`: was beim nächsten Mal wieder gewusst sein muss — und ein Knopf mit einem Zeichen
 
 **`AGENTS.md` ist neu.** Sie sammelt das, was eine neue Sitzung nicht weiß

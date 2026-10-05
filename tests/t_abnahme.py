@@ -145,7 +145,7 @@ def abnahme_durchgang(write):
         var no = (alles.match(/(^|\n)OK\s/g) || []).length;
         out(alles + '\n\n>>> ' + (nf ? nf + ' FEHLGESCHLAGEN' : 'ALLE ' + no + ' BESTANDEN'));
       }
-      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function knopf(re) { return all('.footer .btn').filter(function (b) { return re.test(b.textContent); })[0]; }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       window.addEventListener('unhandledrejection', function (e) {

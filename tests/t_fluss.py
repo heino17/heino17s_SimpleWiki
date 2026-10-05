@@ -24,11 +24,10 @@ script = r"""
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function head(m) { log.push('--- ' + m); out(); }
       function flussTitel() { return all('.fluss-eintrag-titel').map(function (t) { return t.textContent.trim(); }); }
-      /* Der Fluss wird ueber den Knopf im Kopf geoeffnet; im
-         Inhaltsverzeichnis steht er nicht mehr. "Neue Seite" ist in den
-         Kopf gewandert, im Fuss des Verzeichnisses steht nur noch der
-         Hinweis auf die Reihenfolge. */
-      function knopfImVerzeichnis() { return all('.toc-footer .new-page-btn'); }
+      /* Der Fluss wird ueber den Knopf im Kopf geoeffnet. Das
+         Inhaltsverzeichnis ist eine Spalte und kein Panel mehr, und in
+         ihm steht kein Knopf - nur der Hinweis auf die Reihenfolge. */
+      function knopfImVerzeichnis() { return all('.toc-menu .new-page-btn'); }
       function flussOeffnen() { q('.kopf-fluss').click(); }
       function zurueck() { q('.kopf-fluss').click(); }
       function ende() {
@@ -42,12 +41,11 @@ script = r"""
         ok(!q('.fluss'), 'kein Fluss beim Start');
         ok(!!q('.content-title'), 'normale Seitenansicht: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
 
-        q('.menu-toggle').click();
         setTimeout(function () {
           var knoepfe = knopfImVerzeichnis();
-          ok(knoepfe.length === 0, 'im Verzeichnis steht kein Knopf mehr: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
-          ok(!!q('.toc-footer .toc-hint'), 'nur noch der Hinweis auf die Reihenfolge');
-          ok(!q('.toc-footer').textContent.match(/Fluss|River/), 'im Verzeichnis steht kein Fluss-Knopf mehr');
+          ok(knoepfe.length === 0, 'im Verzeichnis steht kein Knopf: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
+          ok(!!q('.toc-menu .toc-hint'), 'nur noch der Hinweis auf die Reihenfolge');
+          ok(!q('.toc-menu').textContent.match(/Fluss|River/), 'im Verzeichnis steht kein Fluss-Knopf');
           ok(!!q('.kopf-fluss'), 'der Fluss-Knopf sitzt im Kopf');
           ok(!!q('.kopf-neu'), 'und "Neue Seite" auch');
 
@@ -55,7 +53,7 @@ script = r"""
           flussOeffnen();
           setTimeout(function () {
             ok(!!q('.fluss'), 'Fluss sichtbar');
-            ok(!q('.toc-panel.open'), 'Inhaltsverzeichnis geschlossen');
+            ok(!!q('.toc-menu'), 'das Verzeichnis steht daneben weiter');
             ok(q('.content-title') === null, 'normale Seitenansicht verschwunden');
             ok(q('.footer') === null, 'keine Fussleiste zum Bearbeiten');
             ok(!!q('.header') && !!q('.search-box') && !!q('.settings-toggle'), 'Kopfmenu bleibt');
@@ -90,7 +88,6 @@ script = r"""
                   ok(!!q('.footer'), 'Fussleiste wieder da');
 
                   head('Titel im Fluss oeffnet die Seite');
-                  q('.menu-toggle').click();
                   setTimeout(function () {
                     flussOeffnen();
                     setTimeout(function () {
@@ -99,7 +96,6 @@ script = r"""
                         ok(!q('.fluss') && q('.content-title').textContent.trim() === 'Kartoffeln', 'Titelknopf oeffnet die Seite');
 
                         head('Zurueck-Knopf');
-                        q('.menu-toggle').click();
                         setTimeout(function () {
                           flussOeffnen();
                           setTimeout(function () {
@@ -108,7 +104,6 @@ script = r"""
                               ok(!q('.fluss') && !!q('.content-title'), 'zurueck in der Einzelansicht');
 
                               head('Drucken aus dem Fluss');
-                              q('.menu-toggle').click();
                               setTimeout(function () {
                                 flussOeffnen();
                                 setTimeout(function () {

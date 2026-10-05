@@ -29,10 +29,11 @@ script = r"""
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
-        q('.menu-toggle').click();
+        /* Das Verzeichnis stand einmal im Weg und wurde deshalb vorher
+           zugemacht. Es ist jetzt eine Spalte neben dem Text und kommt
+           nicht mehr ins Bild - zugeklappt wird nur noch am Faennchen. */
+        q('.kopf-fluss').click();
         setTimeout(function () {
-          q('.kopf-fluss').click();
-          setTimeout(function () {
             var f = q('.fluss');
             head('Scrollen');
             ok(!!f, 'Fluss da');
@@ -73,7 +74,6 @@ script = r"""
               }, 500);
             }, 500);
           }, 900);
-        }, 900);
       }, 1500);
     })();
     </script>

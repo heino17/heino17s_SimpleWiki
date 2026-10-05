@@ -43,7 +43,7 @@ script = r"""
       }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
-var panels = ['.toc-panel', '.refs-panel', '.settings-panel'];
+var panels = ['.refs-panel', '.settings-panel'];
       /* Der Layout-Bereich, nicht die Fensterbreite. Ein Panel steht an
          'right: 0' am Rand des Layouts - und dort sitzt die Bildlaufleiste
          daneben, nicht darueber. window.innerWidth zaehlt den Balken mit
@@ -67,28 +67,25 @@ var panels = ['.toc-panel', '.refs-panel', '.settings-panel'];
         var letzte = all('.header button').pop().getBoundingClientRect();
         ok(letzte.right <= q('.header').getBoundingClientRect().right + 1,
            'der letzte Knopf im Kopf ragt nicht aus dem Fenster: ' + Math.round(letzte.right));
-
         head('Auf geht es');
-        q('.menu-toggle').click();
+        q('.settings-toggle').click();
         setTimeout(function () {
-          ok(q('.toc-panel').classList.contains('open'), 'das Verzeichnis ist offen');
+          ok(q('.settings-panel').classList.contains('open'), 'die Einstellungen sind offen');
           /* Die Lage des Panels wird hier nicht gemessen: es faehrt
-             300ms ein, und unter Virtual Time steht die Fahrung am
+             300ms ein, und unter Virtual Time steht die Fahrt am
              Anfang. Dass 'offen' bei null landet, steht als Regel im
              Stylesheet und wird weiter unten nachgelesen - dort ist
              nichts in Bewegung. */
           ok(q('.side-overlay').classList.contains('open'), 'der Bildschirm ist abgedunkelt');
 
           head('Und wieder zu');
-          q('.toc-panel .side-close').click();
+          q('.settings-panel .side-close').click();
           setTimeout(function () {
-            ok(!q('.toc-panel').classList.contains('open'), 'zu');
-            /* Und die anderen beiden stehen noch, wo sie sollten. */
-            ['.refs-panel', '.settings-panel'].forEach(function (sel) {
-              var k2 = q(sel).getBoundingClientRect();
-              ok(Math.abs(k2.left - kante()) <= 1,
-                 sel + ' steht wieder auf der Kante: ' + Math.round(k2.left) + ' von ' + kante());
-            });
+            ok(!q('.settings-panel').classList.contains('open'), 'zu');
+            /* Und das Verweis-Panel steht noch, wo es soll. */
+            var k2 = q('.refs-panel').getBoundingClientRect();
+            ok(Math.abs(k2.left - kante()) <= 1,
+               '.refs-panel steht wieder auf der Kante: ' + Math.round(k2.left) + ' von ' + kante());
             ende();
           }, 900);
         }, 900);

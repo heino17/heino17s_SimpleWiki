@@ -45,15 +45,21 @@ script1 = r"""
            'und einem Hinweis darauf: ' + (neu ? neu.getAttribute('title') : '-'));
         ok(neu && /Neue Seite|New Page/.test(neu.getAttribute('aria-label')), 'auch fuer Vorlese-Programme');
         /* Dicht links neben dem Verzeichnis. Ohne diese Nachbarschaft
-           stand der Knopf allein beim Suchfeld: .menu-toggle trug
-           "margin-left: auto" und schob den Leerraum vor sich her. */
-        ok(neu && neu.nextElementSibling === q('.menu-toggle'),
-           'unmittelbar links vom Verzeichnis-Knopf');
-        ok(neu && Math.abs(neu.getBoundingClientRect().right + 12 -
-           q('.menu-toggle').getBoundingClientRect().left) <= 1,
-           'im selben Abstand wie die anderen: ' +
-           Math.round(neu.getBoundingClientRect().right) + ' -> ' +
-           Math.round(q('.menu-toggle').getBoundingClientRect().left));
+           stand der Knopf allein beim Suchfeld, weil der Knopf fuer
+           das Verzeichnis den Leerraum vor sich herschob. */
+        ok(neu && neu.nextElementSibling === q('.kopf-fluss'),
+           'unmittelbar links vom Fluss-Knopf - das Verzeichnis ist die Spalte daneben');
+        /* Der Abstand wird nicht festgeschrieben, sondern an den anderen
+           Knöpfen gemessen. Eine Zahl im Test gilt nur für die Breite,
+           bei der sie erfunden wurde - und 12 hat hier nicht gestimmt. */
+        var abstand = Math.round(q('.kopf-fluss').getBoundingClientRect().left -
+                                 neu.getBoundingClientRect().right);
+        var ueblich = Math.round(q('.settings-toggle').getBoundingClientRect().left -
+                                q('.refs-toggle').getBoundingClientRect().right);
+        ok(Math.abs(abstand - ueblich) <= 1,
+           'im selben Abstand wie die anderen: ' + abstand + ' statt ' + ueblich);
+        ok(!q('.menu-toggle'), 'der Knopf fuer das Verzeichnis ist weg');
+        ok(!q('.toc-panel'), 'und das Panel rechts auch');
         ok(neu && neu.closest('.kopf-werkzeuge') !== null,
            'die Knoepfe des Kopfs haengen an einer Gruppe');
         ok(!q('.toc-footer .new-page-btn'), 'im Verzeichnis steht er nicht mehr');
@@ -63,14 +69,13 @@ script1 = r"""
         head('Reihenfolge der Knoepfe im Kopf');
         var reihenfolge = all('.header .btn, .header button').map(function (b) {
           if (b.className.indexOf('kopf-neu') >= 0) return 'neu';
-          if (b.className.indexOf('menu-toggle') >= 0) return 'toc';
           if (b.className.indexOf('kopf-fluss') >= 0) return 'fluss';
           if (b.className.indexOf('refs-toggle') >= 0) return 'refs';
           if (b.className.indexOf('settings-toggle') >= 0) return 'settings';
           if (b.className.indexOf('theme-toggle') >= 0) return 'thema';
           return '?';
         }).join(' ');
-        ok(reihenfolge === 'neu toc fluss refs settings thema', 'Reihenfolge: ' + reihenfolge);
+        ok(reihenfolge === 'neu fluss refs settings thema', 'Reihenfolge: ' + reihenfolge);
 
         head('Einmal druecken: Fluss');
         knopf().click();

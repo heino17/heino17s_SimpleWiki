@@ -284,8 +284,10 @@ def main():
         # Der Fluss-Knopf im Kopf traegt auch die Klasse new-page-btn -
         # er schreibt nichts und muss dastehen bleiben.
         pruefe('kopf-fluss' in dom, 'der Fluss-Knopf im Kopf ist da (er schreibt nichts)')
-        pruefe(all(k in dom for k in ('menu-toggle', 'settings-toggle', 'theme-toggle')),
-               'die Knöpfe zum Lesen und Einstellen sind da')
+        pruefe(all(k in dom for k in ('search-box', 'settings-toggle', 'theme-toggle')),
+               'Suchfeld und die Knöpfe zum Einstellen sind da')
+        pruefe('menu-toggle' not in dom,
+               'der Knopf für das Inhaltsverzeichnis ist weg - es ist eine Spalte')
         titel = re.search(r'class="content-title"[^>]*>\s*([^<]*)', dom)
         pruefe(bool(titel) and titel.group(1).strip() != '',
                'die Seite laesst sich lesen: %s' % (titel.group(1).strip() if titel else 'keine'))

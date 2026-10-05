@@ -236,9 +236,8 @@ pruefskript = r"""
         ok(!!q('.content-title'), 'Oberflaeche da');
         ok(q('.content-title').textContent.trim() === 'Von MWS', 'gefuellte Insel wird gelesen: ' + (q('.content-title')?q('.content-title').textContent.trim():'-'));
         ok(q('.preview').textContent.indexOf('Siehe') >= 0, 'Inhalt da');
-        q('.menu-toggle').click();
         setTimeout(function () {
-          var titel = all('.toc-panel .toc-item-title').map(function(t){return t.textContent.trim();});
+          var titel = all('.toc-menu .toc-item-title').map(function(t){return t.textContent.trim();});
           ok(titel.join('|') === 'Von MWS|Ziel', 'Reihenfolge: ' + titel.join('|'));
           log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function(l){return /^OK|^FAIL/.test(l);}).length + ' BESTANDEN'));
           out();

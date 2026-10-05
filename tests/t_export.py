@@ -47,7 +47,7 @@ teil1 = r"""
                  beim Oeffnen nichts an. */
               ok(text.indexOf('id="app"') > 0, 'Container app vorhanden');
               ok(text.indexOf('class="header"') > 0, 'Kopfzeile vorhanden');
-              ok(text.indexOf('side-panel toc-panel') > 0, 'Inhaltsverzeichnis vorhanden');
+              ok(text.indexOf('class="toc-menu"') > 0, 'Inhaltsverzeichnis vorhanden');
               ok(text.indexOf('side-panel refs-panel') > 0, 'Verweis-Panel vorhanden');
               ok(text.indexOf('class="footer"') > 0, 'Fusszeile vorhanden');
               ok(text.indexOf('v-for') > 0, 'Vue-Anweisungen vorhanden');
@@ -130,11 +130,10 @@ pruefskript = r"""
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Alpha',
            'Startseite geoeffnet: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
         ok(q('.preview') && q('.preview').textContent.indexOf('alert(1)') >= 0, 'Inhalt mit spitzen Klammern da');
-        q('.menu-toggle').click();
         setTimeout(function () {
-          var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
+          var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
           ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge aus der Datei: ' + titel.join('|'));
-          ok(all('.toc-panel .toc-grip').length === 3, 'Griffe vorhanden: ' + all('.toc-panel .toc-grip').length);
+          ok(all('.toc-menu .toc-grip').length === 3, 'Griffe vorhanden: ' + all('.toc-menu .toc-grip').length);
           q('.settings-toggle').click();
           setTimeout(function () {
             ok(!!knopf('Als Datei sichern|Save as file') && !!knopf('JSON') && !!knopf('Datei laden|Load file'),

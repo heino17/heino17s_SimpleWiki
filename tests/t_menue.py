@@ -86,7 +86,7 @@ script1 = r"""
 
         head('Kein Loeschkreuz im Verzeichnis');
         ok(all('.toc-item-delete').length === 0, 'im ganzen Verzeichnis keiner: ' + all('.toc-item-delete').length);
-        ok(all('.toc-panel .toc-item-delete').length === 0, 'auch im Panel rechts keiner');
+        ok(all('.toc-item-delete').length === 0, 'und nirgends sonst einer');
 
         head('Das Faehnchen');
         var f = q('.toc-faehnchen');
@@ -110,7 +110,7 @@ script1 = r"""
              faehrt 250ms, und unter Virtual Time laeuft die Uhr nicht
              mit. Was der Zustand bewirkt, steht in der CSS-Regel -
              weiter unten wird sie nachgelesen. */
-          ok(all('.toc-item-title').length === 4,
+          ok(all('.toc-item-title').length === 2,
              'die Liste ist noch im Dokument, nur die Spalte ist weg: ' + all('.toc-item-title').length);
 
           head('Wieder aufklappen');
@@ -126,8 +126,8 @@ script1 = r"""
               ok(q('.toc-menu').classList.contains('offen'),
                  'und das Menue bleibt offen - ein Menue geht nicht zu, wenn man darin etwas waehlt');
               ok(all('.toc-menu .toc-item')[1].className.indexOf('active') >= 0, 'die Zeile ist markiert');
-              ok(all('.toc-panel .toc-item')[1].className.indexOf('active') >= 0,
-                 'im Panel rechts genauso - es ist dieselbe Seite');
+              ok(all('.toc-item').filter(function (z) { return z.className.indexOf('active') >= 0; }).length === 1,
+                 'und genau eine Zeile traegt diese Markierung');
 
               head('Geloescht wird nur noch im Editor');
               var bearbeiten = all('.footer .btn').filter(function (x) { return /Bearbeiten|Edit/.test(x.textContent); })[0];
@@ -139,26 +139,18 @@ script1 = r"""
                 ok(all('.footer .btn').filter(function (x) { return /Abbrechen|Cancel/.test(x.textContent); })[0] !== undefined,
                    'daneben Abbrechen: es passiert nichts ohne Absicht');
 
-                /* Die Taste bleibt in der Liste, in der man gedrueckt
-                   hat. Beim ersten Bau des Menues war das nicht so: der
-                   Fokus sprang nach einem Alt+Pfeil aus dem Panel in das
-                   Menue, weil beide Zeilen im Dokument nebeneinander
-                   lagen und die eine nicht wusste, zu welcher sie
-                   gehoert. */
+                /* Die Taste bleibt in der Liste, aus der gedrueckt
+                   wurde. Als es noch zwei Listen gab, sprang der Fokus
+                   nach einem Alt+Pfeil aus dem Panel in das Menue: die
+                   Zeile im Dokument wusste nicht, zu welcher der beiden
+                   sie gehoert. */
                 head('Alt + Pfeil bleibt in seiner Liste');
-                all('.toc-menu .toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
+                all('.toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
                 setTimeout(function () {
                   ok(q('.toc-menu').contains(document.activeElement),
-                     'im Menue: ' + (document.activeElement ? document.activeElement.className : 'nichts'));
-                  all('.toc-panel .toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
-                  setTimeout(function () {
-                    ok(q('.toc-panel').contains(document.activeElement),
-                       'im Panel rechts: ' + (document.activeElement ? document.activeElement.className : 'nichts'));
-                    ok(all('.toc-menu .toc-item-title').map(function (z) { return z.textContent.trim(); }).join('|')
-                       === all('.toc-panel .toc-item-title').map(function (z) { return z.textContent.trim(); }).join('|'),
-                       'und beide Listen zeigen danach dasselbe: ' + all('.toc-panel .toc-item-title').map(function (z) { return z.textContent.trim(); }).join('|'));
-                    ende();
-                  }, 500);
+                     'der Fokus bleibt in der Liste, aus der gedrueckt wurde: ' +
+                     (document.activeElement ? document.activeElement.className : 'nichts'));
+                  ende();
                 }, 500);
               }, 700);
             }, 700);

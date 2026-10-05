@@ -109,10 +109,10 @@ teil1 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      /* '.toc-panel' ist das Verzeichnis rechts. Links steht dieselbe
-         Liste noch einmal - ohne diese Einschraenkung zaehlte jede Seite
-         zweimal. */
-      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      /* '.toc-menu' ist das Verzeichnis links. Es war einmal zweimal da -
+         als Panel rechts und als Spalte links - und ohne diese
+         Einschraenkung zaehlte jede Seite zweimal. */
+      function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
@@ -182,10 +182,10 @@ teil2 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      /* '.toc-panel' ist das Verzeichnis rechts. Links steht dieselbe
-         Liste noch einmal - ohne diese Einschraenkung zaehlte jede Seite
-         zweimal. */
-      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      /* '.toc-menu' ist das Verzeichnis links. Es war einmal zweimal da -
+         als Panel rechts und als Spalte links - und ohne diese
+         Einschraenkung zaehlte jede Seite zweimal. */
+      function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function knopf(re) { return all('.footer .btn').filter(function (b) { return re.test(b.textContent); })[0]; }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
       /* Nach der Klasse .kopf-neu suchen. Der Knopf traegt ein Zeichen
@@ -215,7 +215,6 @@ teil2 = r"""
                 ok(document.body.className.indexOf('dark') < 0, 'jetzt hell');
 
                 log.push('--- Seite anlegen');
-                q('.menu-toggle').click();
                 setTimeout(function () {
                   var neu = neuKnopf();
                   ok(!!neu, 'Knopf fuer neue Seite da');
@@ -273,7 +272,6 @@ teil3 = r"""
         log.push('--- Die Schreibknoepfe sind weg, nicht nur blass');
         ok(!bearbeiten(), 'Bearbeiten ist weg (nicht abgeschaltet)');
         ok(!neueSeite(), 'Neue Seite ist weg');
-        q('.menu-toggle').click();
         setTimeout(function () {
           ok(!q('.toc-item-delete'), 'das Kreuz im Verzeichnis ist auch weg');
           log.push('--- Lesen geht trotzdem');
@@ -304,7 +302,7 @@ teil4 = r"""
         ok(!!q('.empty-state'), 'Leer-Zustand statt Willkommensseite: ' + (q('.empty-state h2') ? q('.empty-state h2').textContent.trim() : 'kein Leer-Zustand'));
         ok(localStorage.getItem('simplewiki_pages') === null,
            'nichts in den Browser geschrieben: ' + (localStorage.getItem('simplewiki_pages') || 'leer'));
-        ok(all('.toc-panel .toc-item-title').length === 0, 'Verzeichnis leer');
+        ok(all('.toc-menu .toc-item-title').length === 0, 'Verzeichnis leer');
         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
       }, 2500);
@@ -341,7 +339,7 @@ teil11 = r"""
         log.push('--- Klick');
         if (k) k.click();
         setTimeout(function () {
-          var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
+          var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
           ok(titel.length === 1, 'eine Seite ist da: ' + titel.join('|'));
           ok(!q('.empty-state'), 'der Leer-Zustand ist vorbei');
           ok(!!q('.md-host .toastui-editor-defaultUI') || !!q('.editor'),
@@ -365,10 +363,10 @@ teil12 = r"""
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       setTimeout(function () {
-        var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
+        var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
         ok(titel.length === 1, 'die Seite vom Server ist wieder da: ' + titel.join('|'));
         ok(!q('.empty-state'), 'kein Leer-Zustand mehr');
-        var stern = all('.toc-panel .toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); })[0];
+        var stern = all('.toc-menu .toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); })[0];
         ok(!!stern, 'und sie ist die Startseite');
         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
@@ -387,10 +385,10 @@ teil5 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      /* '.toc-panel' ist das Verzeichnis rechts. Links steht dieselbe
-         Liste noch einmal - ohne diese Einschraenkung zaehlte jede Seite
-         zweimal. */
-      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      /* '.toc-menu' ist das Verzeichnis links. Es war einmal zweimal da -
+         als Panel rechts und als Spalte links - und ohne diese
+         Einschraenkung zaehlte jede Seite zweimal. */
+      function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
@@ -405,14 +403,13 @@ teil5 = r"""
           auswahl.value = ziel;
           auswahl.dispatchEvent(new Event('change', { bubbles: true }));
           setTimeout(function () {
-            var stern = all('.toc-panel .toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); })[0];
-            ok(!!stern, 'genau ein Stern: ' + all('.toc-panel .toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); }).length);
+            var stern = all('.toc-menu .toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); })[0];
+            ok(!!stern, 'genau ein Stern: ' + all('.toc-menu .toc-item').filter(function (i) { return !i.querySelector('.toc-item-start').classList.contains('is-empty'); }).length);
             q('.side-close').click();
             setTimeout(function () {
               log.push('--- Seite loeschen');
-              q('.menu-toggle').click();
               setTimeout(function () {
-                var ziel2 = all('.toc-panel .toc-item-title').filter(function (t) { return t.textContent.trim() !== (stern ? stern.querySelector('.toc-item-title').textContent.trim() : ''); })[0];
+                var ziel2 = all('.toc-menu .toc-item-title').filter(function (t) { return t.textContent.trim() !== (stern ? stern.querySelector('.toc-item-title').textContent.trim() : ''); })[0];
                 var vorher = titel().length;
                 /* Geloescht wird nur noch im Editor - im Verzeichnis gibt
                    es kein Kreuz mehr, es loescht eine ganze Seite. */
@@ -451,10 +448,10 @@ teil6 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      /* '.toc-panel' ist das Verzeichnis rechts. Links steht dieselbe
-         Liste noch einmal - ohne diese Einschraenkung zaehlte jede Seite
-         zweimal. */
-      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      /* '.toc-menu' ist das Verzeichnis links. Es war einmal zweimal da -
+         als Panel rechts und als Spalte links - und ohne diese
+         Einschraenkung zaehlte jede Seite zweimal. */
+      function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
@@ -484,7 +481,7 @@ teil7 = r"""
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Aus dem Browser',
            'Seite aus dem Browser: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
         ok(!q('.mws-hinweis'), 'kein Serverhinweis');
-        ok(all('.toc-panel .toc-item-title').length === 1, 'eine Seite: ' + all('.toc-panel .toc-item-title').length);
+        ok(all('.toc-menu .toc-item-title').length === 1, 'eine Seite: ' + all('.toc-menu .toc-item-title').length);
         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
       }, 2500);
@@ -548,10 +545,10 @@ teil9 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      /* '.toc-panel' ist das Verzeichnis rechts. Links steht dieselbe
-         Liste noch einmal - ohne diese Einschraenkung zaehlte jede Seite
-         zweimal. */
-      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      /* '.toc-menu' ist das Verzeichnis links. Es war einmal zweimal da -
+         als Panel rechts und als Spalte links - und ohne diese
+         Einschraenkung zaehlte jede Seite zweimal. */
+      function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       /* Ein Fehler in einem then() landet in einer unbehandelten
@@ -618,7 +615,7 @@ teil9 = r"""
           /* Einmal speichern: die Seite mit Umlauten und Schlagworten,
              damit am Anfragetext zu sehen ist, was hinausgeht. */
           function speichern(name, text, fertig) {
-            all('.toc-panel .toc-item-title').filter(function (t) { return t.textContent.trim() === name; })[0].click();
+            all('.toc-menu .toc-item-title').filter(function (t) { return t.textContent.trim() === name; })[0].click();
             setTimeout(function () {
               all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0].click();
               setTimeout(function () {
@@ -675,7 +672,7 @@ teil10 = r"""
               ok(q('.content-title') && q('.content-title').textContent.trim() === 'Alpha zwei',
                  'im Bild heisst sie jetzt: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
               log.push('--- Der Text der anderen Seite');
-              all('.toc-panel .toc-item-title').filter(function (t) { return t.textContent.trim() === 'Beta'; })[0].click();
+              all('.toc-menu .toc-item-title').filter(function (t) { return t.textContent.trim() === 'Beta'; })[0].click();
               setTimeout(function () {
                 var text = q('.preview').textContent;
                 ok(text.indexOf('Alpha zwei') >= 0, 'der Verweis zeigt auf den neuen Namen: ' + JSON.stringify(text.slice(0, 120)));

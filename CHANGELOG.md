@@ -10,6 +10,31 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Drei Zeilen raus: das Menü gehört zur Seite und nicht in eine Karte — 669 Prüfungen
+
+Drei Angaben, die das Menü wie eine Karte aussehen ließen, sind weg.
+
+- `background: var(--bg-secondary)` an `.toc-menu` — das Menü bekommt keinen
+  eigenen Grund mehr. Es hat denselben wie die Seite, und das ist der ganze
+  Punkt: es ist ein Teil der Seite, kein Kasten daneben.
+- `border-right: 1px solid var(--border-color)` an `.toc-menu` — keine
+  Trennlinie. Die Kante zwischen Verzeichnis und Infall sagt das Fähnchen,
+  und die steht genau dort.
+- `border-bottom: 1px solid var(--border-color)` an `.side-header` — auch
+  keine Linie unter „Inhaltsverzeichnis".
+
+Dazu eine vierte, die niemand verlangt hat und die von selbst mitfällt: der
+Menükopf hatte `background: var(--bg-primary)`. Den gab es nur, um die
+vorherige Kartenfarbe wieder zu überschreiben. Ohne Karte ist er nichts, was
+man sehen könnte.
+
+`.side-header` ist eine gemeinsame Klasse — sie hängt auch am Verzeichnis-
+und Verweis- und Einstellungs-Panel rechts. Die drei Panels verlieren ihre
+Trennlinie unter der Überschrift mit. Das ist die Kehrseite und vermutlich
+genau richtig: es sind dieselben Panels, und eins sah aus wie die anderen.
+
+Im Hellen wie im Dunklen nachgesehen und am PDF gegengeprüft. 669 Prüfungen.
+
 ### Das Menü ist eine Spalte, kein Overlay — 669 Prüfungen
 
 Der erste Versuch legte sich vor den Inhalt. Zwei Beschwerden kamen zurück:

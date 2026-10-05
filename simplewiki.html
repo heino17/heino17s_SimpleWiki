@@ -750,8 +750,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             width: 0;
             max-width: 85%;
             overflow: hidden;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             transition: width 0.25s ease;
@@ -763,10 +761,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         /* Die Kopfzeile des Menues ist eine Zeile und sonst nichts -
            sie macht das Verzeichnis zum Menue und nicht zu einem
-           zweiten Panel. */
+           zweiten Panel. Kein eigener Grund, keine Trennlinie: das
+           Menue gehoert zur Seite und nicht in eine Karte. */
         .toc-menu-kopf {
             padding: 14px 20px;
-            background: var(--bg-primary);
             flex: none;
         }
 
@@ -813,7 +811,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         .side-header {
             padding: 20px;
-            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;

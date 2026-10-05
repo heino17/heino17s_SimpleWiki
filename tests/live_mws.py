@@ -39,7 +39,10 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
+
+from urllib.parse import quote, unquote
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -257,9 +260,15 @@ def main():
         anzeige_tag = re.search(r'<(?:a|span) class="[^"]*benutzer-anzeige[^"]*"[^>]*>', dom)
         pruefe(bool(anzeige_tag) and 'ist-anonym' in anzeige_tag.group(0),
                'sie ist als anonym markiert, nicht als angemeldet')
-        pruefe(bool(anzeige_tag) and 'href="/login"' in anzeige_tag.group(0),
+        pruefe(bool(anzeige_tag) and 'href="/login?redirect=' in anzeige_tag.group(0),
                'und fuehrt als Link zur Anmeldeseite des Servers: %s'
                % (anzeige_tag.group(0)[:70] if anzeige_tag else 'kein Tag'))
+        # Der Zusatz muss auf genau diese Wiki zeigen, sonst landet man
+        # nach dem Anmelden im falschen Wiki. Im Attribut stehen die
+        # Schraegstriche kodiert (%2F), deshalb wird hier decodiert.
+        pruefe('/wiki/%s' % wiki in unquote(anzeige_tag.group(0)
+                                           if anzeige_tag else ''),
+               'und der Rueckweg zeigt auf diese Wiki: /wiki/%s' % wiki)
         pruefe(bool(name) and '(anon)' not in ' '.join(name),
                'der Platzhalter "(anon)" steht nirgends')
         pruefe(bool(hinweis), 'der Hinweis steht da')
@@ -294,6 +303,21 @@ def main():
         pruefe('login-username' in login_dom, 'sowie ein Feld fuer den Benutzernamen')
         pruefe('/login' in seite,
                'die ausgelieferte Schale zeigt auf /login')
+
+        # Der Link aus dem Kopf traegt den Rueckweg in diese Wiki mit. Ob
+        # der Server danach wirklich dorthin weiterleitet, entscheidet der
+        # Browser erst nach dem Absenden des Formulars - das kann hier
+        # niemand nachstellen, ohne ein Passwort einzutippen. Pruefbar
+        # bleibt, dass der Server den Link mit dem Parameter ueberhaupt
+        # ausliefert und nicht etwa mit einer Fehlermeldung antwortet.
+        print('--- Der Weg zur Anmeldung, mit Rueckweg')
+        tief = '/login?redirect=' + quote('/wiki/' + wiki, safe='')
+        code, tief_dom = hole(basis + tief)
+        pruefe(code == 200, 'GET %s -> %s' % (tief, code))
+        pruefe('login-username' in _hilfe.dumpdom_url(basis + tief, '1280,900',
+                                                      budget=25000)
+               or 'login-username' in tief_dom,
+               'und die Seite ist weiterhin das Anmeldeformular')
 
         # ---- Die Anmeldung selbst, wenn ein Passwort da ist
         passwort = os.environ.get('MWS_PASS')

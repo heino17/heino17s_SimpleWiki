@@ -94,7 +94,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
 | `t_anmeldung.py` | **Anmeldung und Schreibrechte: Statusabfrage, Name im Kopf, ausgeblendete Schreibknöpfe** |
-| `t_login.py` | **Anmelden und abmelden: Link auf `/login`, `POST /logout`, der Fall, dass es nicht klappt** |
+| `t_login.py` | **Anmelden und abmelden: Link auf `/login?redirect=…`, Rückweg in diese Wiki, `POST /logout`, der Fall, dass es nicht klappt** |
 | `t_leerwiki.py` | Leere Wiki-Datei, Vorlage füllen und öffnen, Angaben oben |
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |

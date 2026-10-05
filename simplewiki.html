@@ -149,14 +149,22 @@ MWS stellt die Tiddler nicht als Datenblock bereit, sondern als
 
         Anmelden und abmelden
           Anmelden ist ein Link auf /login und damit Sache des Servers, nicht
-          der Wiki. MWS prüft ein Passwort mit OPAQUE: der Browser startet
-          einen Handshake und beweist damit, das Passwort zu kennen, ohne es
-          zu schicken. Das Programm dafür liegt in einem TiddlyWiki-Plugin –
-          und diese Wiki lädt keine Plugins, sie holt ihre Seiten über
-          /recipe. Es nachzubauen hieße, ein zweites Megabyte WebAssembly in
-          jede Wiki-Seite zu legen. Also wird das Passwort dort eingegeben,
-          wo es hingehört, und die Sitzung gilt danach für das ganze Wiki,
-          weil das Cookie dem ganzen Server gehört.
+          der Wiki. Der Link trägt den Weg, von dem man kommt, als
+          redirect-Parameter mit: /login?redirect=/wiki/<name>. Ohne das
+          schickt MWS nach dem Anmelden auf die Startseite, also auf eine Liste
+          von Konten - wer in einer Wiki auf „Anmelden" klickt, will danach
+          wieder in dieser Wiki sein und nicht auf einer. Nimmt der Server den
+          Parameter nicht, ist das kein Fehler: man landet auf der Startseite,
+          also auf dem Weg von vorher. Ein redirect auf einen anderen Server
+          lässt MWS übrigens liegen.
+
+          Das Passwort wird dort eingegeben, wo es hingehört: MWS prüft es mit
+          OPAQUE, der Browser startet einen Handshake und beweist damit, das
+          Passwort zu kennen, ohne es zu schicken. Das Programm dafür liegt in
+          einem TiddlyWiki-Plugin – und diese Wiki lädt keine Plugins, sie holt
+          ihre Seiten über /recipe. Es nachzubauen hieße, ein zweites Megabyte
+          WebAssembly in jede Wiki-Seite zu legen. Die Sitzung gilt danach für
+          das ganze Wiki, weil das Cookie dem ganzen Server gehört.
 
           Abmelden geht von hier aus, weil es nichts zu beweisen gibt: es muss
           nur eine Sitzung ungültig gemacht werden. Danach wird /status neu
@@ -1848,7 +1856,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                      und der Link im Statusfenster gehoeren dazu, wenn es
                      ein Link ist. -->
                 <a v-if="statusBekannt && !angemeldet" class="benutzer-anzeige ist-anonym anmelde-link"
-                   href="/login" :title="t('anmeldenTitel')">
+                   :href="loginUrl" :title="t('anmeldenTitel')">
                     <span class="zeichen" aria-hidden="true">🔒</span>
                     {{ t('nichtAngemeldetKurz') }}
                 </a>
@@ -3204,6 +3212,24 @@ showToc: false,
             },
 
             computed: {
+                /* Wohin der Kopf schickt, wenn jemand anmelden will.
+
+                   Ohne diesen Zusatz landet man nach dem Anmelden auf der
+                   Startseite des Servers - das ist die Voreinstellung von
+                   MWS, und sie gilt fuer die ganze Site. Wer aber aus einem
+                   Wiki heraus klickt, will danach in dieses Wiki zurueck und
+                   nicht in eine Kontoseite. Deshalb steckt der Weg, von dem
+                   man kommt, als redirect im Link.
+
+                   Nimmt der Server den Zusatz nicht (eine aeltere MWS), ist
+                   das kein Fehler: man landet auf der Startseite, also auf
+                   dem Weg von vorher. Deshalb ist es ein Parameter und kein
+                   Pfad, der beim Server verlangt werden muss. */
+                loginUrl() {
+                    return '/login?redirect='
+                        + encodeURIComponent('/wiki/' + mwsSlug());
+                },
+
                 languages() {
                     return Object.keys(SIMPLEWIKI_LANGS)
                         .map(code => ({

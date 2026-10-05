@@ -91,8 +91,16 @@ gast = KOPF + r"""
            Servers, und ein Link bringt den ganzen Browser mit - mittlere
            Maustaste, Tab, Link im Statusfenster. */
         ok(anzeige && anzeige.tagName === 'A', 'die Anzeige ist ein Link: ' + (anzeige ? anzeige.tagName : '-'));
-        ok(anzeige && anzeige.getAttribute('href') === '/login',
+        ok(anzeige && (anzeige.getAttribute('href') || '').indexOf('/login?redirect=') === 0,
            'und er fuehrt zur Anmeldeseite des Servers: ' + (anzeige ? anzeige.getAttribute('href') : '-'));
+        /* Der Zusatz "redirect" ist der ganze Wunsch: wer aus diesem Wiki
+           heraus klickt, will danach wieder hier sein. Steht etwas anderes
+           darin, landet man nach dem Anmelden in einem fremden Wiki - oder,
+           schlimmer, bei einem Server, der das mit Absicht macht. */
+        var ziel = '';
+        try { ziel = decodeURIComponent((anzeige.getAttribute('href') || '').split('redirect=')[1] || ''); } catch (e) { ziel = 'KAPUTT'; }
+        ok(ziel === '/wiki/gast',
+           'und er bringt genau dieses Wiki als Rueckweg mit: ' + ziel);
         ok(anzeige && anzeige.title.length > 0, 'mit einem erklaerenden Text: ' + (anzeige ? anzeige.title : '-'));
 
         log.push('--- Die Wiki fragt kein Passwort ab');
@@ -151,7 +159,8 @@ raus = KOPF + r"""
           ok(!!hinweis && /nicht angemeldet|not logged in/i.test(hinweis.textContent),
              'der Hinweis nennt den Grund: ' + (hinweis ? hinweis.textContent.trim() : '-'));
           ok(!!q('.content-title'), 'die Seite laesst sich weiter lesen');
-          ok(!!q('a.benutzer-anzeige[href="/login"]'), 'und der Weg zur Anmeldung ist wieder da');
+          ok(!!q('a.benutzer-anzeige[href^="/login?redirect="]'),
+             'und der Weg zur Anmeldung ist wieder da');
           fertig();
         }, 2000);
       }, 2500);
@@ -217,7 +226,7 @@ im_browser = KOPF + r"""
         log.push('--- Die Wiki als Datei im Browser');
         ok(!q('.benutzer-anzeige'), 'keine Namensanzeige');
         ok(!q('a.benutzer-anzeige'), 'kein Weg zum Anmelden - wohin auch?');
-        ok(!document.querySelector('a[href="/login"]'), 'kein Link auf eine Anmeldeseite');
+        ok(!document.querySelector('a[href^="/login"]'), 'kein Link auf eine Anmeldeseite');
         ok(!q('.abmelden-btn'), 'kein Knopf zum Abmelden');
         ok(!q('.nurlesen-hinweis'), 'kein Rechtehinweis aus dem Nichts');
         ok(!!q('.content-title'), 'und die Seite laesst sich lesen');

@@ -96,6 +96,11 @@ Prüfung ohne Wirkung** — siehe `tests/README.md`.
   einbauen, nicht „reparieren", nicht in die Suite hängen.
 - Kein Abgleich mit anderen Ansichten (`/recipe/<name>/updates`): das
   Antwortformat ist nicht festgelegt.
+- **Ein Element gehört zu seinem Bereich.** Nimm Zeilen, Knöpfe und Treffer aus
+  dem Container, in dem sie stehen, nicht aus dem ganzen Dokument. Eine
+  geordnete Rangfolge im Dokument ist keine Zugehörigkeit — es gab zwei
+  Inhaltsverzeichnisse, und nach einem Alt+Pfeil sprang der Fokus in das
+  andere. Das war zweimal teuer.
 - Kein Login im Wiki: MWS prüft das Passwort mit OPAQUE, und die Bibliothek
   dafür lädt diese Wiki bewusst nicht.
 - Keine Bilder in Wiki-Dateien. Wer Inhalte mit Bildern übergibt, verliert

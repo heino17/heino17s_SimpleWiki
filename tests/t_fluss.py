@@ -1,4 +1,4 @@
-import sys, io, re, subprocess, os
+import sys, io, re, os, subprocess
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mkcopy
 from mkcopy import build
@@ -193,6 +193,33 @@ else:
     print('   PDF wurde nicht erzeugt')
     gesamt = fehler_browser + 1
     bestanden_druck = 0
+
+# Keine Textur auf Papier. Sie ist fuer den Bildschirm gemacht: aus einem
+# Punktraster werden im Druck vier Graustufen, und der Nutzer hat den
+# Schmutzfleck nicht bestellt. Geprueft wird die Regel in der Datei -
+# das PDF selbst kann einen Farbverlauf nicht verweisen.
+import re as _re
+
+quelle = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           '..', 'simplewiki.html'), encoding='utf-8').read()
+druck = quelle[quelle.index('@media print'):]
+print('\n=== Auf dem Papier ===')
+
+
+def merke(name, treffer):
+    global gesamt, bestanden_druck
+    gesamt += 0 if treffer else 1
+    bestanden_druck += 1 if treffer else 0
+    print('%-4s %-52s %s' % ('OK' if treffer else 'FAIL', name, treffer))
+
+
+merke('keine Textur im Textbereich',
+      bool(_re.search(r'@media print[\s\S]*?\.main-content,[^}]*background-image:\s*none',
+                      druck)))
+merke('kein Schatten im Druck',
+      bool(_re.search(r'@media print[\s\S]*?box-shadow:\s*none', druck)))
+merke('die Textur gibt es ueberhaupt',
+      bool(_re.search(r'--textur-kopf:', quelle)) and bool(_re.search(r'--textur-inhalt:', quelle)))
 
 print()
 print('>>> ' + ('%d FEHLGESCHLAGEN' % gesamt if gesamt else 'ALLE BESTANDEN'))

@@ -10,6 +10,41 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-05
 
+### Tiefe: Schatten unter dem Kopf, Schraffur im Kopf und Punktraster im Text — 708 Prüfungen
+
+Drei Dinge, die die Oberfläche von „flach" zu „mit Tiefe" holen. Alle drei
+sind eine einzige Sache: Licht von oben.
+
+- **Der Kopf bekommt einen Schatten** (`0 3px 10px`). Er liegt über dem Text
+  und soll sich auch so fühlen, statt eine Linie über einer Fläche zu sein.
+  Der Schatten hängt am Kopf, nicht am Inhalt — er wandert mit.
+- **Der Kopf bekommt eine Schraffur**: feine Linien im 45-Grad-Winkel, alle
+  7 Pixel.
+- **Der Textbereich bekommt ein Punktraster**, alle 14 Pixel, noch feiner.
+
+Warum ausgerechnet Punkte hinter dem Text und keine Linien: schräge Linien
+hinter laufendem Text flimmern, Punkte nicht. Der Kopf hat keine langen
+Zeilen und darf darum schraffiert sein.
+
+**Die Stärke steht an zwei Werten** (`--textur-kopf`, `--textur-inhalt`) und
+nirgends sonst. Sie sind so hell gesetzt, dass man sie nicht suchen muss — man
+bemerkt sie erst, wenn sie fehlen. Wer sie kräftiger will, dreht an genau
+diesen beiden Zahlen. Im Dunklen wird dasselbe Muster mit **Licht** gezeichnet
+statt mit Tinte: ein heller Strich auf hellem Grund wäre im Hellen ein dunkler.
+
+Und auf Papier kommt nichts davon: `t_fluss.py` prüft jetzt, dass die Druckregel
+Textur und Schatten abschaltet. Aus einem Punktraster werden im Druck vier
+Graustufen, und den Schmutzfleck hat niemand bestellt.
+
+**Und dabei ist ein Test zweimal rotgelaufen, der nichts mit der Textur zu
+tun hatte.** `t_file.py` wartete nach dem Einlesen auf *irgendeinen* Hinweis —
+und der erste kam vom Sichern zwei Schritte vorher und nennt keine
+Seitenzahl. Der Test las einen Hinweis, den er nie geprüft hatte, und meldete
+zu Unrecht rot. Er wartet jetzt auf **den** Hinweis, den er behauptet: auf
+*irgendeine* Änderung zu warten ist nicht dasselbe wie auf das Gesuchte.
+
+**705 → 708 Prüfungen**, 23 Testdateien.
+
 ### Der Fuß des Verzeichnisses ist weg — 705 Prüfungen
 
 Der Hinweis auf die Reihenfolge stand als Zeile unter der Liste, mit einer

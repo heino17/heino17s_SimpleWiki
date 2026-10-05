@@ -118,7 +118,12 @@ script1 = r"""
                    schnell. Zwischen zwei Beobachter-Meldungen kann er
                    schon wieder weg sein. */
                 merken();
-                if (gemeldet.length || versuche > 90) {
+                /* Auf DEN Hinweis warten, nicht auf irgendeinen. Vorher
+                   stand hier "sobald einer kam" - und der erste war der
+                   vom Sichern zwei Schritte weiter oben, der keine
+                   Seitenzahl nennt. Der Test las daraufhin einen Hinweis,
+                   den er nie geprueft hatte, und meldete zu Unrecht rot. */
+                if (gemeldet.join(' | ').indexOf('3') >= 0 || versuche > 90) {
                   var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
                   ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge nach dem Laden: ' + titel.join('|'));
                   ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich gespeichert');

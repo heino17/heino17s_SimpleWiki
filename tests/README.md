@@ -149,6 +149,11 @@ Gesamtzahl **null** bei — die Prüfungen laufen, die Zahl lügt. Drei Dateien
 waren so gebaut (`t_leerwiki.py`, `t_export.py`, `t_fluss.py`). Jedes Skript
 meldet deshalb eine `GESAMT:`-Zeile, und `alle.py` liest keine andere.
 
+**Auf *irgendeine* Änderung warten ist nicht warten.** `t_file.py` wartete
+nach dem Einlesen auf irgendeinen Hinweis — und der erste kam vom Sichern zwei
+Schritte vorher. Der Test las etwas, das er nie geprüft hatte, und meldete zu
+Unrecht rot. Gewartet wird jetzt auf den Hinweis, den die Prüfung behauptet.
+
 **Eine Position nach einer Animation ist dem Zufall überlassen.** Die
 CSS-Transition fährt 300 ms, und unter Virtual Time läuft die Animationsuhr
 nicht zuverlässig mit den Timern des Testskripts. `t_menue.py` misst

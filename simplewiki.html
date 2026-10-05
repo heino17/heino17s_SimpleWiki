@@ -350,6 +350,18 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                rechnet damit - es sitzt an der Innenkante des Menues und
                muss mitwandern, wenn das Fenster schmaler wird. */
             --toc-breite: 360px;
+            /* Die Textur.
+
+               Zwei feine Muster: eine Schraffur fuer den Kopf und ein
+               Punktraster fuer den Textbereich. Beide sind so hell
+               gesetzt, dass man sie nicht suchen muss - man bemerkt sie
+               erst, wenn sie fehlen. Wer sie staerker findet, dreht an
+               genau diesen beiden Werten und an nichts anderem.
+
+               Der Textbereich bekommt Punkte und keine Linien: schraeg
+               Linien hinter laufendem Text flimmern, Punkte nicht. */
+            --textur-kopf: rgba(61, 47, 31, 0.045);
+            --textur-inhalt: rgba(61, 47, 31, 0.028);
         }
 
         body.dark-mode {
@@ -370,6 +382,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             --code-bg: #5a3d18;
             --blockquote-border: #d4a017;
             --table-header-bg: #5a3d18;
+            /* Im Dunklen wird dasselbe Muster mit Licht gezeichnet statt
+               mit Tinte - ein heller Strich auf hellem Grund waere im
+               Hellen ein dunkler. */
+            --textur-kopf: rgba(245, 240, 225, 0.05);
+            --textur-inhalt: rgba(245, 240, 225, 0.032);
         }
 
         body {
@@ -393,6 +410,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
+            /* Der Kopf liegt ueber dem Text, und er soll sich auch so
+               fuehlen: er hebt sich ab, statt eine Linie ueber einer
+               Flaeche zu sein. Der Schatten wandert mit der Zeile
+               darunter - er haengt am Kopf, nicht am Inhalt. */
+            box-shadow: 0 3px 10px var(--shadow-color);
+            background-image: repeating-linear-gradient(
+                -45deg,
+                var(--textur-kopf) 0 1px,
+                transparent 1px 7px
+            );
         }
 
         .header h1 {
@@ -1047,6 +1074,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            /* Das Punktraster. Es liegt unter allem, auch unter dem
+               Rollbalken - das Rollen bewegelt Text, nicht die Seite. */
+            background-image: radial-gradient(
+                var(--textur-inhalt) 1px,
+                transparent 1px
+            );
+            background-size: 14px 14px;
+            background-position: 0 0;
         }
 
         .content-header {
@@ -1900,6 +1935,17 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             body {
                 background: #fff !important;
                 color: #000 !important;
+            }
+
+            /* Keine Textur auf Papier. Sie ist fuer den Bildschirm
+               gemacht: auf einem Drucker wird aus einem Punktraster in
+               vier Graustufen ein Schmutzfleck, und der Nutzer hat ihn
+               nicht bestellt. */
+            .main-content,
+            .app-koerper,
+            .app-spalte {
+                background-image: none !important;
+                box-shadow: none !important;
             }
 
             /* Die Oberflaeche ist auf die Bildschirmhoehe gebaut

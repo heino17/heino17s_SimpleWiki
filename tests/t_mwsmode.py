@@ -188,8 +188,8 @@ teil2 = r"""
       function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function knopf(re) { return all('.footer .btn').filter(function (b) { return re.test(b.textContent); })[0]; }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
-      /* 'new-page-btn' traegt im Kopf den Fluss-Knopf und im Verzeichnis
-         die neue Seite. Nach dem Text suchen, nicht nach der Klasse. */
+      /* 'new-page-btn' traegt im Kopf den Fluss-Knopf UND den Knopf fuer
+         eine neue Seite. Nach dem Text suchen, nicht nach der Klasse. */
       function neuKnopf() { return all('.new-page-btn').filter(function (b) { return /Neue Seite|New Page/.test(b.textContent); })[0]; }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 

@@ -277,7 +277,11 @@ def main():
         knoepfe = re.findall(r'<button class="btn[^"]*"[^>]*>\s*([^<]+)', dom)
         pruefe(not knoepfe, 'keine Schreibknoepfe im Fuss: %s' % (knoepfe or 'keine'))
         pruefe('class="toc-item-delete"' not in dom, 'kein Loeschkreuz im Verzeichnis')
-        pruefe('class="new-page-btn"' not in dom, 'kein Knopf "Neue Seite" im Verzeichnis')
+        # "Neue Seite" steht im Kopf, nicht im Verzeichnis - und eine
+        # Nur-Lesen-Wiki zeigt ihn gar nicht. Nach dem Text suchen, nicht
+        # nach der Klasse: sie traegt auch der Fluss-Knopf.
+        neue_seite = re.findall(r'<button[^>]*>\s*[^<]*Neue Seite', dom)
+        pruefe(not neue_seite, 'kein Knopf "Neue Seite": %s' % (neue_seite or 'keiner'))
         # Der Fluss-Knopf im Kopf traegt auch die Klasse new-page-btn -
         # er schreibt nichts und muss dastehen bleiben.
         pruefe('kopf-fluss' in dom, 'der Fluss-Knopf im Kopf ist da (er schreibt nichts)')

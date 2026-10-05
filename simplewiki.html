@@ -444,6 +444,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             background: var(--accent-hover);
         }
 
+        /* „Neue Seite" im Kopf. Wie der Fluss-Knopf traegt es die Klasse
+           new-page-btn und damit zwei Bedeutungen - deshalb spricht kein
+           Test diese Klasse an, sondern den Text. */
+        .header .kopf-neu {
+            flex: none;
+        }
+
         .menu-toggle {
             display: block;
             padding: 8px 12px;
@@ -963,20 +970,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             border-top: 1px solid var(--border-color);
         }
 
-        .toc-footer .new-page-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-
-        .toc-footer .new-page-btn:hover {
-            background: var(--accent-hover);
+        /* Im Fuss des Verzeichnisses steht nur noch der Hinweis auf die
+           Reihenfolge - der Knopf fuer eine neue Seite ist in den Kopf
+           gewandert. Der untere Rand gehoerte zum Knopf daneben. */
+        .toc-footer .toc-hint {
+            margin: 0;
         }
 
         .main-content {
@@ -1241,11 +1239,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         /* Auf schmalen Fenstern bleibt das Symbol, der Text verschwindet -
            sonst passt der Kopf nicht mehr nebeneinander. */
         @media (max-width: 560px) {
-            .header .kopf-fluss .kopf-text {
+            .header .kopf-fluss .kopf-text,
+            .header .kopf-neu .kopf-text {
                 display: none;
             }
 
-            .header .kopf-fluss {
+            .header .kopf-fluss,
+            .header .kopf-neu {
                 padding: 8px 12px;
                 font-size: 1.1rem;
             }
@@ -1810,11 +1810,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 font-size: 1rem;
             }
 
-            .new-page-btn {
-                padding: 8px 12px;
-                font-size: 0.85rem;
-            }
-
             .side-panel {
                 width: 100%;
                 max-width: 100%;
@@ -1921,6 +1916,23 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 <h1>📚 SimpleWiki</h1>
                 <input type="text" class="search-box" :placeholder="t('search')" v-model="searchQuery" @input="onSearchInput">
                 <button v-if="searchQuery" class="clear-search" :title="t('searchReset')" @click="clearSearch">✕</button>
+                <!-- Neue Seite. Steht im Kopf und nicht im Verzeichnis: eine
+                     Seite anlegen ist eine Tat, kein Ort, und im Verzeichnis
+                     stand der Knopf zwischen zwei Zeilen, die man sich sonst
+                     ansieht. Wie die anderen Schreibknöpfe verschwindet er,
+                     wer nicht schreiben darf.
+
+                     Das Plus steckt in der Uebersetzung ("+ Neue Seite"),
+                     deshalb hier keins. Und die Klammern sind nicht
+                     Kosmetik: "createNewPage; closeAllPanels()" waere in
+                     Vue eine Methode, die man ansieht und dann wegwirft -
+                     aufgerufen wird nur, was mit Klammern dasteht. -->
+                <button
+                    v-if="kannSchreiben"
+                    class="new-page-btn kopf-neu"
+                    @click="createNewPage(); closeAllPanels()"
+                    :title="t('newPage')"
+                ><span class="kopf-text">{{ t('newPage') }}</span></button>
                 <button class="menu-toggle" @click="openToc" :title="t('tocTitle')">☰</button>
                 <button
                     class="new-page-btn kopf-fluss"
@@ -2149,9 +2161,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </div>
             <div class="toc-footer">
                 <p class="toc-hint">{{ searchQuery.trim() ? t('reorderBlocked') : t('reorderHint') }}</p>
-                <button class="new-page-btn" v-if="kannSchreiben" @click="createNewPage">
-                    {{ t('newPage') }}
-                </button>
             </div>
         </div>
 

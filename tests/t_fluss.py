@@ -25,7 +25,9 @@ script = r"""
       function head(m) { log.push('--- ' + m); out(); }
       function flussTitel() { return all('.fluss-eintrag-titel').map(function (t) { return t.textContent.trim(); }); }
       /* Der Fluss wird ueber den Knopf im Kopf geoeffnet; im
-         Inhaltsverzeichnis steht er nicht mehr. */
+         Inhaltsverzeichnis steht er nicht mehr. "Neue Seite" ist in den
+         Kopf gewandert, im Fuss des Verzeichnisses steht nur noch der
+         Hinweis auf die Reihenfolge. */
       function knopfImVerzeichnis() { return all('.toc-footer .new-page-btn'); }
       function flussOeffnen() { q('.kopf-fluss').click(); }
       function zurueck() { q('.kopf-fluss').click(); }
@@ -43,9 +45,11 @@ script = r"""
         q('.menu-toggle').click();
         setTimeout(function () {
           var knoepfe = knopfImVerzeichnis();
-          ok(knoepfe.length === 1, 'im Verzeichnis bleibt nur „Neue Seite“: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
-          ok(!q('.toc-footer') || q('.toc-footer').textContent.indexOf('Fluss') < 0, 'im Verzeichnis steht kein Fluss-Knopf mehr');
+          ok(knoepfe.length === 0, 'im Verzeichnis steht kein Knopf mehr: ' + knoepfe.map(function (b) { return b.textContent.trim(); }).join(' / '));
+          ok(!!q('.toc-footer .toc-hint'), 'nur noch der Hinweis auf die Reihenfolge');
+          ok(!q('.toc-footer').textContent.match(/Fluss|River/), 'im Verzeichnis steht kein Fluss-Knopf mehr');
           ok(!!q('.kopf-fluss'), 'der Fluss-Knopf sitzt im Kopf');
+          ok(!!q('.kopf-neu'), 'und "Neue Seite" auch');
 
           head('Fluss oeffnen');
           flussOeffnen();

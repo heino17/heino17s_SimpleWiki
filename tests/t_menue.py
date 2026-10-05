@@ -51,7 +51,10 @@ script1 = r"""
         var r = m ? m.getBoundingClientRect() : null;
         var kopf = q('.header').getBoundingClientRect();
         ok(r && Math.round(r.left) === 0, 'liegt am linken Rand: ' + (r ? Math.round(r.left) : '?'));
-        ok(r && Math.round(r.height) > 400, 'und reicht ueber die ganze Hoehe: ' + (r ? Math.round(r.height) : '?'));
+        /* Bis zum Fuss, nicht irgendeine Hoehe: der Kopf waechst und
+           wächst, eine feste Zahl gilt nur fuer eine Kopie des Tages. */
+        ok(r && Math.round(r.bottom) === window.innerHeight,
+           'und reicht bis zum Fuss: ' + (r ? Math.round(r.bottom) : '?') + ' von ' + window.innerHeight);
         ok(!!q('.side-overlay') && !q('.side-overlay').classList.contains('open'),
            'der Bildschirm ist nicht abgedunkelt - das ist ein Menue, kein Overlay');
 

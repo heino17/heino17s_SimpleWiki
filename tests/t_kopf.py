@@ -36,8 +36,22 @@ script1 = r"""
         ok(knopf() && knopf().getAttribute('aria-pressed') === 'false', 'nicht gedrueckt: ' + (knopf() ? knopf().getAttribute('aria-pressed') : '-'));
         ok(knopf() && /öffnen|open/i.test(knopf().getAttribute('title')), 'Hinweis: ' + (knopf() ? knopf().getAttribute('title') : '-'));
 
+        head('Neue Seite im Kopf');
+        var neu = q('.kopf-neu');
+        ok(!!neu, 'Knopf vorhanden');
+        ok(neu && neu.closest('.header') !== null, 'er sitzt im Kopf');
+        ok(neu && neu.previousElementSibling !== null &&
+           (neu.previousElementSibling.className.indexOf('search-box') >= 0 ||
+            neu.previousElementSibling.className.indexOf('clear-search') >= 0),
+           'und zwar links von der Suchleiste, vor dem Verzeichnis-Knopf');
+        ok(neu && /Neue Seite|New Page/.test(neu.textContent), 'mit seinem Namen: ' + (neu ? neu.textContent.trim() : '-'));
+        ok(!q('.toc-footer .new-page-btn'), 'im Verzeichnis steht er nicht mehr');
+        /* Wie die anderen Schreibknoepfe verschwindet er, wer nicht
+           schreiben darf - das prueft t_anmeldung.py am echten Server. */
+
         head('Reihenfolge der Knoepfe im Kopf');
         var reihenfolge = all('.header .btn, .header button').map(function (b) {
+          if (b.className.indexOf('kopf-neu') >= 0) return 'neu';
           if (b.className.indexOf('menu-toggle') >= 0) return 'toc';
           if (b.className.indexOf('kopf-fluss') >= 0) return 'fluss';
           if (b.className.indexOf('refs-toggle') >= 0) return 'refs';
@@ -45,7 +59,7 @@ script1 = r"""
           if (b.className.indexOf('theme-toggle') >= 0) return 'thema';
           return '?';
         }).join(' ');
-        ok(reihenfolge === 'toc fluss refs settings thema', 'Reihenfolge: ' + reihenfolge);
+        ok(reihenfolge === 'neu toc fluss refs settings thema', 'Reihenfolge: ' + reihenfolge);
 
         head('Einmal druecken: Fluss');
         knopf().click();

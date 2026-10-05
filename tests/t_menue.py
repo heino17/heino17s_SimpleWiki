@@ -48,12 +48,30 @@ script1 = r"""
         var m = q('.toc-menu');
         ok(!!m, 'Menue vorhanden');
         ok(!!m && m.classList.contains('offen'), 'und ist von Anfang an offen');
-        ok(!!m && m.classList.contains('side-panel'), 'es benutzt dieselbe Panel-Klasse wie rechts - und erbt damit die Druckregel');
         var r = m ? m.getBoundingClientRect() : null;
-        ok(!!r && Math.round(r.left) === 0, 'liegt am linken Rand: ' + (r ? Math.round(r.left) : '?'));
-        ok(!!r && r.height > 400, 'und reicht ueber die ganze Hoehe: ' + (r ? Math.round(r.height) : '?'));
+        var kopf = q('.header').getBoundingClientRect();
+        ok(r && Math.round(r.left) === 0, 'liegt am linken Rand: ' + (r ? Math.round(r.left) : '?'));
+        ok(r && Math.round(r.height) > 400, 'und reicht ueber die ganze Hoehe: ' + (r ? Math.round(r.height) : '?'));
         ok(!!q('.side-overlay') && !q('.side-overlay').classList.contains('open'),
            'der Bildschirm ist nicht abgedunkelt - das ist ein Menue, kein Overlay');
+
+        head('Die Kopfzeile bleibt frei');
+        ok(r && Math.round(r.top) >= Math.round(kopf.bottom) - 1,
+           'das Menue beginnt erst unter der Kopfzeile: ' + Math.round(r ? r.top : -1) + ' von ' + Math.round(kopf.bottom));
+        var knopf = q('.search-box').getBoundingClientRect();
+        ok(knopf.right <= kopf.right + 1 && knopf.top >= kopf.top - 1,
+           'und das Suchfeld liegt sichtbar in der Kopfzeile');
+        var reiter = q('.settings-toggle').getBoundingClientRect();
+        ok(reiter.right <= kopf.right + 1, 'auch der letzte Knopf rechts: ' + Math.round(reiter.right) + ' von ' + Math.round(kopf.right));
+
+        head('Der Inhalt rueckt zur Seite');
+        var inhalt = q('.main-content').getBoundingClientRect();
+        ok(Math.abs(inhalt.left - r.right) <= 2,
+           'die Spalte haengt genau an der Innenkante des Menues: ' + Math.round(inhalt.left) + ' von ' + Math.round(r.right));
+        ok(Math.round(q('.content-body').getBoundingClientRect().right) <= window.innerWidth + 1,
+           'und reicht bis an den rechten Fensterrand - es ist nichts abgeschnitten');
+        ok(getComputedStyle(q('.main-content')).overflow === 'hidden',
+           'die Spalte ist breit genug und laesst nichts seitlich heraus');
 
         head('Darin steht die Liste');
         var zeilen = all('.toc-menu .toc-item-title');
@@ -74,10 +92,9 @@ script1 = r"""
         ok(!!f && /einklappen|collapse/i.test(f.getAttribute('title')),
            'mit einem Hinweis, der zum Zustand passt: ' + (f ? f.getAttribute('title') : '-'));
         var fr = f.getBoundingClientRect();
-        var mr = m.getBoundingClientRect();
-        ok(Math.abs(fr.left - mr.right) <= 2,
-           'es sitzt an der Innenkante des Menues: ' + Math.round(fr.left) + ' von ' + Math.round(mr.right));
-        ok(fr.top > 40 && fr.bottom < window.innerHeight - 40, 'und mittig am Rand: ' + Math.round(fr.top));
+        ok(Math.abs(fr.left - r.right) <= 2,
+           'es sitzt an der Innenkante des Menues: ' + Math.round(fr.left) + ' von ' + Math.round(r.right));
+        ok(fr.top >= kopf.bottom - 1, 'und nicht in der Kopfzeile: ' + Math.round(fr.top));
 
         head('Zuklappen');
         f.click();
@@ -86,8 +103,12 @@ script1 = r"""
           ok(q('.toc-faehnchen').getAttribute('aria-expanded') === 'false', 'und das Faehnchen meldet es mit');
           ok(/ausklappen|expand/i.test(q('.toc-faehnchen').getAttribute('title')),
              'der Hinweis dreht mit: ' + q('.toc-faehnchen').getAttribute('title'));
+          /* Breite und Position werden hier nicht gemessen: die Spalte
+             faehrt 250ms, und unter Virtual Time laeuft die Uhr nicht
+             mit. Was der Zustand bewirkt, steht in der CSS-Regel -
+             weiter unten wird sie nachgelesen. */
           ok(all('.toc-item-title').length === 4,
-             'die Liste ist noch im Dokument, nur das Panel ist weg - sie ist Teil des Panels: ' + all('.toc-item-title').length);
+             'die Liste ist noch im Dokument, nur die Spalte ist weg: ' + all('.toc-item-title').length);
 
           head('Wieder aufklappen');
           q('.toc-faehnchen').click();
@@ -114,7 +135,28 @@ script1 = r"""
                 ok(!!loeschen, 'und dort steht das Loeschen - absichtlich, mit Bestaetigung');
                 ok(all('.footer .btn').filter(function (x) { return /Abbrechen|Cancel/.test(x.textContent); })[0] !== undefined,
                    'daneben Abbrechen: es passiert nichts ohne Absicht');
-                ende();
+
+                /* Die Taste bleibt in der Liste, in der man gedrueckt
+                   hat. Beim ersten Bau des Menues war das nicht so: der
+                   Fokus sprang nach einem Alt+Pfeil aus dem Panel in das
+                   Menue, weil beide Zeilen im Dokument nebeneinander
+                   lagen und die eine nicht wusste, zu welcher sie
+                   gehoert. */
+                head('Alt + Pfeil bleibt in seiner Liste');
+                all('.toc-menu .toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
+                setTimeout(function () {
+                  ok(q('.toc-menu').contains(document.activeElement),
+                     'im Menue: ' + (document.activeElement ? document.activeElement.className : 'nichts'));
+                  all('.toc-panel .toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
+                  setTimeout(function () {
+                    ok(q('.toc-panel').contains(document.activeElement),
+                       'im Panel rechts: ' + (document.activeElement ? document.activeElement.className : 'nichts'));
+                    ok(all('.toc-menu .toc-item-title').map(function (z) { return z.textContent.trim(); }).join('|')
+                       === all('.toc-panel .toc-item-title').map(function (z) { return z.textContent.trim(); }).join('|'),
+                       'und beide Listen zeigen danach dasselbe: ' + all('.toc-panel .toc-item-title').map(function (z) { return z.textContent.trim(); }).join('|'));
+                    ende();
+                  }, 500);
+                }, 500);
               }, 700);
             }, 700);
           }, 400);
@@ -141,9 +183,12 @@ script2 = r"""
         ok(window.innerWidth <= 560, 'Fenster ist schmal: ' + window.innerWidth);
         var mr = q('.toc-menu').getBoundingClientRect();
         var fr = q('.toc-faehnchen').getBoundingClientRect();
+        var kr = q('.header').getBoundingClientRect();
         ok(mr.width < 360, 'das Menue ist schmaler geworden: ' + Math.round(mr.width) + 'px');
         ok(Math.abs(fr.left - mr.right) <= 2, 'das Faehnchen ist mitgewandert: ' + Math.round(fr.left) + ' von ' + Math.round(mr.right));
-        ok(fr.right <= window.innerWidth, 'es ragt nicht aus dem Fenster: ' + Math.round(fr.right) + ' von ' + window.innerWidth);
+        ok(Math.round(mr.top) >= Math.round(kr.bottom) - 1, 'die Kopfzeile bleibt auch hier frei');
+        ok(Math.round(q('.main-content').getBoundingClientRect().left) === Math.round(mr.right),
+           'und die Spalte haengt weiterhin dran: ' + Math.round(q('.main-content').getBoundingClientRect().left));
         ok(all('.toc-menu .toc-item-title').length === 2, 'die Liste ist vollstaendig');
         var n = log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length;
         var f = log.filter(function (l) { return /^FAIL/.test(l); }).length;
@@ -176,22 +221,32 @@ def merde(name, treffer, moeglich):
                              treffer if ok else '%s (erwartet: %s)' % (treffer, moeglich)))
 
 
-menue = quelle[quelle.index('.toc-menu {'):quelle.index('.toc-faehnchen {')]
+menue = quelle[quelle.index('.toc-menu {'):quelle.index('.toc-menu-kopf {')]
+koerper = quelle[quelle.index('.app-koerper {'):quelle.index('.app-spalte {')]
 faehn = quelle[quelle.index('.toc-faehnchen {'):quelle.index('@media (max-width: 768px)')]
 
-merde('zu liegt das Menue links neben dem Fenster',
-      bool(re.search(r'\.toc-menu\s*{[^}]*left:\s*calc\(\-1 \* var\(\-\-toc-breite\)\)', menue, re.S)), True)
-merde('offen liegt es bei null', bool(re.search(r'\.toc-menu\.offen\s*{[^}]*left:\s*0', menue)), True)
-merde('es haelt sich nicht mehr an der rechten Kante',
-      bool(re.search(r'\.toc-menu\s*{[^}]*right:\s*auto', menue, re.S)), True)
+merde('zu ist die Spalte schmal und drueckt nichts beiseite',
+      bool(re.search(r'\.toc-menu\s*{[^}]*width:\s*0', menue, re.S)), True)
+merde('offen nimmt sie die Breite an',
+      bool(re.search(r'\.toc-menu\.offen\s*{[^}]*width:\s*var\(\-\-toc-breite\)', menue)), True)
+merde('sie schrumpft nie unter den Inhalt',
+      bool(re.search(r'\.toc-menu\s*{[^}]*max-width:\s*85%', menue, re.S)), True)
+merde('der Koerper ist eine Zeile',
+      bool(re.search(r'\.app-koerper\s*{[^}]*display:\s*flex', koerper, re.S)), True)
+merde('und gibt die uebrige Hoehe weiter',
+      bool(re.search(r'\.app-koerper\s*{[^}]*min-height:\s*0', koerper, re.S)), True)
+merde('das Faehnchen haengt an dieser Zeile',
+      bool(re.search(r'\.app-koerper\s*{[^}]*position:\s*relative', koerper, re.S)), True)
 merde('das Faehnchen sitzt an der Innenkante',
-      bool(re.search(r'\.toc-faehnchen\.offen\s*{[^}]*left:\s*min\(var\(--toc-breite\), 90vw\)', faehn)), True)
-merde('im Druck ist das Faehnchen weg',
+      bool(re.search(r'\.toc-faehnchen\.offen\s*{[^}]*left:\s*min\(var\(\-\-toc-breite\), 85%\)', faehn)), True)
+merde('und sitzt zu am Fensterrand',
+      bool(re.search(r'\.toc-faehnchen\s*{[^}]*left:\s*0', faehn, re.S)), True)
+merde('im Druck ist das Menue weg',
+      bool(re.search(r'@media print[\s\S]*?\.toc-menu,', quelle)), True)
+merde('und das Faehnchen auch',
       bool(re.search(r'@media print[\s\S]*?\.toc-faehnchen,', quelle)), True)
-merde('und das Menue mit, ueber .side-panel',
+merde('die Panels werden im Druck auch nicht gebraucht',
       bool(re.search(r'@media print[\s\S]*?\.side-panel,', quelle)), True)
-merde('das Panel wird im Druck nicht gebraucht',
-      'side-panel toc-menu' in quelle, True)
 
 pruefe(kopie1, kopie2, fenster={'_menue2.html': '380,700'},
        schon_fehler=fehler_druck)

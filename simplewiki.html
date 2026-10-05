@@ -721,23 +721,44 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             right: 0;
         }
 
-        /* ---------- Das Inhaltsverzeichnis links ----------
+        /* ---------- Der Körper: Verzeichnis links, Inhalt daneben ----------
 
-           Dasselbe Panel wie rechts, nur von der anderen Seite. 'right'
-           wird auf auto gesetzt, sonst haelt .side-panel das Panel noch
-           an der rechten Kante fest. 'left' ist hier der Schalter:
-           zu liegt es links neben dem Fenster, offen liegt es darin. */
+           Der Körper ist eine Zeile. Das Menue ist eine Spalte darin und
+           kein Panel, das sich vor den Text legt: es draengt den Inhalt
+           zur Seite und kommt nicht unter die Kopfzeile. Wer es
+           zuklappt, gibt die Spalte wieder her - der Inhalt rueckt
+           nach links, statt dass etwas von ihm verdeckt waere. */
+        .app-koerper {
+            flex: 1;
+            display: flex;
+            min-height: 0;   /* ohne das greift der Rollbalken nicht */
+            position: relative;   /* das Faehnchen haengt an dieser Zeile */
+        }
+
+        /* Die Spalte fuer den Inhalt. min-width: 0 ist hier nicht
+           Kosmetik: ohne das weigert sich ein Flex-Kind, schmaler zu
+           werden als sein Inhalt, und die Spalte bliebe breit. */
+        .app-spalte {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
         .toc-menu {
-            right: auto;
-            left: calc(-1 * var(--toc-breite));
-            width: var(--toc-breite);
+            flex: none;
+            width: 0;
+            max-width: 85%;
+            overflow: hidden;
+            background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
-            box-shadow: 2px 0 10px var(--shadow-color);
-            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.25s ease;
         }
 
         .toc-menu.offen {
-            left: 0;
+            width: var(--toc-breite);
         }
 
         /* Die Kopfzeile des Menues ist eine Zeile und sonst nichts -
@@ -746,6 +767,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .toc-menu-kopf {
             padding: 14px 20px;
             background: var(--bg-primary);
+            flex: none;
         }
 
         .toc-menu-kopf h2 {
@@ -753,10 +775,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             color: var(--text-secondary);
         }
 
-        /* Das Faehnchen. Es steht ausserhalb des Panels, damit es
-           sichtbar bleibt, wenn das Panel aus dem Bild ist. */
+        /* Das Faehnchen haengt an der Kante zwischen Menue und Inhalt.
+           Steht es am Rand, wenn das Menue zu ist, und auf der Kante,
+           wenn es offen ist. */
         .toc-faehnchen {
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 0;
             transform: translateY(-50%);
@@ -771,19 +794,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             font-size: 1.2rem;
             line-height: 1;
             cursor: pointer;
-            z-index: 1002;
-            transition: left 0.3s ease, background 0.2s;
+            z-index: 5;
+            transition: left 0.25s ease, background 0.2s;
         }
 
         .toc-faehnchen:hover {
             background: var(--accent-hover);
         }
 
-        /* Das min() gilt fuer sehr schmale Fenster: dort ist das Panel
-           hoechstens 90% breit, und das Faehnchen muss an dessen
-           Innenkante bleiben, nicht am Fensterrand verschwinden. */
         .toc-faehnchen.offen {
-            left: min(var(--toc-breite), 90vw);
+            left: min(var(--toc-breite), 85%);
         }
 
         .toc-faehnchen:focus-visible {
@@ -1803,6 +1823,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .footer,
             .side-overlay,
             .side-panel,
+            .toc-menu,
             .toc-faehnchen,
             .hinweis,
             .fluss-kopf,
@@ -1824,6 +1845,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             html,
             body,
             .app,
+            .app-koerper,
+            .app-spalte,
             .main-content,
             .content-body,
             .fluss {
@@ -1935,109 +1958,161 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 </button>
             </header>
 
-            <main class="main-content">
-                <!-- Nur-Lesen-Wiki: der Server hat das Schreiben abgelehnt.
-                     Zwei Gründe, zwei Texte - siehe leseGrund. -->
-                <p v-if="nurLesen" class="nurlesen-hinweis">{{ t(leseGrund) }}</p>
-                <!-- Serverbetrieb: woher die Seiten kommen -->
-                <p v-else="" v-if="mwsModus" class="mws-hinweis">☁ {{ t('mwsHinweis') }}</p>
+            <!-- Der Körper ist eine Zeile: links das Verzeichnis, rechts
+                 der Inhalt. Das Menü ist eine Spalte im Aufbau und legt
+                 sich nicht vor den Text - es drängt ihn zur Seite, und es
+                 kommt nicht unter die Kopfzeile. -->
+            <div class="app-koerper">
+                <!-- Das Inhaltsverzeichnis als Menü links.
 
-                <!-- Fluss: alle Seiten hintereinander, wie im Inhaltsverzeichnis -->
-                <div v-if="zeigeFluss" class="fluss">
-                    <div class="fluss-kopf">
-                        <div>
-                            <h2 class="fluss-titel">{{ t('riverTitle') }}</h2>
-                            <p class="fluss-zahl">{{ t('riverCount').replace('{zahl}', seitenZahl(flussSeiten.length)) }}</p>
+                     Eine Spalte im Aufbau, kein Overlay: es legt sich nicht
+                     vor den Text, es drängt ihn zur Seite, und es kommt nicht
+                     unter die Kopfzeile. Weggeklappt wird es am Fähnchen an
+                     der Innenkante. Es steht beim Öffnen da, weil ein
+                     Verzeichnis, das man sich erst suchen muss, keines ist.
+
+                     Dieselbe Liste wie im Panel rechts - dieselben Zeilen,
+                     dieselben Griffe, dieselbe Reihenfolge. Zwei Orte für
+                     dieselbe Sache sind hier gewollt: das Menü ist der
+                     bequeme Weg, das Panel rechts der Ort, an dem die Suche
+                     steht. -->
+                <div class="toc-menu" :class="{ offen: tocMenuOffen }">
+                    <div class="side-header toc-menu-kopf">
+                        <h2>{{ t('tocTitle') }}</h2>
+                    </div>
+                    <div class="toc-list">
+                        <div v-for="(page, i) in filteredPages" :key="page.id" class="toc-item" :class="{
+                                active: currentPage &amp;&amp; currentPage.id === page.id,
+                                'wird-gezogen': dragIndex === i,
+                                'einfuegen-oben': dropIndex === i &amp;&amp; dropHint === i &amp;&amp; dragIndex !== i,
+                                'einfuegen-unten': dropIndex === i &amp;&amp; dropHint === i + 1 &amp;&amp; dragIndex !== i
+                            }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
+                            <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
+                            <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
+                            <span class="toc-item-title">{{ page.title }}</span>
                         </div>
-                        <div class="fluss-aktionen">
-                            <button class="btn btn-secondary" @click="drucken">
-                                🖨 {{ t('riverPrint') }}
-                            </button>
+                        <div v-if="filteredPages.length === 0" class="toc-empty">
+                            {{ t('tocEmpty') }}
                         </div>
                     </div>
-
-                    <article v-for="p in flussSeiten" :key="p.id" class="fluss-eintrag" :id="'fluss-' + p.id">
-                        <h3 class="fluss-eintrag-titel">
-                            <button class="fluss-titel-knopf" @click="seiteOeffnen(p)">
-                                {{ p.title || t('untitled') }}
-                            </button>
-                        </h3>
-                        <div v-if="(p.content || '').trim()" class="preview" @click="onPreviewClick" v-html="alsHtml(p.content)"></div>
-                        <p v-else="" class="fluss-leer">{{ t('riverNoText') }}</p>
-                        <div v-if="verweiseVon(p).ausgehend.length" class="fluss-verweise">
-                            {{ t('outgoingTitle') }}:
-                            <a v-for="ziel in verweiseVon(p).ausgehend" :key="ziel" href="#" :class="pageExists(ziel) ? 'wiki-link' : 'wiki-link wiki-link-fehlt'" @click.prevent="openLinkTarget(ziel)">{{ ziel }}</a>
-                        </div>
-                    </article>
-
-                    <p v-if="flussSeiten.length === 0" class="fluss-leer">{{ t('riverEmpty') }}</p>
                 </div>
 
-                <template v-else="">
-                <div v-if="currentPage" class="content-header">
-                    <input v-if="isEditing" type="text" class="title-editor" v-model="editTitle" :placeholder="t('titlePlaceholder')">
-                    <h2 v-else="" class="content-title">{{ currentPage.title }}</h2>
-                </div>
-
-                <div v-if="currentPage" class="content-body">
-                    <!-- Ansicht -->
-                    <div v-if="!isEditing" class="preview" @click="onPreviewClick" v-html="renderedContent"></div>
-
-                    <!-- Bearbeiten: WYSIWYG-Editor, sonst Textfeld als Rückfall -->
-                    <template v-else="">
-                        <div v-show="editorReady" ref="mdHost" class="md-host"></div>
-                        <textarea v-if="!editorReady" ref="plainEditor" class="editor" v-model="editContent" :placeholder="t('contentPlaceholder')"></textarea>
-                        <p v-if="!editorReady" class="editor-fallback-hint">
-                            {{ t('editorFallback') }}
-                        </p>
-                    </template>
-                </div>
-
-                <!-- Rückverweise: von welchen Seiten wird hierher verlinkt? -->
-                <!-- Nur zeigen, wenn es wirklich keine Seite gibt -->
-                <div v-if="!currentPage" class="empty-state">
-                    <h2>{{ t('welcomeTitle') }}</h2>
-                    <p>{{ t('welcomeText') }}</p>
-                    <!-- Ohne diesen Knopf ist eine leere Wiki eine
-                         Sackgasse: nirgends waere ein Ausgang. Wer nicht
-                         schreiben darf, bekommt ihn nicht zu sehen - ein
-                         leeres Wiki, in dem man nichts anlegen darf,
-                         braucht keinen Ausgang. -->
-                    <button class="btn btn-primary empty-state-btn"
-                            v-if="kannSchreiben" @click="ersteSeiteAnlegen">
-                        {{ t('emptyCreate') }}
-                    </button>
-                </div>
-                </template>
-            </main>
-
-            <footer v-if="currentPage &amp;&amp; !zeigeFluss" class="footer">
-                <!-- Die Schreibknöpfe sind nicht abgeschaltet, sondern weg. Wer nicht
-                     schreiben darf, soll gar nicht erst auf einen Knopf
-                     zeigen, der ohnehin nichts tut. -->
-                <button v-if="kannSchreiben && !isEditing" class="btn btn-primary" @click="startEditing">
-                    {{ t('edit') }}
+                <!-- Das Fähnchen. Ist das Menü zu, klebt es am linken Rand
+                     und lädt zum Aufklappen ein; ist es offen, sitzt es an der
+                     Innenkante des Menüs und klappt es zu. -->
+                <button class="toc-faehnchen" :class="{ offen: tocMenuOffen }" @click="tocMenuUmschalten"
+                        :title="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
+                        :aria-label="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
+                        :aria-expanded="tocMenuOffen ? 'true' : 'false'">
+                    <span aria-hidden="true">{{ tocMenuOffen ? '‹' : '›' }}</span>
                 </button>
-                <template v-else-if="isEditing"="">
-                    <button v-if="kannSchreiben" class="btn btn-secondary" @click="openLinkDialog">
-                        🔗 {{ t('linkButton') }}
+
+                <div class="app-spalte">
+                        <main class="main-content">
+                    <!-- Nur-Lesen-Wiki: der Server hat das Schreiben abgelehnt.
+                         Zwei Gründe, zwei Texte - siehe leseGrund. -->
+                    <p v-if="nurLesen" class="nurlesen-hinweis">{{ t(leseGrund) }}</p>
+                    <!-- Serverbetrieb: woher die Seiten kommen -->
+                    <p v-else="" v-if="mwsModus" class="mws-hinweis">☁ {{ t('mwsHinweis') }}</p>
+
+                    <!-- Fluss: alle Seiten hintereinander, wie im Inhaltsverzeichnis -->
+                    <div v-if="zeigeFluss" class="fluss">
+                        <div class="fluss-kopf">
+                            <div>
+                                <h2 class="fluss-titel">{{ t('riverTitle') }}</h2>
+                                <p class="fluss-zahl">{{ t('riverCount').replace('{zahl}', seitenZahl(flussSeiten.length)) }}</p>
+                            </div>
+                            <div class="fluss-aktionen">
+                                <button class="btn btn-secondary" @click="drucken">
+                                    🖨 {{ t('riverPrint') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <article v-for="p in flussSeiten" :key="p.id" class="fluss-eintrag" :id="'fluss-' + p.id">
+                            <h3 class="fluss-eintrag-titel">
+                                <button class="fluss-titel-knopf" @click="seiteOeffnen(p)">
+                                    {{ p.title || t('untitled') }}
+                                </button>
+                            </h3>
+                            <div v-if="(p.content || '').trim()" class="preview" @click="onPreviewClick" v-html="alsHtml(p.content)"></div>
+                            <p v-else="" class="fluss-leer">{{ t('riverNoText') }}</p>
+                            <div v-if="verweiseVon(p).ausgehend.length" class="fluss-verweise">
+                                {{ t('outgoingTitle') }}:
+                                <a v-for="ziel in verweiseVon(p).ausgehend" :key="ziel" href="#" :class="pageExists(ziel) ? 'wiki-link' : 'wiki-link wiki-link-fehlt'" @click.prevent="openLinkTarget(ziel)">{{ ziel }}</a>
+                            </div>
+                        </article>
+
+                        <p v-if="flussSeiten.length === 0" class="fluss-leer">{{ t('riverEmpty') }}</p>
+                    </div>
+
+                    <template v-else="">
+                    <div v-if="currentPage" class="content-header">
+                        <input v-if="isEditing" type="text" class="title-editor" v-model="editTitle" :placeholder="t('titlePlaceholder')">
+                        <h2 v-else="" class="content-title">{{ currentPage.title }}</h2>
+                    </div>
+
+                    <div v-if="currentPage" class="content-body">
+                        <!-- Ansicht -->
+                        <div v-if="!isEditing" class="preview" @click="onPreviewClick" v-html="renderedContent"></div>
+
+                        <!-- Bearbeiten: WYSIWYG-Editor, sonst Textfeld als Rückfall -->
+                        <template v-else="">
+                            <div v-show="editorReady" ref="mdHost" class="md-host"></div>
+                            <textarea v-if="!editorReady" ref="plainEditor" class="editor" v-model="editContent" :placeholder="t('contentPlaceholder')"></textarea>
+                            <p v-if="!editorReady" class="editor-fallback-hint">
+                                {{ t('editorFallback') }}
+                            </p>
+                        </template>
+                    </div>
+
+                    <!-- Rückverweise: von welchen Seiten wird hierher verlinkt? -->
+                    <!-- Nur zeigen, wenn es wirklich keine Seite gibt -->
+                    <div v-if="!currentPage" class="empty-state">
+                        <h2>{{ t('welcomeTitle') }}</h2>
+                        <p>{{ t('welcomeText') }}</p>
+                        <!-- Ohne diesen Knopf ist eine leere Wiki eine
+                             Sackgasse: nirgends waere ein Ausgang. Wer nicht
+                             schreiben darf, bekommt ihn nicht zu sehen - ein
+                             leeres Wiki, in dem man nichts anlegen darf,
+                             braucht keinen Ausgang. -->
+                        <button class="btn btn-primary empty-state-btn"
+                                v-if="kannSchreiben" @click="ersteSeiteAnlegen">
+                            {{ t('emptyCreate') }}
+                        </button>
+                    </div>
+                    </template>
+                        </main>
+
+                        <footer v-if="currentPage &amp;&amp; !zeigeFluss" class="footer">
+                    <!-- Die Schreibknöpfe sind nicht abgeschaltet, sondern weg. Wer nicht
+                         schreiben darf, soll gar nicht erst auf einen Knopf
+                         zeigen, der ohnehin nichts tut. -->
+                    <button v-if="kannSchreiben && !isEditing" class="btn btn-primary" @click="startEditing">
+                        {{ t('edit') }}
                     </button>
-                    <button v-if="kannSchreiben" class="btn btn-secondary" @click="duplicatePage" :title="t('duplicateHint')">
-                        ⧉ {{ t('duplicate') }}
-                    </button>
-                    <button v-if="kannSchreiben" class="btn btn-danger" @click="deletePage(currentPage.id)">
-                        {{ t('delete') }}
-                    </button>
-                    <button v-if="kannSchreiben" class="btn btn-primary" @click="savePage">
-                        {{ t('save') }}
-                    </button>
-                    <!-- Abbrechen bleibt: es schreibt nichts, und wer die
-                         Rechte verliert, muss den Editor verlassen koennen. -->
-                    <button class="btn btn-secondary" @click="cancelEditing">
-                        {{ t('cancel') }}
-                    </button>
-                </template>
-            </footer>
+                    <template v-else-if="isEditing"="">
+                        <button v-if="kannSchreiben" class="btn btn-secondary" @click="openLinkDialog">
+                            🔗 {{ t('linkButton') }}
+                        </button>
+                        <button v-if="kannSchreiben" class="btn btn-secondary" @click="duplicatePage" :title="t('duplicateHint')">
+                            ⧉ {{ t('duplicate') }}
+                        </button>
+                        <button v-if="kannSchreiben" class="btn btn-danger" @click="deletePage(currentPage.id)">
+                            {{ t('delete') }}
+                        </button>
+                        <button v-if="kannSchreiben" class="btn btn-primary" @click="savePage">
+                            {{ t('save') }}
+                        </button>
+                        <!-- Abbrechen bleibt: es schreibt nichts, und wer die
+                             Rechte verliert, muss den Editor verlassen koennen. -->
+                        <button class="btn btn-secondary" @click="cancelEditing">
+                            {{ t('cancel') }}
+                        </button>
+                        </template>
+                    </footer>
+                </div>
+            </div>
         </div>
 
 
@@ -2074,47 +2149,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </div>
         </div>
 
-        <!-- Das Inhaltsverzeichnis als Menü links.
-
-             Kein Overlay: es dunkelt den Bildschirm nicht ab und wird
-             nicht angeklickt, sondern am Fähnchen weggeklappt. Es steht
-             beim Öffnen da, weil ein Verzeichnis, das man sich erst
-             suchen muss, keines ist.
-
-             Dieselbe Liste wie im Panel rechts - dieselben Zeilen, dieselben
-             Griffe, dieselbe Reihenfolge. Zwei Orte für dieselbe Sache
-             sind hier gewollt: das Menü ist der bequeme Weg, das Panel
-             rechts der Ort, an dem die Suche steht. -->
-        <div class="side-panel toc-menu" :class="{ offen: tocMenuOffen }">
-            <div class="side-header toc-menu-kopf">
-                <h2>{{ t('tocTitle') }}</h2>
-            </div>
-            <div class="toc-list">
-                <div v-for="(page, i) in filteredPages" :key="page.id" class="toc-item" :class="{
-                        active: currentPage &amp;&amp; currentPage.id === page.id,
-                        'wird-gezogen': dragIndex === i,
-                        'einfuegen-oben': dropIndex === i &amp;&amp; dropHint === i &amp;&amp; dragIndex !== i,
-                        'einfuegen-unten': dropIndex === i &amp;&amp; dropHint === i + 1 &amp;&amp; dragIndex !== i
-                    }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
-                    <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
-                    <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
-                    <span class="toc-item-title">{{ page.title }}</span>
-                </div>
-                <div v-if="filteredPages.length === 0" class="toc-empty">
-                    {{ t('tocEmpty') }}
-                </div>
-            </div>
-        </div>
-
-        <!-- Das Fähnchen. Ist das Menü zu, klebt es am linken Fensterrand
-             und lädt zum Aufklappen ein; ist es offen, sitzt es an der
-             Innenkante des Menüs und klappt es zu. -->
-        <button class="toc-faehnchen" :class="{ offen: tocMenuOffen }" @click="tocMenuUmschalten"
-                :title="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
-                :aria-label="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
-                :aria-expanded="tocMenuOffen ? 'true' : 'false'">
-            <span aria-hidden="true">{{ tocMenuOffen ? '‹' : '›' }}</span>
-        </button>
 
         <!-- Kurzer Hinweis, wenn gesichert, geladen oder etwas nicht geklappt hat -->
         <div v-if="hinweisText" class="hinweis">{{ hinweisText }}</div>
@@ -3921,11 +3955,23 @@ showToc: false,
                     const i = this.pages.findIndex(p => p.id === page.id);
                     if (i < 0) return;
                     event.preventDefault();
+                    /* Die Liste festhalten, in der gedrueckt wurde. Es
+                       gibt zwei: das Menue links und das Panel rechts.
+                       currentTarget ist nur waehrend der Zustellung
+                       gueltig, darum hier oben. */
+                    const gedrueckt = event.currentTarget;
                     const ziel = Math.max(0, Math.min(this.pages.length - 1, i + (hoch ? -1 : 1)));
                     if (ziel === i) return;
                     this.movePage(i, hoch ? ziel : ziel + 1);
                     this.$nextTick(() => {
-                        const zeilen = [].slice.call(document.querySelectorAll('.toc-item'));
+                        /* Der Fokus wandert in dieselbe Liste, aus der
+                           gekommen wurde. Aus dem ganzen Dokument geholt
+                           laeuft er in der anderen Liste, und man
+                           schreibt an einer Stelle und tippt an einer
+                           anderen. */
+                        const liste = gedrueckt && gedrueckt.closest('.toc-list');
+                        if (!liste) return;
+                        const zeilen = [].slice.call(liste.querySelectorAll('.toc-item'));
                         if (zeilen[ziel]) zeilen[ziel].focus();
                     });
                 },

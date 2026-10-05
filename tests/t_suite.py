@@ -63,7 +63,7 @@ script = r"""
       setTimeout(function () {
         head('Grundzustand');
         ok(!!q('.content-title'), 'Startseite wird angezeigt: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '?'));
-        ok(all('.toc-item').length === 3, 'Inhaltsverzeichnis zeigt 3 Seiten');
+        ok(all('.toc-panel .toc-item').length === 3, 'Inhaltsverzeichnis zeigt 3 Seiten');
         ok(!!q('.toc-item-start'), 'Stern-Markierung vorhanden');
         ok(localStorage.getItem('simplewiki_startpage') === 'a', 'Startseite gespeichert: ' + localStorage.getItem('simplewiki_startpage'));
 
@@ -77,7 +77,7 @@ script = r"""
           sp.value = 'b'; sp.dispatchEvent(new Event('change', { bubbles: true }));
           setTimeout(function () {
             ok(localStorage.getItem('simplewiki_startpage') === 'b', 'Startseite geändert: ' + localStorage.getItem('simplewiki_startpage'));
-            var sterne = all('.toc-item').filter(function (i) {
+            var sterne = all('.toc-panel .toc-item').filter(function (i) {
               return !i.querySelector('.toc-item-start').classList.contains('is-empty');
             }).map(function (i) { return i.querySelector('.toc-item-title').textContent.trim(); });
             ok(sterne.join() === 'Beta', 'Stern wandert mit: ' + sterne.join());
@@ -88,14 +88,14 @@ script = r"""
             s.value = 'Inhalt'; s.dispatchEvent(new Event('input', { bubbles: true }));
             setTimeout(function () {
               ok(q('.toc-panel').classList.contains('open'), 'Suche öffnet das Verzeichnis');
-              var treffer = all('.toc-item-title').map(function (e) { return e.textContent.trim(); });
+              var treffer = all('.toc-panel .toc-item-title').map(function (e) { return e.textContent.trim(); });
               ok(treffer.join() === 'Beta', 'Suche findet genau Beta: ' + treffer.join('|'));
               s.value = 'gibtsnicht'; s.dispatchEvent(new Event('input', { bubbles: true }));
               setTimeout(function () {
                 ok(!!q('.toc-empty'), 'Leerhinweis: "' + q('.toc-empty').textContent.trim() + '"');
                 q('.clear-search').click();
                 setTimeout(function () {
-                  ok(all('.toc-item-title').length === 3, 'Suche zurückgesetzt');
+                  ok(all('.toc-panel .toc-item-title').length === 3, 'Suche zurückgesetzt');
 
                   head('Editor');
                   tswitch().then(function () {
@@ -163,20 +163,33 @@ setTimeout(function () {
                                                  var ds2 = document.getElementById('mdEditorDarkTheme');
                                                  ok(!!ds2 && ds2.media === 'not all',
                                                     'heller Modus: media=' + (ds2 ? ds2.media : 'fehlt'));
-                                                 all('.toc-item')[0].querySelector('.toc-item-delete').click();
-                                            setTimeout(function () {
-                                              ok(!!q('.modal-overlay'), 'Löschen-Dialog');
-                                              all('.modal .btn').filter(function (b) { return /Delete|Delete|öschen/.test(b.textContent); })[0].click();
-                                              setTimeout(function () {
-                                                ok(all('.toc-item').length === 2, 'Seite gelöscht, verbleiben: ' + all('.toc-item-title').map(function (e) { return e.textContent.trim(); }).join('|'));
-                                                log.push('');
-                                                log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-                                                out();
-                                              }, 600);
-                                            }, 400);
-                                          }, 500);
-                                        }, 500);
-                                      }, 2400);
+all('.toc-item')[0].querySelector('.toc-item-title').click();
+                                                 setTimeout(function () {
+                                                   /* Geloescht wird nur noch im Editor -
+                                                      im Verzeichnis gibt es kein Kreuz mehr. */
+                                                   ok(!q('.toc-item-delete'), 'im Verzeichnis ist kein Loeschkreuz mehr');
+                                                   var bearbeiten = all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0];
+                                                   ok(!!bearbeiten, 'Bearbeiten-Knopf da');
+                                                   bearbeiten.click();
+                                                   setTimeout(function () {
+                                                     var loeschen = all('.footer .btn').filter(function (b) { return /öschen|Delete/.test(b.textContent); })[0];
+                                                     ok(!!loeschen, 'Löschen-Knopf im Editor');
+                                                     loeschen.click();
+                                                     setTimeout(function () {
+                                                       ok(!!q('.modal-overlay'), 'Löschen-Dialog');
+                                                       all('.modal .btn').filter(function (b) { return /Delete|Delete|öschen/.test(b.textContent); })[0].click();
+                                                       setTimeout(function () {
+                                                         ok(all('.toc-panel .toc-item').length === 2, 'Seite gelöscht, verbleiben: ' + all('.toc-panel .toc-item-title').map(function (e) { return e.textContent.trim(); }).join('|'));
+                                                         log.push('');
+                                                         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+                                                         out();
+                                                       }, 600);
+                                                     }, 400);
+                                                   }, 500);
+                                                 }, 600);
+                                               }, 500);
+                                             }, 500);
+                                           }, 2400);
                                     });
                                   });
                                 }, 2400);

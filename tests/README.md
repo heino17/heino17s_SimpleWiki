@@ -95,6 +95,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_wikisyn.py` | `[[Seite]]` und `[[Text\|Seite]]`, Code bleibt Code |
 | `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
 | `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge der Knöpfe, **schmale Fenster** |
+| `t_menue.py` | **Inhaltsverzeichnis links als Menü: offen beim Öffnen, Fähnchen zum Zu- und Aufklappen, kein Löschkreuz** |
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
@@ -123,6 +124,20 @@ Fehler zählt, aber seine bestandenen Prüfungen nicht meldet, trägt zur
 Gesamtzahl **null** bei — die Prüfungen laufen, die Zahl lügt. Drei Dateien
 waren so gebaut (`t_leerwiki.py`, `t_export.py`, `t_fluss.py`). Jedes Skript
 meldet deshalb eine `GESAMT:`-Zeile, und `alle.py` liest keine andere.
+
+**Eine Position nach einer Animation ist dem Zufall überlassen.** Die
+CSS-Transition fährt 300 ms, und unter Virtual Time läuft die Animationsuhr
+nicht zuverlässig mit den Timern des Testskripts. `t_menue.py` misst
+deshalb Positionen nur dort, wo noch nichts gefahren ist — beim ersten Bild —
+und prüft die *Wirkung* des Zustands an der Klasse und an der CSS-Regel. Ein
+Test, der an dieser Stelle „flackert", misst die Mitte der Fahrt.
+
+### Zwei Listen, ein Zustand
+
+Das Inhaltsverzeichnis steht zweimal im Dokument: als Menü links und im Panel
+rechts. Wo ein Test **zählt oder vergleicht**, schreibt er deshalb
+`.toc-panel` davor — sonst wäre jede Seite doppelt. Wo ein Test etwas
+**anklickt**, ist es gleichgültig, welches davon er erwischt.
 
 ## Zwei Lehren aus den Tests
 

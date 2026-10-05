@@ -49,7 +49,7 @@ script1 = r"""
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function head(m) { log.push('--- ' + m); out(); }
       function speicher() { return JSON.parse(localStorage.getItem('simplewiki_pages')); }
-      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       /* Nach dem Einlesen erst weiterlaufen, wenn ein neuer Hinweis
          erschienen ist. Das Einlesen braucht unter Virtual Time
          zwischen einer und drei Sekunden - eine feste Wartezeit ist
@@ -129,7 +129,7 @@ script1 = r"""
             head('Knopfzustand stimmt jetzt');
             q('.menu-toggle').click();
             setTimeout(function () {
-              all('.toc-item-title').filter(function (t) { return t.textContent.trim() === 'Von MWS'; })[0].click();
+              all('.toc-panel .toc-item-title').filter(function (t) { return t.textContent.trim() === 'Von MWS'; })[0].click();
               setTimeout(function () {
                 all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0].click();
                 setTimeout(function () {
@@ -177,7 +177,7 @@ script2 = r"""
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function head(m) { log.push('--- ' + m); out(); }
       function speicher() { return JSON.parse(localStorage.getItem('simplewiki_pages')); }
-      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function hinweis() { var h = q('.hinweis'); return h ? h.textContent.trim() : ''; }
       /* Nach dem Einlesen erst weiterlaufen, wenn der Hinweis sich
          geaendert hat - sonst prueft man den Hinweis des Schritts
@@ -259,7 +259,7 @@ script2 = r"""
                           head('Doppelter Titel beim Speichern');
                           q('.menu-toggle').click();
                           setTimeout(function () {
-                            all('.toc-item-title').filter(function (t) { return t.textContent.trim() === 'Beta'; })[0].click();
+                            all('.toc-panel .toc-item-title').filter(function (t) { return t.textContent.trim() === 'Beta'; })[0].click();
                             setTimeout(function () {
                               all('.footer .btn').filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0].click();
                               setTimeout(function () {

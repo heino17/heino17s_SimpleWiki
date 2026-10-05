@@ -87,7 +87,7 @@ anonym = r"""
         q('.menu-toggle').click();
         setTimeout(function () {
           ok(!q('.toc-item-delete'), 'das Loeschkreuz im Verzeichnis ist weg');
-          ok(all('.toc-item').length === 2, 'beide Seiten im Verzeichnis: ' + all('.toc-item').length);
+          ok(all('.toc-panel .toc-item').length === 2, 'beide Seiten im Verzeichnis: ' + all('.toc-panel .toc-item').length);
           log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
           out();
         }, 500);
@@ -170,7 +170,7 @@ schreiben = r"""
           setTimeout(function () {
             q('.menu-toggle').click();
             setTimeout(function () {
-              var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+              var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
               ok(titel.indexOf('Gamma') >= 0, 'die neue Seite steht im Verzeichnis: ' + titel.join('|'));
               log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
               out();

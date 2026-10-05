@@ -132,9 +132,9 @@ pruefskript = r"""
         ok(q('.preview') && q('.preview').textContent.indexOf('alert(1)') >= 0, 'Inhalt mit spitzen Klammern da');
         q('.menu-toggle').click();
         setTimeout(function () {
-          var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+          var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
           ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge aus der Datei: ' + titel.join('|'));
-          ok(all('.toc-grip').length === 3, 'Griffe vorhanden: ' + all('.toc-grip').length);
+          ok(all('.toc-panel .toc-grip').length === 3, 'Griffe vorhanden: ' + all('.toc-panel .toc-grip').length);
           q('.settings-toggle').click();
           setTimeout(function () {
             ok(!!knopf('Als Datei sichern|Save as file') && !!knopf('JSON') && !!knopf('Datei laden|Load file'),

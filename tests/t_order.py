@@ -21,10 +21,10 @@ script = r"""
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function head(m) { log.push('--- ' + m); out(); }
-      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function gespeichert() { return JSON.parse(localStorage.getItem('simplewiki_pages')).map(function (p) { return p.title; }); }
-      function zeile(i) { return all('.toc-item')[i]; }
-      function grips() { return all('.toc-grip'); }
+      function zeile(i) { return all('.toc-panel .toc-item')[i]; }
+      function grips() { return all('.toc-panel .toc-grip'); }
       /* Erwartung selbst berechnen: die Seite von Position "von" wird
          vor Position "nach" geschoben. */
       function erwartet(vorher, von, nach) {
@@ -152,7 +152,7 @@ script2 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function gespeichert() { return JSON.parse(localStorage.getItem('simplewiki_pages')).map(function (p) { return p.title; }); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
@@ -165,17 +165,17 @@ script2 = r"""
           setTimeout(function () {
             var vorher = gespeichert().join('|');
             ok(titel().join('|') === 'Drei', 'gefiltert: ' + titel().join('|'));
-            ok(all('.toc-grip')[0].getAttribute('draggable') === 'false', 'Griff ist gesperrt');
-            ok(all('.toc-grip')[0].className.indexOf('ist-ruhig') >= 0, 'Griff sieht gesperrt aus');
+            ok(all('.toc-panel .toc-grip')[0].getAttribute('draggable') === 'false', 'Griff ist gesperrt');
+            ok(all('.toc-panel .toc-grip')[0].className.indexOf('ist-ruhig') >= 0, 'Griff sieht gesperrt aus');
             ok(q('.toc-hint').textContent.indexOf('Suche') >= 0, 'Hinweis nennt die Suche: ' + q('.toc-hint').textContent.trim());
-            all('.toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
-            all('.toc-item')[0].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }));
+            all('.toc-panel .toc-item')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', altKey: true, bubbles: true, cancelable: true }));
+            all('.toc-panel .toc-item')[0].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() }));
             setTimeout(function () {
               ok(gespeichert().join('|') === vorher, 'Reihenfolge unveraendert: ' + gespeichert().join('|'));
               suche.value = '';
               suche.dispatchEvent(new Event('input', { bubbles: true }));
               setTimeout(function () {
-                ok(all('.toc-grip')[0].getAttribute('draggable') === 'true', 'nach dem Leeren wieder ziehbar');
+                ok(all('.toc-panel .toc-grip')[0].getAttribute('draggable') === 'true', 'nach dem Leeren wieder ziehbar');
                 ok(titel().length === 4, 'alle Zeilen wieder da: ' + titel().join('|'));
                 log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                 out();

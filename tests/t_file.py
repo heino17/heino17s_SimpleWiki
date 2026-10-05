@@ -119,7 +119,7 @@ script1 = r"""
                    schon wieder weg sein. */
                 merken();
                 if (gemeldet.length || versuche > 90) {
-                  var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+                  var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
                   ok(titel.join('|') === 'Alpha|Beta|Gamma', 'Reihenfolge nach dem Laden: ' + titel.join('|'));
                   ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich gespeichert');
                   ok(gemeldet.join(' | ').indexOf('3') >= 0, 'Hinweis nennt die Seitenzahl: ' + (gemeldet.join(' | ') || 'KEINER'));
@@ -177,7 +177,7 @@ script2 = r"""
           setTimeout(warten, 200);
         })();
       }
-      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
@@ -229,9 +229,9 @@ script3 = r"""
         ok(q('.header .menu-toggle').textContent.trim() === '☰', 'Kopfzeile da');
         q('.menu-toggle').click();
         setTimeout(function () {
-          var titel = all('.toc-item-title').map(function (t) { return t.textContent.trim(); });
+          var titel = all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); });
           ok(titel.join('|') === 'Aus der Datei|Zweite|Dritte', 'Reihenfolge aus der Datei: ' + titel.join('|'));
-          ok(!!q('.toc-item.active .toc-item-title') || all('.toc-item')[2].className.indexOf('active') >= 0, 'Dritte ist markiert');
+          ok(!!q('.toc-panel .toc-item.active .toc-item-title') || all('.toc-panel .toc-item')[2].className.indexOf('active') >= 0, 'Dritte ist markiert');
           ok(document.body.className.indexOf('dark') >= 0, 'dunkle Farbe aus der Datei');
           ok(q('.settings-toggle').getAttribute('title') === 'Settings', 'englische Oberflaeche: ' + q('.settings-toggle').getAttribute('title'));
           ok(JSON.parse(localStorage.getItem('simplewiki_pages')).length === 3, 'und gleich in den Browser uebernommen');

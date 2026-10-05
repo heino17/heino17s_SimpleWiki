@@ -44,7 +44,7 @@ teil1 = r"""
       function all(s) { return [].slice.call(document.querySelectorAll(s)); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
-      function titel() { return all('.toc-item-title').map(function (t) { return t.textContent.trim(); }); }
+      function titel() { return all('.toc-panel .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function ende() { log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN')); out(); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
       window.addEventListener('unhandledrejection', function (e) {
@@ -167,7 +167,7 @@ teil3 = r"""
            'der Browser liefert die Seite: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
         ok(!q('.mws-hinweis'), 'kein Serverhinweis');
         ok(!q('.nurlesen-hinweis'), 'kein Nur-Lesen-Hinweis');
-        ok(all('.toc-item-title').length === 1, 'genau eine Seite: ' + all('.toc-item-title').length);
+        ok(all('.toc-panel .toc-item-title').length === 1, 'genau eine Seite: ' + all('.toc-panel .toc-item-title').length);
         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
       }, 2500);

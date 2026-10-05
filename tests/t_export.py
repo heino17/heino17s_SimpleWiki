@@ -2,7 +2,7 @@ import sys, io, re, json, subprocess, os, html as htmlmod
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mkcopy
 from mkcopy import build
-from _hilfe import dumpdom, bericht, ziel
+from _hilfe import dumpdom, bericht, ziel, zahlen
 mkcopy.EXTRA_REPLACEMENTS = []
 
 seiten = [
@@ -81,10 +81,13 @@ build('_exp1.html', teil1, seiten)
 
 dom = dumpdom('_exp1.html', budget=90000)
 fehler_gesamt = 0
+bestanden_gesamt = 0
 
 print('=== Teil 1: Export im Browser ===')
-print(bericht(dom))
-fehler_gesamt += len(re.findall(r'(?m)^FAIL ', bericht(dom)))
+teil1_text = bericht(dom)
+print(teil1_text if teil1_text else 'KEIN REPORT')
+bestanden_gesamt, f1 = zahlen(teil1_text)
+fehler_gesamt += f1
 
 # ---------------------------------------------------------------- Teil 2
 # Die gesicherte Datei wirklich auf die Platte schreiben und öffnen.
@@ -159,7 +162,11 @@ print('\n=== Teil 3: gesicherte Datei wieder geoeffnet ===')
 teil3 = bericht(dumpdom('_exportiert.html', budget=90000))
 print(teil3 if teil3 else 'KEIN REPORT')
 fehler_gesamt += len(re.findall(r'(?m)^FAIL ', teil3))
+bestanden_gesamt += zahlen(teil3)[0]
 
 print()
 print('>>> ' + ('%d FEHLGESCHLAGEN' % fehler_gesamt if fehler_gesamt else 'ALLE BESTANDEN'))
+# Ohne diese Zeile zaehlt dieser Test in der Suite als null: alle
+# Pruefungen laufen, ihre Zahl kommt aber nirgends an.
+print('GESAMT: %d bestanden, %d fehlgeschlagen' % (bestanden_gesamt, fehler_gesamt))
 sys.exit(1 if fehler_gesamt else 0)

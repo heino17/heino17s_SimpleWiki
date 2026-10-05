@@ -15,7 +15,9 @@ python3 tests/t_order.py         # einen einzelnen Test
 Endcode 0 heißt: alles bestanden. Endcode 1 heißt: mindestens eine Prüfung
 ist fehlgeschlagen – dann nennt die Ausgabe den Namen der Prüfung.
 
-Zwei Abhängigkeiten: **python3** und **chromium** im Pfad.
+Grundabhängigkeiten: **python3** und **chromium** im Pfad. Für die beiden
+Drucktests kommen **`pdfinfo`** und **`pdftotext`** dazu (poppler-utils) — sie
+lesen das erzeugte PDF aus und sagen, was wirklich drinsteht.
 
 ## Nach jeder Änderung an `simplewiki.html` provisionieren
 
@@ -31,9 +33,10 @@ warum die eigene Änderung nicht ankommt, hat fast immer diesen Schritt
 vergessen; der Befehl meldet `Template "SimpleWiki" updated`, danach muss
 der Browser nur noch hart neu laden (Strg+Umschalt+R).
 
-Ein Test steht nicht in `alle.py`, weil er einen Server startet: `live_mws.py`
-prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur aus
-`mwsserver.py`.
+Ein Test steht nicht in `alle.py`, weil er einen **echten** Server startet:
+`live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur
+aus `mwsserver.py`. Fünf weitere Tests starten zwar auch einen Server — aber den
+kleinen aus `mwsserver.py`, und genau deshalb gehören sie in `alle.py`.
 
 ```bash
 python3 tests/live_mws.py            # die Wiki wikiwise-booklet
@@ -72,8 +75,10 @@ sondern die Bibliothek — die wird hier geladen und über HTTP gesprochen.
 |---|---|
 | `alle.py` | führt alle Tests nacheinander aus und sammelt die Zahlen |
 | `_hilfe.py` | Chromium starten, Bericht auslesen, Gesamtzahl melden |
-| `live_mws.py` | **Live-Check gegen ein echtes MWS** (nicht in `alle.py`, siehe oben) |
 | `mkcopy.py` | baut die Testkopie: Testseiten in `localStorage`, optional Daten aus der Datei, Testskript vor `</body>` |
+| `mwsserver.py` | der Testserver: Routen, Rechte, Sitzung, Fehler auf Kommando |
+| `mwsfixture.py` | baut eine **Datei**, die so aussieht, als käme sie vom MWS |
+| `live_mws.py` | **Live-Check gegen ein echtes MWS** (nicht in `alle.py`, siehe oben) |
 
 Alle Kopien, PDFs und Zwischenstände landen in `tests/_kopien/` und werden
 nicht committet. Der Ordner lässt sich jederzeit löschen.
@@ -89,16 +94,35 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_dupen.py` | dasselbe in englischer Oberfläche |
 | `t_wikisyn.py` | `[[Seite]]` und `[[Text\|Seite]]`, Code bleibt Code |
 | `t_refs.py` | Verweis-Panel, Zähler, gespeicherter Zustand |
-| `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge, schmale Fenster |
+| `t_kopf.py` | Fluss-Knopf im Kopf: Umschalten, Reihenfolge der Knöpfe, **schmale Fenster** |
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
+| `t_mwsmode.py` | **Betrieb auf einem MWS-Server** in zwölf Durchgängen: Marker, Speicher, Schreiben, 403, leere Wiki, Umbenennen, Serverausfall |
 | `t_anmeldung.py` | **Anmeldung und Schreibrechte: Statusabfrage, Name im Kopf, ausgeblendete Schreibknöpfe** |
 | `t_login.py` | **Anmelden und abmelden: Link auf `/login?redirect=…`, Rückweg in diese Wiki, `POST /logout`, der Fall, dass es nicht klappt** |
-| `t_leerwiki.py` | Leere Wiki-Datei, Vorlage füllen und öffnen, Angaben oben |
+| `t_speicher.py` | **eine Speicherabstraktion, zwei Ausprägungen: derselbe Vertrag in Browser und Server, und dass die laufende App ihn wirklich benutzt** |
+| `t_mwsdatei.py` | **MWS-Modus an einer Datei: Auswahl am Marker, Verweise, Schreiben aus einer Datei und die sichtbare Fehlermeldung** |
+| `t_abnahme.py` | **die fünf Abnahmepunkte: kein Nachladen, Doppelklick ohne Netz, Änderung bleibt, Store von außen** |
+| `t_leerwiki.py` | leere Wiki-Datei, Vorlage füllen und öffnen, Angaben oben |
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |
 | `t_scroll.py` | Scrollen im Fluss bei kurzem Fenster, Druck über mehrere Seiten |
+
+### Zwei Fallen, in die diese Suite schon getappt ist
+
+**Ein Test, der nie läuft, ist grün.** `pruefe()` beendet das Skript — stand
+ein Aufruf davon hinter einem `sys.exit`, lief er nie und niemand sah es, weil
+das Skript danach ohnehin mit 0 endete. Zwei Dateien waren so gebaut
+(`t_kopf.py`, `t_leerwiki.py`); beide melden ihre Prüfungen heute über
+`pruefe()`, und ein absichtlich scheiternder Test wird rot.
+
+**Eine Prüfung ohne Zahl ist eine Prüfung ohne Wirkung.** `alle.py` zählt nur,
+was als `GESAMT: N bestanden, M fehlgeschlagen` dasteht. Ein Skript, das seine
+Fehler zählt, aber seine bestandenen Prüfungen nicht meldet, trägt zur
+Gesamtzahl **null** bei — die Prüfungen laufen, die Zahl lügt. Drei Dateien
+waren so gebaut (`t_leerwiki.py`, `t_export.py`, `t_fluss.py`). Jedes Skript
+meldet deshalb eine `GESAMT:`-Zeile, und `alle.py` liest keine andere.
 
 ## Zwei Lehren aus den Tests
 

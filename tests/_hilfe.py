@@ -17,7 +17,6 @@ import html as htmlmod
 HIN = os.path.dirname(os.path.abspath(__file__))
 PROJEKT = os.path.dirname(HIN)
 KOPIEN = os.path.join(HIN, '_kopien')
-PROJEKTDATEI = os.path.join(PROJEKT, 'simplewiki.html')
 
 CHROMIUM = 'chromium'
 
@@ -84,22 +83,34 @@ def vollstaendig(text):
     return any(l.startswith('>>>') for l in text.split('\n'))
 
 
-def pruefe(*dateien):
+def pruefe(*dateien, fenster=None, schon_fehler=0):
     """Kopien in Chromium oeffnen, Berichte ausgeben, Programmcode setzen.
 
     Die Berichte sehen so aus:
         OK   ...
         FAIL ...
         >>> ALLE 12 BESTANDEN
+
+    'fenster' ist ein Verzeichnis aus {Name der Kopie: Groesse} fuer
+    Kopien, die ein anderes Fenster brauchen als das Standardfenster -
+    zum Beispiel ein sehr schmales. Ohne diesen Schalter laeuft jede
+    Kopie in der normalen Fensterbreite.
+
+    'schon_fehler' sind Fehler, die ein voriger Teil desselben Skripts
+    gefunden und selbst gezaehlt hat. Sie wandern in die Gesamtzahl und
+    machen den Lauf rot - sonst wuerde der Aufruf hier den Exitcode
+    wieder vergeben und der Skript-Teil waere still verloren.
     """
+    fenster = fenster or {}
     gesamt_ok = 0
-    gesamt_fehler = 0
+    gesamt_fehler = schon_fehler
     zeilen = []
     for pfad in dateien:
         name = os.path.basename(pfad)
 
         def lauf_budget(doppelt=False):
-            return dumpdom(name, budget=240000 if doppelt else 120000)
+            return dumpdom(name, fenster=fenster.get(name),
+                           budget=240000 if doppelt else 120000)
 
         dom = lauf_budget()
         text = bericht(dom)
@@ -113,7 +124,7 @@ def pruefe(*dateien):
         # Maschine und nicht ueber das Programm. Ein abgebrochener Lauf
         # (Bericht ohne Abschlusszeile) zaehlt genauso.
         #
-        # Drei Versuche, weil die Suite inzwischen 17 Dateien mit
+        # Drei Versuche, weil die Suite inzwischen 21 Dateien mit
         # dutzenden Browserlaeufen abarbeitet. Die Versuche kosten nur
         # etwas, wenn ohnehin etwas schiefgeht.
         for versuch in range(2):
@@ -156,13 +167,8 @@ def pruefe(*dateien):
     for z in zeilen:
         print(z)
     print()
+    if schon_fehler:
+        print('(%d Fehler aus den vorangegangenen Teilen dieses Skripts)' % schon_fehler)
+        print()
     print('GESAMT: %d bestanden, %d fehlgeschlagen' % (gesamt_ok, gesamt_fehler))
     sys.exit(1 if gesamt_fehler else 0)
-
-
-def ende(fails):
-    """Testende: Bericht abschliessen und den Programmcode setzen."""
-    print()
-    print('>>> ' + ('%d FEHLGESCHLAGEN' % fails if fails else
-                   'ALLE BESTANDEN'))
-    sys.exit(1 if fails else 0)

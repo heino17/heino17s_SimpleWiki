@@ -2,7 +2,7 @@ import sys, io, re, subprocess, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mkcopy
 from mkcopy import build
-from _hilfe import dumpdom, bericht, KOPIEN
+from _hilfe import dumpdom, bericht, KOPIEN, zahlen
 import html as H
 
 # Der Report-Block des Tests darf nicht mitgedruckt werden.
@@ -155,7 +155,7 @@ build('_fluss1.html', script, seiten, startpage='z')
 text = bericht(dumpdom('_fluss1.html', budget=150000))
 print('=== Fluss im Browser ===')
 print(text if text else 'KEIN REPORT')
-fehler_browser = len(re.findall(r'(?m)^FAIL ', text))
+bestanden_browser, fehler_browser = zahlen(text)
 
 # ---------------------------------------------------------------- Drucken
 pdf = os.path.join(KOPIEN, '_fluss_druck.pdf')
@@ -175,20 +175,28 @@ if os.path.exists(pdf):
     txt = subprocess.run(['pdftotext', pdf, '-'], capture_output=True, text=True).stdout
     alles = ' '.join(txt.split())
     fehler = 0
+    bestanden_druck = 0
     for erwartet in ['Zwiebeln sind scharf', 'Man kocht sie mit', 'Leere Seite', 'ohne Text']:
         da = erwartet in alles
         fehler += 0 if da else 1
+        bestanden_druck += 1 if da else 0
         print('  %-22s %s' % (erwartet, 'ja' if da else 'NEIN'))
     for unerwartet in ['Neue Seite', 'Einstellungen', 'Bearbeiten', 'Speichern', 'Fluss – alle Seiten']:
         weg = unerwartet not in alles
         fehler += 0 if weg else 1
+        bestanden_druck += 1 if weg else 0
         print('  %-22s %s' % ('ohne ' + unerwartet, 'ok' if weg else 'NOCH DA'))
     print('\n>>> Druckansicht: ' + ('BESTANDEN' if fehler == 0 else '%d FEHLGESCHLAGEN' % fehler))
     gesamt = fehler_browser + fehler
 else:
     print('   PDF wurde nicht erzeugt')
     gesamt = fehler_browser + 1
+    bestanden_druck = 0
 
 print()
 print('>>> ' + ('%d FEHLGESCHLAGEN' % gesamt if gesamt else 'ALLE BESTANDEN'))
+# Ohne diese Zeile zaehlt dieser Test in der Suite als null: die Pruefungen
+# im Browser und die am PDF laufen, ihre Zahl kommt aber nirgends an.
+print('GESAMT: %d bestanden, %d fehlgeschlagen'
+      % (bestanden_browser + bestanden_druck, gesamt))
 sys.exit(1 if gesamt else 0)

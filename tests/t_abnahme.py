@@ -33,8 +33,11 @@ def melde(name, treffer, moeglich):
     """Ein Abnahmepunkt mit seinem Namen."""
     global fehler_gesamt, bestanden_gesamt
     ok = treffer == moeglich
-    bestanden_gesamt += 1
-    if not ok:
+    # Entweder bestanden oder fehlgeschlagen, nicht beides: ein
+    # durchgefallener Punkt darf die Zahl der bestandenen nicht heben.
+    if ok:
+        bestanden_gesamt += 1
+    else:
         fehler_gesamt += 1
     print('%-4s %-46s %s' % ('OK' if ok else 'FAIL', name,
                              treffer if ok else '%s (erwartet: %s)' % (treffer, moeglich)))
@@ -274,7 +277,9 @@ skript4 = abnahme_durchgang("""
         }, 2800);
 """)
 
-kopie4 = bauen('_abnahme_store.html', TIDDLER, skript=skript4)
+# Diese Kopie wird nicht gebaut: Punkt 4 und 5 laufen gegen den echten
+# Testserver, nicht gegen eine Datei. Eine Kopie zu bauen, die niemand
+# oeffnet, hat hier schon einmal Spuren in tests/_kopien/ hinterlassen.
 
 # ---------------------------------------------------------------- Ausfuehren
 print('=== 1b. Chromium findet Aufbau und Store-Punkt ===')

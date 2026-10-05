@@ -185,8 +185,15 @@ else:
     print('FEHLER: Kopie 2 hat die Datei nicht geliefert')
     sys.exit(1)
 
+# Der Bericht aus diesem Lauf gehoert mit gezaehlt. Aus diesem Lauf
+# wird die Datei geholt, und ohne ihn waeren die Pruefungen aus Teil 2
+# nie ausgezaehlt worden - ein roter Lauf waere still gruen.
+print('\n--- Kopie 2: leere Datei erzeugt ---')
+bericht_teil2 = bericht(dom)
+print(bericht_teil2 if bericht_teil2 else 'KEIN REPORT')
+fehler = len(re.findall(r'(?m)^FAIL ', bericht_teil2)) if bericht_teil2 else 1
+
 print('\n--- Leere Datei von aussen beurteilt ---')
-fehler = 0
 ist_ok = lambda c, t: print('  %-46s %s' % (t, 'ok' if c else 'FEHLER')) or (0 if c else 1)
 
 fehler += ist_ok(exportiert.startswith('<!DOCTYPE html>'), 'beginnt mit doctype')
@@ -255,12 +262,9 @@ if not app_da(dom2):
     text2 = text2 or 'KEIN REPORT'
 print(text2)
 
-print()
-print('>>> ' + ('ALLE BESTANDEN' if fehler == 0 else '%d FEHLGESCHLAGEN' % fehler))
-sys.exit(1 if fehler else 0)
-
 # ---------------------------------------------------------------- Teil 4
-# Die beiden Browser-Kopien am Ende durchlaufen lassen; pruefe() beendet
-# das Skript und gibt den Exitcode vor.
-print()
-pruefe(kopie1, kopie2)
+# Teil 1 jetzt wirklich laufen lassen: die beiden Kopien am Ende, mit
+# den Fehlern aus den vorangegangenen Teilen verrechnet. Vorher stand
+# dieser Aufruf hinter dem sys.exit und lief nie - die Pruefungen fuer
+# die oberen Fremdfelder wurden nie ausgefuehrt.
+pruefe(kopie1, schon_fehler=fehler)

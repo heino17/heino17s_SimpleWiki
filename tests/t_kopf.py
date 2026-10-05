@@ -95,7 +95,10 @@ script2 = r"""
         k.click();
         setTimeout(function () {
           ok(!!q('.fluss'), 'Fluss laesst sich auch schmal oeffnen');
-          log.push(''); log.push('>>> ' + (log.filter(function (l) { return /^FAIL/.test(l); }).length + ' FEHLGESCHLAGEN' || 'ALLE BESTANDEN'));
+          var n = log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length;
+          var f = log.filter(function (l) { return /^FAIL/.test(l); }).length;
+          log.push('');
+          log.push('>>> ' + (f ? f + ' FEHLGESCHLAGEN' : 'ALLE ' + n + ' BESTANDEN'));
           out();
         }, 700);
       }, 1500);
@@ -104,17 +107,8 @@ script2 = r"""
 """
 kopie2 = build('_kopf2.html', script2, seiten, startpage='1')
 
-# Teil 2 braucht ein schmales Fenster - pruefe() startet immer mit dem
-# Standardfenster, darum laeuft diese Kopie hier gesondert.
-from _hilfe import dumpdom, bericht
-import re as _re
-text = bericht(dumpdom('_kopf2.html', fenster='380,700', budget=60000))
-print('_kopf2.html (Fenster 380x700)')
-print(text if text else 'KEIN REPORT')
-schlecht = len(_re.findall(r'(?m)^FAIL ', text))
-if not text:
-    schlecht += 1
-
-pruefe(kopie1)
-_ende = sys.exit
-sys.exit(1 if schlecht else 0)
+# Beide Kopien laufen durch dieselbe Stelle: so zaehlt Teil 2 in der
+# Gesamtzahl mit, und ein Fehlschlag im schmalen Fenster macht den
+# Lauf rot. Teil 2 braucht ein schmales Fenster - das wird ihm hier
+# mitgegeben, statt es nebenbei zu umgehen.
+pruefe(kopie1, kopie2, fenster={'_kopf2.html': '380,700'})

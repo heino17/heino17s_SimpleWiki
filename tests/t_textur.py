@@ -140,7 +140,7 @@ merde('die Farbe steht an beiden Benutzern direkt',
       len(re.findall(r'radial-gradient\(var\(--textur-inhalt\)', quelle)), 2)
 merde('und die Schraffur ebenso',
       bool(re.search(r'var\(--textur-kopf\)', quelle)), True)
-merde('die Farbe ist je Modus an genau einer Stelle ueberschrieben',
-      len(re.findall(r'--textur-inhalt:', quelle)), 2)   # hell und dunkel
+merde('die Farbe ist je Welt und je Modus an genau einer Stelle ueberschrieben',
+      len(re.findall(r'--textur-inhalt:', quelle)), 8)   # :root, dark-mode, 3 Welten x 2 Modi
 
 pruefe(kopie, schon_fehler=fehler_d)

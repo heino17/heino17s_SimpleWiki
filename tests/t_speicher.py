@@ -25,7 +25,7 @@ teil1 = r"""
     (function () {
       var log = [], fails = 0;
       var VERTRAG = ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen',
-                     'startseiteSetzen', 'themaSetzen', 'spracheSetzen'];
+                     'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'];
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
@@ -91,11 +91,12 @@ teil1 = r"""
 
         log.push('--- Und das laeuft im laufenden Betrieb wirklich ueber den Vertrag');
         var benutzt = [];
-        ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'spracheSetzen'].forEach(function (m) {
+        ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'].forEach(function (m) {
           var original = sp.SPEICHER[m];
           sp.SPEICHER[m] = function () { benutzt.push(m); return original.apply(this, arguments); };
         });
         var gespeichert = JSON.parse(localStorage.getItem('simplewiki_pages') || '[]');
+        var palStand = localStorage.getItem('simplewiki_palette');
         document.querySelectorAll('.toc-item-title')[0].click();
         setTimeout(function () {
           var bearbeiten = [].slice.call(document.querySelectorAll('.footer .btn')).filter(function (b) { return /Bearbeiten|Edit/.test(b.textContent); })[0];
@@ -111,12 +112,23 @@ teil1 = r"""
                 ok(benutzt.indexOf('themaSetzen') >= 0, 'beim Farbwechsel: ' + benutzt.join('|'));
                 document.querySelector('.settings-toggle').click();
                 setTimeout(function () {
-                  var aus = document.getElementById('settings-startpage');
-                  var anders = [].slice.call(aus.options).filter(function (o) { return o.value && o.value !== aus.value; })[0];
-                  if (anders) { aus.value = anders.value; aus.dispatchEvent(new Event('change', { bubbles: true })); }
+                  var pal = document.getElementById('settings-palette');
+                  var andere = [].slice.call(pal.options).filter(function (o) { return o.value && o.value !== pal.value; })[0];
+                  if (andere) { pal.value = andere.value; pal.dispatchEvent(new Event('change', { bubbles: true })); }
                   setTimeout(function () {
-                    ok(benutzt.indexOf('startseiteSetzen') >= 0, 'beim Wechsel der Startseite: ' + benutzt.join('|'));
-                    ende();
+                    ok(benutzt.indexOf('paletteSetzen') >= 0, 'beim Wechsel der Farbwelt: ' + benutzt.join('|'));
+                    var jetzt = localStorage.getItem('simplewiki_palette');
+                    ok(jetzt === 'nord', 'Farbwelt steht im Speicher: ' + jetzt);
+                    /* Den Stand zurueckbauen, damit dieser Lauf nichts hinterlaesst. */
+                    if (palStand === null) localStorage.removeItem('simplewiki_palette');
+                    else localStorage.setItem('simplewiki_palette', palStand);
+                    var aus = document.getElementById('settings-startpage');
+                    var anders = [].slice.call(aus.options).filter(function (o) { return o.value && o.value !== aus.value; })[0];
+                    if (anders) { aus.value = anders.value; aus.dispatchEvent(new Event('change', { bubbles: true })); }
+                    setTimeout(function () {
+                      ok(benutzt.indexOf('startseiteSetzen') >= 0, 'beim Wechsel der Startseite: ' + benutzt.join('|'));
+                      ende();
+                    }, 700);
                   }, 700);
                 }, 700);
               }, 700);
@@ -137,7 +149,7 @@ teil2 = r"""
     (function () {
       var log = [], fails = 0;
       var VERTRAG = ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen',
-                     'startseiteSetzen', 'themaSetzen', 'spracheSetzen'];
+                     'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'];
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
@@ -161,8 +173,8 @@ teil2 = r"""
         var g = sp.SPEICHER.laden();
         ok(g.vorhanden === true, 'vorhanden: ' + g.vorhanden);
         ok(g.seiten.length === 2, 'zwei Seiten: ' + g.seiten.length);
-        ok(g.thema === '' && g.sprache === '',
-           'ohne sprache und thema auf der Startseite: ' + g.thema + '/' + g.sprache);
+        ok(g.thema === '' && g.sprache === '' && g.palette === '',
+           'ohne sprache, thema und palette auf der Startseite: ' + g.thema + '/' + g.sprache + '/' + g.palette);
         ok(g.wikiTitel === 'Vertrag', 'wikiTitel: ' + g.wikiTitel);
         ok(g.nurLesen === false, 'nurLesen: ' + g.nurLesen);
         ok(g.startseite === 'a1',

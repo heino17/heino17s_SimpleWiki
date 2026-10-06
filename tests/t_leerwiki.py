@@ -205,9 +205,10 @@ fehler += ist_ok(daten.get('version') == 1, 'version: %s' % daten.get('version')
 fehler += ist_ok(daten.get('seiten') == [], 'seiten ist leer: %r' % daten.get('seiten'))
 fehler += ist_ok(daten.get('startseite') == '', 'startseite leer: %r' % daten.get('startseite'))
 fehler += ist_ok('sprache' in daten and 'thema' in daten, 'sprache und thema vorhanden')
+fehler += ist_ok('palette' in daten, 'palette vorhanden')
 fehler += ist_ok('class="header"' in exportiert, 'Oberflaeche vorhanden')
 fehler += ist_ok('VORLAGE_HTML' in exportiert, 'Anwendungscode vorhanden')
-fehler += ist_ok(len(daten) == 5, 'genau die fuenf bekannten Felder: %s' % sorted(daten.keys()))
+fehler += ist_ok(len(daten) == 6, 'genau die sechs bekannten Felder: %s' % sorted(daten.keys()))
 
 # Jetzt tun, was die fremde Anwendung tut: die Insel fuellen
 mit_inhalt = dict(daten)

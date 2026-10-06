@@ -26,6 +26,10 @@
           startseite eine id, keine Überschrift.
           sprache    "de" | "en" – nur was SimpleWiki kennt.
           thema      "light" | "dark".
+          palette    "pergament" | "nord" | "wacholder" | "sol" – die
+                     Farbwelt. Fehlt das Feld, gilt Pergament (die
+                     Werte oben). thema sagt weiterhin Hell/Dunkel;
+                     die Palette und der Modus sind getrennte Achsen.
 
         Verweise im Text
           [[Ziel]]  oder  [[Beschriftung|Ziel]]  oder
@@ -394,6 +398,148 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                Hellen ein dunkler. */
             --textur-kopf: rgba(245, 240, 225, 0.05);
             --textur-inhalt: rgba(245, 240, 225, 0.05);
+        }
+
+        /* Farbwelten.
+
+           :root und body.dark-mode darueber sind die erste Welt
+           (Pergament) in beiden Modi. Wer eine andere Farbe will,
+           bekommt sie als Klasse am body: body.pal-<welt> ist die
+           helle, body.dark-mode.pal-<welt> die dunkle Auspraegung.
+           Beide zusammen stehen heisser als die Basis - deshalb
+           gewinnen sie im Dunkeln.
+
+           Die Textur ist je Welt neu gesetzt, damit die hellen Zahlen
+           von Pergament nicht in eine andere Welt hineingezeichnet
+           werden: eine Variable loest ihre Verweise dort auf, wo sie
+           deklariert ist (siehe der Kommentar am Punktraster). Das
+           alpha bleibt je Welt gleich, damit sich nur die Farbe
+           aendert und nicht die Staerke. */
+        body.pal-nord {
+            --bg-primary: #eceff4;
+            --bg-secondary: #f7f9fc;
+            --bg-hover: #e2e8f0;
+            --bg-active: #d8dee9;
+            --text-primary: #2e3440;
+            --text-secondary: #4c5866;
+            --text-muted: #77828f;
+            --border-color: #d3dbe6;
+            --accent-color: #5e81ac;
+            --accent-hover: #4c73a0;
+            --danger-color: #bf616a;
+            --danger-hover: #ac4c55;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #e5ebf3;
+            --blockquote-border: #5e81ac;
+            --table-header-bg: #e5ebf3;
+            --textur-kopf: rgba(46, 52, 64, 0.045);
+            --textur-inhalt: rgba(46, 52, 64, 0.05);
+        }
+        body.dark-mode.pal-nord {
+            --bg-primary: #2e3440;
+            --bg-secondary: #3b4252;
+            --bg-hover: #434c5e;
+            --bg-active: #4c566a;
+            --text-primary: #eceff4;
+            --text-secondary: #d8dee9;
+            --text-muted: #a5b0bf;
+            --border-color: #4f5a6e;
+            --accent-color: #88c0d0;
+            --accent-hover: #6fb5c7;
+            --danger-color: #cf6d76;
+            --danger-hover: #bf616a;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #3b4252;
+            --blockquote-border: #88c0d0;
+            --table-header-bg: #3b4252;
+            --textur-kopf: rgba(236, 239, 244, 0.05);
+            --textur-inhalt: rgba(236, 239, 244, 0.05);
+        }
+        body.pal-wacholder {
+            --bg-primary: #f5f2e7;
+            --bg-secondary: #fcfaf2;
+            --bg-hover: #ebe6d4;
+            --bg-active: #ddd6be;
+            --text-primary: #3b3420;
+            --text-secondary: #625940;
+            --text-muted: #857a5c;
+            --border-color: #dcd4b8;
+            --accent-color: #6f7d33;
+            --accent-hover: #5d6a2a;
+            --danger-color: #a6452f;
+            --danger-hover: #923a27;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #eae5d2;
+            --blockquote-border: #6f7d33;
+            --table-header-bg: #eae5d2;
+            --textur-kopf: rgba(59, 52, 32, 0.045);
+            --textur-inhalt: rgba(59, 52, 32, 0.05);
+        }
+        body.dark-mode.pal-wacholder {
+            --bg-primary: #26251b;
+            --bg-secondary: #322f22;
+            --bg-hover: #3b3727;
+            --bg-active: #48422e;
+            --text-primary: #efecca;
+            --text-secondary: #c9c49f;
+            --text-muted: #a09876;
+            --border-color: #4b4530;
+            --accent-color: #a3ad4e;
+            --accent-hover: #919b41;
+            --danger-color: #d06a4c;
+            --danger-hover: #ba5a40;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #322f22;
+            --blockquote-border: #a3ad4e;
+            --table-header-bg: #322f22;
+            --textur-kopf: rgba(239, 236, 202, 0.05);
+            --textur-inhalt: rgba(239, 236, 202, 0.05);
+        }
+        body.pal-sol {
+            --bg-primary: #f8f1dc;
+            --bg-secondary: #fdf6e3;
+            --bg-hover: #eee8d5;
+            --bg-active: #e2d9bd;
+            --text-primary: #586e75;
+            --text-secondary: #657b83;
+            --text-muted: #839496;
+            --border-color: #d9d2b9;
+            --accent-color: #268bd2;
+            --accent-hover: #1f77b8;
+            --danger-color: #dc322f;
+            --danger-hover: #c92c29;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #eee8d5;
+            --blockquote-border: #268bd2;
+            --table-header-bg: #eee8d5;
+            --textur-kopf: rgba(88, 110, 117, 0.045);
+            --textur-inhalt: rgba(88, 110, 117, 0.05);
+        }
+        body.dark-mode.pal-sol {
+            --bg-primary: #002b36;
+            --bg-secondary: #073642;
+            --bg-hover: #0e4350;
+            --bg-active: #15505e;
+            --text-primary: #93a1a1;
+            --text-secondary: #839496;
+            --text-muted: #657b83;
+            --border-color: #134c59;
+            --accent-color: #268bd2;
+            --accent-hover: #3a9adf;
+            --danger-color: #e0524f;
+            --danger-hover: #dc322f;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #073642;
+            --blockquote-border: #268bd2;
+            --table-header-bg: #073642;
+            --textur-kopf: rgba(147, 161, 161, 0.05);
+            --textur-inhalt: rgba(147, 161, 161, 0.05);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -2378,6 +2524,15 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </select>
                 </div>
                 <div class="settings-section">
+                    <label class="settings-label" for="settings-palette">{{ t('palette') }}</label>
+                    <select id="settings-palette" class="select-input" v-model="palette" @change="changePalette">
+                        <option v-for="p in paletten" :key="p.id" :value="p.id">
+                            {{ p.name }}
+                        </option>
+                    </select>
+                    <p class="settings-hint">{{ t('paletteHint') }}</p>
+                </div>
+                <div class="settings-section">
                     <label class="settings-label" for="settings-startpage">{{ t('startPage') }}</label>
                     <select id="settings-startpage" class="select-input" v-model="startPageId" @change="changeStartPage">
                         <option v-for="p in pages" :key="p.id" :value="p.id">
@@ -2545,6 +2700,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "contentPlaceholder": "Schreibe hier... (Markdown wird unterstützt)",
                     "untitled": "Neue Seite",
                     "language": "Sprache",
+                    "palette": "Farbwelt",
+                    "paletteHint": "Wählt die Farbstimmung des Wikis. Der 🌙/☀️-Knopf oben schaltet darin Hell und Dunkel.",
+                    "palettePergament": "Pergament",
+                    "paletteNord": "Nord",
+                    "paletteWacholder": "Wacholder",
+                    "paletteSol": "Sol",
                     "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nurLesenKurz": "Nur lesen",
                     "nichtAngemeldet": "Du bist an diesem Wiki nicht angemeldet. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
@@ -2623,6 +2784,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "searchFound": "{zahl} found",
                     "searchReset": "Reset search",
                     "language": "Language",
+                    "palette": "Colour palette",
+                    "paletteHint": "Sets the wiki's colour mood. The 🌙/☀️ button above switches light and dark within it.",
+                    "palettePergament": "Parchment",
+                    "paletteNord": "Nord",
+                    "paletteWacholder": "Juniper",
+                    "paletteSol": "Sol",
                     "newPage": "+ New Page",
                     "edit": "✏️ Edit",
                     "save": "💾 Save",
@@ -2659,6 +2826,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         /* Hauptsprache und Rückfall-Kette: fehlt ein Text, wird Deutsch genommen */
         const SIMPLEWIKI_BASE_LANG = 'de';
+
+        /* Die Farbwelten, die es gibt. Der Name steht im Austauschvertrag;
+           eine der Welten ist immer aktiv, im Zweifel Pergament. Wer eine
+           Welt ergaenzen will, braucht eine CSS-Regel body.pal-<name> (und
+           body.dark-mode.pal-<name> fuer den dunklen Zweig) plus die
+           Uebersetzungen palette<Name>. */
+        const SIMPLEWIKI_PALETTEN = ['pergament', 'nord', 'wacholder', 'sol'];
 
         /* Sicherer Zugriff auf den Browserspeicher: funktioniert auch dann,
            wenn localStorage gesperrt ist (privater Modus, blockierte Cookies). */
@@ -2877,6 +3051,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
              seiteLoeschen(id)      diese Seite entfernen
              startseiteSetzen(id)   id zur Startseite machen
              themaSetzen(thema)     'light' oder 'dark'
+             paletteSetzen(palette) eine Palette aus SIMPLEWIKI_PALETTEN
              spracheSetzen(sprache) 'de' oder 'en'
 
            Dazu zwei Aufrufe, die nur der Serverspeicher hat: list holt
@@ -2887,7 +3062,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         */
 
         const SPEICHER_METHODEN = ['laden', 'uebernehmen', 'seiteSichern',
-            'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'spracheSetzen'];
+            'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'];
 
         function pruefeSpeicher(speicher, name) {
             const fehlt = SPEICHER_METHODEN.filter(m => typeof speicher[m] !== 'function');
@@ -2934,6 +3109,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     startseite: this.startId,
                     sprache: SimpleWikiStore.get('simplewiki_lang') || '',
                     thema: SimpleWikiStore.get('simplewiki_theme') || '',
+                    palette: SimpleWikiStore.get('simplewiki_palette') || '',
                     nurLesen: false,
                     wikiTitel: ''
                 };
@@ -2973,6 +3149,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             themaSetzen: function (thema) {
                 this.einstellungen.thema = thema;
                 SimpleWikiStore.set('simplewiki_theme', thema);
+                return true;
+            },
+
+            paletteSetzen: function (palette) {
+                this.einstellungen.palette = palette;
+                SimpleWikiStore.set('simplewiki_palette', palette);
                 return true;
             },
 
@@ -3181,8 +3363,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             return seite ? seite.id : '';
         };
 
-        /* Sprache und Farbe stehen an den Feldern des Tiddlers, der die
-           Startseite ist. Beim Start kommt die Startseite aus
+        /* Sprache, Farbe und Farbwelt stehen an den Feldern des Tiddlers,
+           der die Startseite ist. Beim Start kommt die Startseite aus
            $:/DefaultTiddlers - als Name der Seite, nicht als Kennung. */
         MwsStore.prototype.startseitenFelder = function () {
             const titel = this.titelVon(this.startId);
@@ -3194,6 +3376,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             const felder = this.felder[titel];
             if (!titel || !felder) return Promise.resolve(null);
             if (this.einstellungen.thema) felder.thema = this.einstellungen.thema;
+            if (this.einstellungen.palette) felder.palette = this.einstellungen.palette;
             if (this.einstellungen.sprache) felder.sprache = this.einstellungen.sprache;
             return this.ruf('save', { tiddlers: [felder] });
         };
@@ -3245,11 +3428,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             this.startId = this.idVonTitel(startseite) ||
                 (seiten.some(function (s) { return s.id === startseite; }) ? startseite : '');
 
-            /* Sprache und Farbe von der Seite holen, die sie trägt. */
+            /* Sprache, Farbe und Farbwelt von der Seite holen, die sie trägt. */
             const traeger = this.startseitenFelder() ||
                 (seiten.length ? this.felder[seiten[0].title] : null) || {};
             this.einstellungen = {
                 thema: traeger.thema === 'dark' ? 'dark' : (traeger.thema === 'light' ? 'light' : ''),
+                palette: traeger.palette ? String(traeger.palette) : '',
                 sprache: traeger.sprache ? String(traeger.sprache) : ''
             };
 
@@ -3267,6 +3451,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 startseite: this.startId,
                 sprache: this.einstellungen.sprache,
                 thema: this.einstellungen.thema,
+                palette: this.einstellungen.palette,
                 nurLesen: this.nurLesen,
                 wikiTitel: this.wikiTitel
             };
@@ -3285,9 +3470,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         MwsStore.prototype.seiteSichern = function (seite, alterTitel) {
             const felder = this.felder[seite.title] || this.felder[alterTitel] || {};
             const t = seiteZuTiddler(seite, felder);
-            /* Nur die Startseite trägt Sprache und Farbe. */
+            /* Nur die Startseite traegt Sprache, Farbe und Farbwelt. */
             if (String(seite.id) === String(this.startId)) {
                 if (this.einstellungen.thema) t.thema = this.einstellungen.thema;
+                if (this.einstellungen.palette) t.palette = this.einstellungen.palette;
                 if (this.einstellungen.sprache) t.sprache = this.einstellungen.sprache;
             }
             /* Die Stelle im Inhaltsverzeichnis mitgeben. */
@@ -3332,6 +3518,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         MwsStore.prototype.themaSetzen = function (thema) {
             this.einstellungen.thema = thema === 'dark' ? 'dark' : 'light';
+            return this.einstellungenSchreiben();
+        };
+
+        MwsStore.prototype.paletteSetzen = function (palette) {
+            this.einstellungen.palette = palette == null ? '' : String(palette);
             return this.einstellungenSchreiben();
         };
 
@@ -3521,6 +3712,10 @@ showSettings: false,
                 hinweisText: '',
                 hinweisTimer: null,
                     isDarkMode: false,
+                    /* Die aktive Farbwelt. Im Zweifel Pergament - das ist
+                       die Basis :root, die ein eigenes Feld niemals
+                       voraussetzt. */
+                    palette: 'pergament',
                     startPageId: '',
                     mdEditor: null,
                     editorReady: false,
@@ -3558,6 +3753,15 @@ showSettings: false,
                             if (b.code === SIMPLEWIKI_BASE_LANG) return 1;
                             return a.name.localeCompare(b.name);
                         });
+                },
+
+                /* Die Farbwelten in der Reihenfolge des Vertrags, mit dem
+                   uebersetzen Namen fuer das Dropdown. */
+                paletten() {
+                    return SIMPLEWIKI_PALETTEN.map(id => ({
+                        id: id,
+                        name: this.t('palette' + id.charAt(0).toUpperCase() + id.slice(1))
+                    }));
                 },
 
                 langDict() {
@@ -3654,6 +3858,7 @@ showSettings: false,
                     this.statusHolen();
                 }
                 this.updateTheme();
+                this.applyPalette();
                 /* Fehlt die gespeicherte Sprache (z. B. weil eine entfernt
                    wurde), zurück auf die Hauptsprache. */
                 if (!SIMPLEWIKI_LANGS[this.currentLang]) {
@@ -4343,6 +4548,11 @@ showSettings: false,
                         this.updateTheme();
                         SPEICHER.themaSetzen(daten.thema);
                     }
+                    if (SIMPLEWIKI_PALETTEN.indexOf(daten.palette) >= 0) {
+                        this.palette = daten.palette;
+                        this.applyPalette();
+                        SPEICHER.paletteSetzen(this.palette);
+                    }
                 },
 
                 /* "1 Seite" oder "3 Seiten" – für Hinweise und den Fluss. */
@@ -4365,18 +4575,19 @@ showSettings: false,
                     daten.startseite = this.startPageId;
                     daten.sprache = this.currentLang;
                     daten.thema = this.isDarkMode ? 'dark' : 'light';
+                    daten.palette = this.palette;
                     return daten;
                 },
 
                 /* Von einer eingelesenen Datei nur das merken, was
-                   SimpleWiki nicht kennt: die bekannten fuenf Schluessel
+                   SimpleWiki nicht kennt: die bekannten Schluessel
                    schreibt bauDaten() ohnehin neu. */
                 fremdeAngabenMerken(daten) {
                     if (!daten || typeof daten !== 'object' || Array.isArray(daten)) {
                         this.fremdeDaten = {};
                         return;
                     }
-                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema'];
+                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette'];
                     const raus = {};
                     Object.keys(daten).forEach(k => {
                         if (bekannt.indexOf(k) < 0) raus[k] = daten[k];
@@ -4458,7 +4669,7 @@ showSettings: false,
 
                    Die Dateninsel bleibt der stabile Punkt:
                    id="simplewiki-daten", type="application/json".
-                   Sprache und Farbe kommen aus den Einstellungen, damit
+                   Sprache, Farbe und Farbwelt kommen aus den Einstellungen, damit
                    die Vorlage zur Person passt, die sie erzeugt. */
                 leeresWikiExportieren() {
                     try {
@@ -4467,7 +4678,8 @@ showSettings: false,
                             seiten: [],
                             startseite: '',
                             sprache: this.currentLang,
-                            thema: this.isDarkMode ? 'dark' : 'light'
+                            thema: this.isDarkMode ? 'dark' : 'light',
+                            palette: this.palette
                         };
                         this.dateiHerunterladen(this.bauExport(leer), 'simplewiki-leer.html', 'text/html');
                         this.hinweis(this.t('noticeLeerSaved'));
@@ -4589,10 +4801,13 @@ showSettings: false,
                     this.currentPage = this.pages.find(p => p.id === this.startPageId) || null;
                 },
 
-                /* Farbe und Sprache, die der Speicher mitgebracht hat. */
+                /* Farbe, Farbwelt und Sprache, die der Speicher mitgebracht hat. */
                 einstellungenMerken(geladen) {
                     if (geladen.thema === 'dark' || geladen.thema === 'light') {
                         this.isDarkMode = geladen.thema === 'dark';
+                    }
+                    if (SIMPLEWIKI_PALETTEN.indexOf(geladen.palette) >= 0) {
+                        this.palette = geladen.palette;
                     }
                     if (geladen.sprache && SIMPLEWIKI_LANGS[geladen.sprache]) {
                         this.currentLang = geladen.sprache;
@@ -5081,6 +5296,25 @@ showSettings: false,
                     this.isDarkMode = !this.isDarkMode;
                     this.updateTheme();
                     SPEICHER.themaSetzen(this.isDarkMode ? 'dark' : 'light');
+                },
+
+                /* Die gewaehlte Farbwelt an den body tragen. Die CSS-Namen
+                   sind <body class="pal-<name>">; Pergament ist die Basis
+                   ohne eigene Regel (es sind :root und body.dark-mode
+                   darueber) und wird trotzdem als Klasse mitgegeben,
+                   damit die Nachfrage "welche Welt ist es" nur eine
+                   Stelle kennt. */
+                applyPalette() {
+                    document.body.classList.forEach(function (k) {
+                        if (k.indexOf('pal-') === 0) document.body.classList.remove(k);
+                    });
+                    document.body.classList.add('pal-' + this.palette);
+                },
+
+                /* Im Einstellungen-Dialog: eine andere Farbwelt. */
+                changePalette() {
+                    this.applyPalette();
+                    SPEICHER.paletteSetzen(this.palette);
                 },
 
                 updateTheme() {

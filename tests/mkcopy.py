@@ -30,6 +30,7 @@ _SEED_VORHAGE = ('<script>try{localStorage.setItem("simplewiki_pages",%s);'
                 'localStorage.setItem("simplewiki_theme","%s");'
                 'localStorage.setItem("simplewiki_lang","%s");'
                 'localStorage.setItem("simplewiki_startpage","%s");'
+                'localStorage.setItem("simplewiki_palette","%s");'
                 # Auch das Verweis-Panel zuruecksetzen: sonst schleppt ein
                 # früherer Testlauf seinen Zustand in den naechsten.
                 'localStorage.setItem("simplewiki_refs","0");}'
@@ -155,7 +156,7 @@ def _maskieren(text):
 
 
 def build(out_name, script, pages, theme='light', lang='de', startpage='1',
-          seed=True, daten=None):
+          palette='', seed=True, daten=None):
     """Testkopie schreiben und ihren Pfad zurueckgeben."""
     global PRE_SCRIPT
     if not os.path.isdir(KOPIEN):
@@ -167,7 +168,7 @@ def build(out_name, script, pages, theme='light', lang='de', startpage='1',
     seed_block = ''
     if seed:
         seed_block = _SEED_VORHAGE % (_maskieren(json.dumps(pages, ensure_ascii=False)),
-                                      theme, lang, startpage)
+                                      theme, lang, startpage, palette)
 
     # Datenblock setzen: leer oder mit Testdaten. Nicht ueber einen
     # Platzhalter ersetzen - in der Vorlage koennen echte Daten stehen.

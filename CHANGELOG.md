@@ -8,6 +8,51 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ---
 
+## 2026-10-07
+
+### Die Farbwelten — 748 Prüfungen
+
+Bisher hatte ein Wiki eine Farbe, und die war Hell/Dunkel. Wer eine
+andere Farbstimmung wollte, konnte nur dunkler werden. Das hielt
+zwei Dinge in einer Zeile, die nichts miteinander zu tun haben: die
+**Farbwelt** (die Stimmung) und die **Helligkeit** darin. Der
+Mond/Sonne-Knopf im Kopf bleibt die Helligkeit; die Welt wird im
+Einstellungen-Dialog gewählt.
+
+Es gibt vier Welten: **Pergament, Nord, Wacholder, Sol**. Pergament
+ist die Basis: fehlt jede Angabe, gilt es, und eine Wiki, die nie
+eine Palette gesetzt hat, sieht genau so aus wie vorher. Die drei
+weiteren kommen als Klasse am `body` (`pal-nord`, `pal-wacholder`,
+`pal-sol`), und jede hat einen hellen und einen dunklen Zweig. Die
+Textur (das Punktraster) ist je Welt neu gesetzt — die hellen Werte
+von Pergament gehören nicht in eine andere Welt hinein, denn eine
+CSS-Variable löst ihre Verweise an der Stelle auf, wo sie deklariert
+wird (siehe der Fallstrick in `t_textur.py`).
+
+Der Austausch ist mitgedeckt: Das Feld **`palette`** reist auf dem
+Startseiten-Tiddler wie `sprache` und `thema`, und es steht in der
+gesicherten Datei. `thema` sagt weiterhin nur Hell/Dunkel — wer nur
+heller oder dunkler schaltet, fasst die Palette nicht an. Gültige
+Werte sind die vier Welten oben; alles andere zählt wie ein leeres
+Feld.
+
+Geprüft wird das mit `tests/t_palette.py`: Auswahl und Namen im
+Dialog, die Klasse am `body`, die gezeichnete Tinte je Welt und je
+Modus, der Wechsel am Server und sein Weg auf den Tiddler, und die
+Farbwelt im Export. Der Kopien-Bauer der Tests (`mkcopy`) setzt den
+localStorage-Schlüssel `simplewiki_palette` in jeder Kopie mit
+zurück, damit ein Lauf nicht in den nächsten leuchtet.
+
+Der Vertrag ist betroffen (neues Feld im Austausch, neuer
+Speicherschlüssel), deshalb wurde vorher rückgefragt. Entscheidungen:
+Die Palette sitzt auf dem Startseiten-Tiddler wie `sprache` und
+`thema`; die Auswahl steht im Einstellungen-Dialog neben der Sprache;
+alle vier Welten werden gebaut. Die Farben der drei neuen Welten
+nehmen ihre Idee aus dem TW-Sortiment, sind aber nicht abgeschrieben
+(Nord-Frost, Flexoki-Oliv, Solarized-Blau).
+
+---
+
 ## 2026-10-05
 
 ### Der Ladevorgang im Test kam manchmal gar nicht an — 721 Prüfungen

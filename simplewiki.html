@@ -938,6 +938,37 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             border: 1px solid var(--accent-color);
             background: var(--bg-secondary);
             color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .mws-hinweis-blendet {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        .mws-hinweis-text {
+            line-height: 1.45;
+        }
+
+        .mws-hinweis-weg {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 6px;
+            flex: 0 0 auto;
+        }
+
+        .mws-hinweis-weg:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
         }
 
         body.dark-mode .nurlesen-hinweis {
@@ -2346,8 +2377,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <!-- Nur-Lesen-Wiki: der Server hat das Schreiben abgelehnt.
                          Zwei Gründe, zwei Texte - siehe leseGrund. -->
                     <p v-if="nurLesen" class="nurlesen-hinweis">{{ t(leseGrund) }}</p>
-                    <!-- Serverbetrieb: woher die Seiten kommen -->
-                    <p v-else="" v-if="mwsModus" class="mws-hinweis">☁ {{ t('mwsHinweis') }}</p>
+                    <!-- Serverbetrieb: woher die Seiten kommen. Das X oben
+                         blendet den Hinweis weich aus und laesst ihn
+                         fuer die Session weg - die Klasse mws-hinweis-
+                         blendet ist der Weg dahin. -->
+                    <p v-if="mwsModus &amp;&amp; !nurLesen &amp;&amp; !mwsHinweisWeg" class="mws-hinweis"
+                       :class="{ 'mws-hinweis-blendet': mwsHinweisAbblendend }">
+                        <span class="mws-hinweis-text">☁ {{ t('mwsHinweis') }}</span>
+                        <button class="mws-hinweis-weg" @click="versteckeServerHinweis"
+                                :title="t('close')" :aria-label="t('close')">×</button>
+                    </p>
 
                     <!-- Fluss: alle Seiten hintereinander, wie im Inhaltsverzeichnis -->
                     <div v-if="zeigeFluss" class="fluss">
@@ -3707,6 +3746,18 @@ showSettings: false,
                 rechteWeg: false,
                 /* Kommt der Inhalt vom Server statt aus dem Browser? */
                 mwsModus: false,
+                /* Der Hinweis auf den Server ist weggeklickt worden.
+                   Solange die Session lebt, bleibt er weg - gespeichert
+                   wird das in sessionStorage, nicht localStorage, damit
+                   der Hinweis beim naechsten Neuoefnen wieder da ist. */
+                mwsHinweisWeg: false,
+                /* Der Hinweis blendet gerade aus: die Klasse treibt die
+                   CSS-Transition, der Timer danach entfernt das Element.
+                   Zwei Schritte, damit das Ausblenden weich ist, aber
+                   niemand auf ein transitionend warten muss - die
+                   Animationsuhr des Headless laeuft nicht mit den
+                   Timern des Testskripts. */
+                mwsHinweisAbblendend: false,
                 dragIndex: null,
                 dropIndex: null,
                 hinweisText: '',
@@ -3845,6 +3896,12 @@ showSettings: false,
                    Farbe und Sprache bekannt - vorher wüsste die App
                    nicht, was der Server geschickt hat. */
                 this.loadPages();
+                /* Wer den Serverhinweis schon hat ausblenden lassen, will
+                   ihn nicht bei jedem Neuladen wieder haben - aber auch
+                   nicht bei einer ganz neuen Session. */
+                try {
+                    this.mwsHinweisWeg = sessionStorage.getItem('simplewiki_mws_hinweis') === '1';
+                } catch (e) { /* es gibt Sessions ohne Speicher */ }
                 /* Wer hier arbeitet und ob dieser Tab schreiben darf,
                    sagt der Server, nicht die App. Im Browser gibt es
                    niemanden zu fragen - dort bleibt alles beim Alten.
@@ -4747,6 +4804,23 @@ showSettings: false,
                     this.hinweisText = text;
                     if (this.hinweisTimer) clearTimeout(this.hinweisTimer);
                     this.hinweisTimer = setTimeout(() => { this.hinweisText = ''; }, 6000);
+                },
+
+                /* Der Hinweis zum Server verschwindet fuer die Session.
+                   sessionStorage, nicht localStorage: Wer das Wiki neu
+                   oeffnet, bekommt den Hinweis wieder - der Server ist
+                   ja auch wieder neu da. */
+                versteckeServerHinweis() {
+                    if (this.mwsHinweisWeg) return;
+                    /* Erst blenden, dann entfernen. Der Timer entscheidet,
+                       wann das Element geht, nicht die CSS-Transition -
+                       so haengt weder die Oberflaeche noch ein Test an
+                       einem transitionend. */
+                    this.mwsHinweisAbblendend = true;
+                    try {
+                        sessionStorage.setItem('simplewiki_mws_hinweis', '1');
+                    } catch (e) { /* es gibt Sessions ohne Speicher */ }
+                    setTimeout(() => { this.mwsHinweisWeg = true; }, 350);
                 },
 
                 /* Die Seiten holen und die Einstellungen dazu.

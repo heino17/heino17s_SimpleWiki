@@ -82,13 +82,16 @@ besonders zu beachten:
 ## Die zwei Betriebsarten
 
 An **genau einer** Stelle im Programm steht, woher die Seiten kommen
-(`simplewiki.html:2386`, „Wo die Seiten liegen: Browser oder MWS“):
+(`simplewiki.html:2896`, „Wo die Seiten liegen: Browser oder MWS“):
 
 - **Browser** — der Normalfall. Seiten liegen in `localStorage`. Eine per
   Doppelklick geöffnete Datei merkt sich genau so.
 - **MWS** (MultiWikiServer) — ein Server, der SimpleWiki ausliefert, schreibt
   hinter den Punkt im Kopf Aufrufe von `$tw.preloadTiddler`, eines je Tiddler.
-  Kommen Tiddler an, wird von dort gelesen und dorthin geschrieben.
+  Kommen Tiddler an, wird von dort gelesen und dorthin geschrieben. Eine Zeile
+  über dem Inhalt sagt, woher die Seiten kommen; das **×** an ihrem Rand
+  blendet sie für den Rest der Session aus (ihr Zustand überlebt das
+  Neuladen, nicht das Schließen der Wiki).
 
 Beide Speicher sprechen dieselben Methoden an (`laden`, `uebernehmen`,
 `seiteSichern`, `seiteLoeschen`, `startseiteSetzen`, `themaSetzen`,
@@ -187,7 +190,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **24 Testdateien**, 721 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
+- **24 Testdateien**, 751 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
   (die beiden Drucktests starten Chromium ein zweites Mal für das PDF).
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die

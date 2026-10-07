@@ -10,6 +10,30 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ## 2026-10-07
 
+### Der Serverhinweis lässt sich für die Session wegklicken — 751 Prüfungen
+
+Wer die Wiki vom MWS bekam, sah dauerhaft die Zeile „☁ Die Seiten liegen auf
+dem Server…“. Sie wiederholte, was ohnehin jeder Blick auf die Adresszeile
+sagt. Jetzt hat sie ein **×** oben rechts: Ein Klick blendet sie weich aus,
+und für den Rest der Session bleibt sie weg. Wer die Wiki neu öffnet, sieht
+sie wieder.
+
+Gemerkt wird das in **`sessionStorage`**, nicht in `localStorage`: Eine neue
+Session ist ein neuer Besuch, und der Hinweis soll jede Sitzung begrüßen,
+nicht eine dauerhafte persönliche Einstellung überschreiben.
+
+Getrennt ist das **Ausblenden** vom **Verschwinden**: Die Klasse
+`mws-hinweis-blendet` fährt die CSS-Transition (0,3 s, leichte Bewegung nach
+oben), und erst ein Timer von 350 ms entfernt danach das Element. Wenn der
+Timer entscheidet und nicht das `transitionend`, hängt nichts an der
+Animationsuhr des Browsers — die läuft unter Virtual-Time-Budget nicht mit
+den Timern des Testskripts mit (siehe `tests/README.md`). Der erste Entwurf
+war ein Vue-`<transition>` und fiel genau dort durch: in der Suite war das
+Element nach dem Klick noch da.
+
+Geprüft wird das in `tests/t_mwsmode.py` Teil 11: Das X ist da, nach dem
+Klick ist der Hinweis weg, und `sessionStorage` merkt es sich.
+
 ### Die Farbwelten — 748 Prüfungen
 
 Bisher hatte ein Wiki eine Farbe, und die war Hell/Dunkel. Wer eine

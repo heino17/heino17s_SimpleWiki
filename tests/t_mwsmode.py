@@ -336,16 +336,26 @@ teil11 = r"""
         ok(!!q('.mws-hinweis'), 'es ist ein Wiki vom Server');
         ok(localStorage.getItem('simplewiki_pages') === null, 'im Browser ist noch nichts');
 
-        log.push('--- Klick');
-        if (k) k.click();
+        log.push('--- Das X am Serverhinweis');
+        var x = q('.mws-hinweis .mws-hinweis-weg');
+        ok(!!x, 'das X ist da');
+        if (x) x.click();
         setTimeout(function () {
-          var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
-          ok(titel.length === 1, 'eine Seite ist da: ' + titel.join('|'));
-          ok(!q('.empty-state'), 'der Leer-Zustand ist vorbei');
-          ok(!!q('.md-host .toastui-editor-defaultUI') || !!q('.editor'),
-             'und man kann gleich reinschreiben');
-          ende();
-        }, 3000);
+          ok(!q('.mws-hinweis'), 'nach dem Klick ist der Hinweis weg');
+          ok(sessionStorage.getItem('simplewiki_mws_hinweis') === '1',
+             'fuer die Session gemerkt: ' + sessionStorage.getItem('simplewiki_mws_hinweis'));
+
+          log.push('--- Klick');
+          if (k) k.click();
+          setTimeout(function () {
+            var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
+            ok(titel.length === 1, 'eine Seite ist da: ' + titel.join('|'));
+            ok(!q('.empty-state'), 'der Leer-Zustand ist vorbei');
+            ok(!!q('.md-host .toastui-editor-defaultUI') || !!q('.editor'),
+               'und man kann gleich reinschreiben');
+            ende();
+          }, 3000);
+        }, 900);
       }, 2500);
     })();
     </script>

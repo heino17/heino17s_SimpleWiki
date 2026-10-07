@@ -100,7 +100,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_order.py` | Reihenfolge per Griff, Alt + Pfeil, Sperre bei der Suche, **Hinweis am Griff statt unter der Liste** |
 | `t_file.py` | Wiki als Datei sichern und laden, fremde Datei |
 | `t_mws.py` | Austausch mit MWS: JSON, Versionsprüfung, fremde Felder, doppelte Titel |
-| `t_mwsmode.py` | **Betrieb auf einem MWS-Server** in zwölf Durchgängen: Marker, Speicher, Schreiben, 403, leere Wiki, Umbenennen, Serverausfall |
+| `t_mwsmode.py` | **Betrieb auf einem MWS-Server** in zwölf Durchgängen: Marker, Speicher, Schreiben, 403, leere Wiki, Umbenennen, Serverausfall, das wegklickbare × am Serverhinweis |
 | `t_anmeldung.py` | **Anmeldung und Schreibrechte: Statusabfrage, Name im Kopf, ausgeblendete Schreibknöpfe** |
 | `t_login.py` | **Anmelden und abmelden: Link auf `/login?redirect=…`, Rückweg in diese Wiki, `POST /logout`, der Fall, dass es nicht klappt** |
 | `t_speicher.py` | **eine Speicherabstraktion, zwei Ausprägungen: derselbe Vertrag in Browser und Server, und dass die laufende App ihn wirklich benutzt** |

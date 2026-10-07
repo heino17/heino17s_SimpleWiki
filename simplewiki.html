@@ -139,17 +139,34 @@ MWS stellt die Tiddler nicht als Datenblock bereit, sondern als
           PUT  /recipe/<name>/batch/read     { "titles": ["…"] }
           PUT  /recipe/<name>/batch/save     { "tiddlers": [ {feld: …} ] }
           PUT  /recipe/<name>/batch/delete   { "titles": ["…"] }
+          PUT  /recipe/<name>/shell/update   auf die neueste Template-Version
+                                             der Oberfläche wechseln (nur
+                                             Besitzerin und Administratoren)
           POST /logout                       Sitzung löschen, Antwort 204
           mit dem Kopf X-Requested-With: fetch
 
         PUT, nicht POST, für die Stapelaufrufe: so ist es in RecipeRoutes.ts
-        festgeschrieben. POST /logout ist eine eigene Route in sessions.ts.
+        festgeschrieben. POST /logout ist eine eigene Route in sessions.ts,
+        PUT /recipe/<name>/shell/update ebenfalls (siehe „Die Oberfläche
+        wechseln" unten).
 
         <name> steht im Pfad: /wiki/<name>/
 
         Antwortet der Server mit 403 und BAG_NO_WRITE_PERMISSION, ist das kein
         Fehler, sondern ein Betriebszustand: das Wiki gehört jemand anderem.
         Dann wird das Bearbeiten abgeschaltet und der Grund genannt.
+
+        Die Oberfläche wechseln
+          Die Antwort von /status trägt unter "shell" mit, auf welcher
+          Template-Version diese Wiki steht, ob eine neuere bereitliegt und
+          welche Politik gilt (auto | pin | notify). Bei "notify" mit
+          bereitliegender neuerer Version zeigt diese Wiki nur der Besitzerin
+          und den Administratoren einen Hinweis mit einem Knopf, der
+          PUT /recipe/<name>/shell/update aufruft. Der Server verschiebt dann
+          den Pin auf die neueste Version, kompiliert die Wiki neu und
+          antwortet mit dem neuen Status; danach lädt die Wiki neu. Wer eine
+          Oberfläche übernehmen soll, entscheidet die Besitzerin - Schreibrecht
+          allein genügt nicht.
 
         Anmelden und abmelden
           Anmelden ist ein Link auf /login und damit Sache des Servers, nicht
@@ -2209,6 +2226,60 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 color: #000 !important;
                 text-decoration: none;
             }
+        }
+
+        /* Der Hinweis auf eine neue Oberfläche (nur im MWS-Betrieb).
+           Steht über der App, deshalb lebt er in denselben Farb- und
+           Text-Variablen wie der Rest - er soll nicht aus der Reihe
+           tanzen, sondern wie ein Teil der Wiki aussehen. */
+        .shell-update-hinweis {
+            position: relative;
+            margin: 1rem;
+            padding: 0.6rem 3rem 0.6rem 0.75rem;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 0.5rem;
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+        .shell-update-hinweis p {
+            margin: 0 0 0.25rem;
+        }
+        .shell-update-hinweis p:last-child {
+            margin-bottom: 0;
+        }
+        .shell-update-hinweis button {
+            margin: 0 0 0 0.5rem;
+            padding: 0.2rem 0.7rem;
+            border: none;
+            border-radius: 0.25rem;
+            background: var(--accent-color);
+            color: var(--bg-primary);
+            cursor: pointer;
+        }
+        .shell-update-hinweis button:hover {
+            filter: brightness(1.08);
+        }
+        .shell-update-hinweis button:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
+        .shell-update-hinweis .shell-update-schliessen {
+            position: absolute;
+            top: 0.35rem;
+            right: 0.35rem;
+            width: 1.8rem;
+            height: 1.8rem;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-size: 12pt;
         }
     </style>
     <script>
@@ -5409,4 +5480,160 @@ showSettings: false,
                 }
             }
         }).mount('#app');
-    </script></body></html>
+    </script>
+
+    <!-- Oberfläche übernehmen (nur im MWS-Betrieb)
+         MWS meldet in der Antwort von /recipe/<name>/status unter "shell",
+         auf welcher Template-Version diese Wiki steht (policy, servedRelease,
+         servedLabel, latestRelease, latestLabel, updateAvailable). Bei der
+         Politik "notify" mit bereitliegender neuerer Version zeigt diese Wiki
+         der Besitzerin und den Administratoren einen Hinweis mit einem Knopf,
+         der PUT /recipe/<name>/shell/update aufruft (eine eigene Route in
+         RecipeRoutes.ts, nur für Besitzerin und Administratoren zugänglich).
+
+         Der Hinweis ist ein Geschwister der App und kein Kind von #app: Vue
+         kennt nur die Kinder, die es selbst gerendert hat, ein später
+         eingehängtes Kind würde die nächste Aktualisierung wieder entfernen.
+         Ein Geschwister überlappt sich mit nichts.
+
+         Weggedrückt wird der Hinweis je Version: Der Schlüssel trägt die
+         gelieferte Version, so kehrt er beim nächsten Release zurück, und
+         erst nach dem Übernehmen ist er für die neue Version wirklich weg. -->
+    <script>
+        (function () {
+            /* Nur im MWS-Betrieb: die Wiki kommt von /wiki/<name>/. */
+            const pfad = String(window.location.pathname || '');
+            const m = pfad.match(/\/wiki\/([^/]+)/);
+            if (!m) return;
+            const slug = decodeURIComponent(m[1]);
+
+            /* Die Konfiguration steht in den Tiddlern, die der Server
+               mitgeschickt hat - in derselben Form, in der die App sie
+               liest. Ohne "shell-policy"-Tiddler ist das ein Wiki ohne
+               Versionsbetrachtung, und dann ist hier nichts zu tun. */
+            const konfig = {};
+            try {
+                (window.$tw && window.$tw.preloadTiddlers || []).forEach(function (t) {
+                    if (t && t.title && String(t.title).indexOf('$:/config/multiwikiclient/shell-') === 0) {
+                        konfig[String(t.title).replace('$:/config/multiwikiclient/', '')] = String(t.text || '');
+                    } else if (t && t.title === '$:/config/multiwikiclient/owner') {
+                        konfig.owner = String(t.text || '');
+                    }
+                });
+            } catch (e) { /* ohne Vormerkung ist hier nichts zu lesen */ }
+
+            if (konfig['shell-policy'] !== 'notify') return;
+
+            const geliefert = Number(konfig['shell-release']) || 0;
+            const neueste = Number(konfig['shell-latest-release']) || 0;
+            if (!geliefert || !neueste || neueste === geliefert) return;
+
+            /* Der Schlüssel, unter dem die Wiki den Hinweis für eine Version
+               weggedrückt hat. Fehlt die Möglichkeit (localStorage zu), ist
+               der Hinweis eben nicht weggedrückt - schlimmer ist, dass er
+               nie wieder käme. */
+            function weggedrueckt(schluessel) {
+                try { return !!localStorage.getItem(schluessel); }
+                catch (e) { return false; }
+            }
+            if (weggedrueckt('simplewiki_update_' + geliefert)) return;
+
+            /* Dieselben zwei Sprachen wie die App, derselbe Schlüssel: das
+               lang-Attribut, das die App beim Sprachwechsel selbst setzt. */
+            const en = document.documentElement && document.documentElement.lang === 'en';
+            const t = en ? {
+                ueberschrift: 'New interface version available',
+                text: 'This wiki is running {alt}. {neu} is ready for you to take over.',
+                knopf: 'Take over',
+                taetig: 'Taking over…',
+                vergessen: 'remind me later',
+                fehler: 'That did not work. Please try again.'
+            } : {
+                ueberschrift: 'Neue Oberflächen-Version bereit',
+                text: 'Diese Wiki läuft auf {alt}. Zum Übernehmen bereit steht {neu}.',
+                knopf: 'Übernehmen',
+                taetig: 'Wird übernommen…',
+                vergessen: 'an später erinnern',
+                fehler: 'Das hat nicht geklappt. Bitte noch einmal versuchen.'
+            };
+
+            fetch('/recipe/' + encodeURIComponent(slug) + '/status', {
+                headers: { 'X-Requested-With': 'fetch' },
+                credentials: 'same-origin'
+            }).then(function (antwort) {
+                if (!antwort.ok) return null;
+                return antwort.json();
+            }).then(function (status) {
+                /* Der Status sagt, wer hier am Werk ist. Der Status selbst
+                   fehlt, wenn der Server nicht antwortet - dann wird nichts
+                   erfunden, auch kein Hinweis. */
+                if (!status || !status.isLoggedIn) return;
+                if (!(status.isAdmin || (konfig.owner && status.username === konfig.owner))) return;
+
+                const alt = konfig['shell-release-label'] || String(geliefert);
+                const neu = konfig['shell-latest-release-label'] || String(neueste);
+
+                const box = document.createElement('div');
+                box.className = 'shell-update-hinweis';
+                box.setAttribute('role', 'note');
+                box.setAttribute('data-shell-update', '');
+
+                const ueberschrift = document.createElement('p');
+                ueberschrift.textContent = t.ueberschrift;
+                box.appendChild(ueberschrift);
+
+                const text = document.createElement('p');
+                text.textContent = t.text.replace('{alt}', alt).replace('{neu}', neu);
+                box.appendChild(text);
+
+                const zeile = document.createElement('p');
+                const knopf = document.createElement('button');
+                knopf.type = 'button';
+                knopf.textContent = t.knopf;
+                zeile.appendChild(knopf);
+                box.appendChild(zeile);
+
+                const vergessen = document.createElement('button');
+                vergessen.type = 'button';
+                vergessen.className = 'shell-update-schliessen';
+                vergessen.title = t.vergessen;
+                vergessen.setAttribute('aria-label', t.vergessen);
+                vergessen.textContent = '×';
+                box.appendChild(vergessen);
+
+                function misslingen() {
+                    knopf.disabled = false;
+                    knopf.textContent = t.knopf;
+                    text.textContent = t.fehler;
+                }
+
+                knopf.addEventListener('click', function () {
+                    knopf.disabled = true;
+                    knopf.textContent = t.taetig;
+                    fetch('/recipe/' + encodeURIComponent(slug) + '/shell/update', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'fetch'
+                        },
+                        body: JSON.stringify({}),
+                        credentials: 'same-origin'
+                    }).then(function (antwort) {
+                        if (antwort.ok) { window.location.reload(); return; }
+                        misslingen();
+                    }).catch(misslingen);
+                });
+
+                vergessen.addEventListener('click', function () {
+                    try {
+                        localStorage.setItem('simplewiki_update_' + geliefert, 'weg');
+                    } catch (e) { /* schwaches Gedächtnis ist besser als keins */ }
+                    box.remove();
+                });
+
+                const anker = document.getElementById('app');
+                if (anker && anker.parentNode) anker.parentNode.insertBefore(box, anker);
+            });
+        })();
+    </script>
+</body></html>

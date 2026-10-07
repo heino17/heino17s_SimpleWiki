@@ -8,6 +8,65 @@ schlechter als ein Datum — deshalb wird nach Tag datiert.
 
 ---
 
+## 2026-10-08
+
+### Die Wiki nimmt eine neue Oberfläche — der Update-Hinweis — 751 Prüfungen
+
+MWS meldet einer Wiki, auf welcher Template-Version ihre Oberfläche steht und
+ob eine neuere bereitliegt — ein Separatum, das Schale und Inhalt getrennt
+hält. Bisher konnte die Schale diese Nachricht nirgends zeigen, weil eine
+statische Datei von nichts weiß. Jetzt fragt sie: Bei der Politik **notify**
+mit bereitliegender neuerer Version erscheint über der Wiki ein Hinweis mit
+einem Knopf **„Übernehmen“**, der `PUT /recipe/<name>/shell/update` aufruft
+(eine eigene Route in `RecipeRoutes.ts`, nur für Besitzerin und
+Administratoren — dieselbe Tür wie hinter den Wiki-Einstellungen). Der Server
+verschiebt den Pin auf die neueste Version, kompiliert die Wiki neu, und die
+Wiki lädt sich selbst neu.
+
+Wer den Hinweis sieht, ist bewusst eng gehalten: **die Besitzerin und die
+Administratoren**, und sonst niemand. Schreibrecht genügt nicht. Eine
+Oberfläche übernehmen ist eine Eigentumsentscheidung, und wer nur mitschreibt,
+soll sich nicht plötzlich in einem anderen Haus wiederfinden. Die App
+entscheidet das mit den beiden Stücken, die sie ohnehin hat: die Besitzerin
+steht im Tiddler `$:/config/multiwikiclient/owner`, wer heute angemeldet ist,
+sagt `/status` mit `isAdmin` und `username`.
+
+Gelesen wird alles, ohne neue Verantwortung einzuführen: die Politik und die
+Versionsnummern räumt dieser Hinweis aus **denselben Konfig-Tiddlern** ab, in
+denen die App sie bereits findet (`shell-policy`, `shell-release`,
+`shell-latest-release` samt Labels; der Server schreibt sie in
+`RecipeIndexSender`). Nur die Identität wird nachgefragt — ein Status-Aufruf
+pro Seite, und nur, wenn die Konfiguration überhaupt einen Hinweis in
+Betracht zieht. Ein Wiki ohne Versionsbetrachtung bleibt ohne jede weitere
+Frage, und damit bleiben auch alle bestehenden Prüfungen unberührt.
+
+Der Hinweis ist ein **Geschwister der App**, kein Kind von `#app`: Vue kennt
+nur die Kinder, die es selbst gerendert hat, und hätte ein später
+eingehängtes Kind bei der nächsten Aktualisierung wieder entfernt. Ein
+Geschwister überlappt sich mit nichts. Gefüllt wird er über `textContent`
+(nichts Fremdes wird je als Markup ausgegeben), er bezieht
+seine Farben aus denselben Variablen wie die App und spricht beide Sprachen
+über das `lang`-Attribut, das die App beim Sprachwechsel selbst setzt.
+
+**Weggedrückt** wird der Hinweis je **Version**: Der Schlüssel
+(`simplewiki_update_<gelieferte Version>`) trägt die Version, die gerade
+läuft — beim nächsten Release ist es ein neuer Schlüssel, und erst nach dem
+Übernehmen ist der Hinweis für die neue Version wirklich weg. Der Knopf
+„Übernehmen“ ist während des Aufrufs deaktiviert; schlägt der Aufruf fehl,
+steht der Fehler im Hinweis und der Knopf wird wieder frei. In den
+Konfig-Tiddlern fehlt aktuell das Feld „gibt es ein Update überhaupt“ — die
+Schale vergleicht Version gegen Version. Das ist ein reines Rechnen mit den
+Zahlen, die der Server selbst schreibt, also keine dritte Quelle.
+
+Da die Suite nur mit einem echten Browser läuft, ist der Hinweis nicht Teil
+der vorhandenen Prüfungen, und eine Frage für später, weil sie dem MWS gehört
+(mündliche Verabredung, nicht dieser Code): `tests/mwsserver.py` ist eine
+Testfigur des Vertrags im Kopf. Soll sie mitlernen, dass `/status` unter
+`shell` Auskunft gibt und `PUT /shell/update` den Pin bewegt, damit der
+Hinweis gegen die Testfigur belegt wird — wie der Serverhinweis in
+`t_mwsmode.py` Teil 11? Und wie sollte der Knopf benannt sein, wenn er in
+anderen Sprachen als Deutsch und Englisch gebraucht wird?
+
 ## 2026-10-07
 
 ### Der Serverhinweis lässt sich für die Session wegklicken — 751 Prüfungen

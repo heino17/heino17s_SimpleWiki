@@ -108,11 +108,21 @@ Was SimpleWiki mit dem Server spricht:
 | `PUT /recipe/<name>/batch/read` | bestimmte Tiddler holen |
 | `PUT /recipe/<name>/batch/save` | schreiben |
 | `PUT /recipe/<name>/batch/delete` | löschen |
+| `PUT /recipe/<name>/shell/update` | Oberfläche auf die neueste Template-Version übernehmen (nur Besitzerin und Administratoren) |
 | `POST /logout` | Sitzung löschen (Antwort 204) |
 | `/login?redirect=/wiki/<name>` | Anmeldung — ein Link, weil sie Sache des Servers ist |
 
 Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 **PUT, nicht POST**; so ist es in `RecipeRoutes.ts` des MWS festgeschrieben.
+
+Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
+Wiki steht (die Antwort von `/status` trägt das unter `shell`). Ein Wiki mit
+der Politik **notify**, für das eine neuere Version bereitliegt, zeigt nur
+der **Besitzerin** und den **Administratoren** einen Hinweis mit einem Knopf
+„Übernehmen“ — der ruft `PUT /recipe/<name>/shell/update` auf, der Server
+verschiebt den Pin auf die neueste Version, und die Wiki lädt neu. Wer nur
+schreiben darf, sieht den Hinweis nicht: eine Oberfläche zu übernehmen ist
+eine Eigentumsentscheidung.
 
 Vier Betriebszustände, alle am Server erkannt und nicht geraten:
 

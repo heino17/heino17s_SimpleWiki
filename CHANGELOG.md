@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.7">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.8">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,25 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.8 — «+» und wieder Abbrechen — 856 Prüfungen
+
+Der Knopf «+ Neue Seite» legt sofort eine Seite an — auch dann, wenn man
+es sich dann anders überlegt und «Abbrechen» klickt. Die leere Seite blieb
+stehen und musste extra gelöscht werden. Jetzt lebt jede eben angelegte
+Seite erst auf Widerruf: Wer «Abbrechen» klickt, bekommt sie ersatzlos
+zurückgenommen — aus der Liste, aus dem Speicher und vom Server —, und
+der Blick kehrt zu der Seite zurück, auf der man vorher war. Dasselbe
+gilt, wenn man die neue Seite verlässt, ohne zu sichern, etwa durch das
+Anklicken einer anderen Zeile. Erst «Sichern» macht die Seite dauerhaft;
+wer sie danach bearbeitet und abbricht, behält sie. Dazu ist das Löschen
+in eine gemeinsame Methode `seiteEntfernen` gewandert, die die
+Löschbestätigung und die Rücknahme benutzen, mit demselben
+Kinder-Rücken-Eine-Ebene-Hoch und demselben Server-Löschen. Neu
+prüfen es zehn Proben in `t_abbrechen.py`: Abbrechen nimmt zurück,
+Wegklicken nimmt zurück, Sichern macht dauerhaft. Version v0.1.7 →
+v0.1.8. Geprüft über die volle Suite (856 Prüfungen) und in MWS
+(`provision-simplewiki`).
 
 ### v0.1.7 — von Anfang an zugeklappt — 839 Prüfungen
 

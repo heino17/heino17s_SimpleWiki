@@ -30,6 +30,7 @@ REIHENFOLGE = [
     't_order.py',      # Reihenfolge per Ziehen
     't_hierarchie.py', # Verschachtelung: Ebenen, Ziehen in drei Zonen, Alt + Pfeil
     't_klapp.py',      # Verzeichnis auf- und zuklappen: Zaehler, Pfeile, Suche
+    't_abbrechen.py',  # Anlegen und Abbrechen: die Huellseite verschwindet wieder
     't_file.py',       # Als Datei sichern und laden
     't_mws.py',        # Austausch mit MWS: JSON, Version, Fremdfelder
     't_mwsmode.py',    # Betrieb auf einem MWS-Server: Marker, Speicher, 403
@@ -60,6 +61,7 @@ BESCHRIEBUNG = {
     't_order.py': 'Reihenfolge per Ziehen und Alt + Pfeil',
     't_hierarchie.py': 'Verschachtelung: Ebenen, drei Zonen beim Ziehen, Alt + Pfeil',
     't_klapp.py': 'Verzeichnis auf- und zuklappen: Zaehler, Pfeile, Suche hebt die Deckung auf',
+    't_abbrechen.py': 'Huellseite beim Anlegen: Abbrechen und Wegklicken nehmen sie zurueck, Sichern macht sie dauerhaft',
     't_file.py': 'Wiki als Datei sichern und laden',
     't_mws.py': 'Austauschformat: JSON, Version, fremde Felder, doppelte Titel',
     't_mwsmode.py': 'Serverbetrieb: Marker, Speicher, Schreiben, 403, leerer Marker',

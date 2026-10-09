@@ -33,7 +33,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 
 | | |
 |---|---|
-| **Schreiben** | Markdown, im WYSIWYG-Editor (TOAST UI) oder im reinen Textfeld |
+| **Schreiben** | Markdown, im WYSIWYG-Editor (TOAST UI) oder im reinen Textfeld; eine eben angelegte Seite verschwindet wieder, wer danach «Abbrechen» klickt |
 | **Neue Seite** | ein Knopf im Kopf, links vom Verzeichnis — weg, wer nicht schreiben darf; die neue Seite kommt unten ins Verzeichnis |
 | **Inhaltsverzeichnis** | als Spalte links, drängt den Inhalt zur Seite und lässt die Kopfzeile frei; am Fähnchen zu- und aufklappbar, unter 640px Fensterbreite fängt es zugeklappt an |
 | **Verlinken** | `[[Seite]]` und `[[Beschriftung\|Seite]]` im Text, dazu ein Dialog beim Bearbeiten |
@@ -121,7 +121,7 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.7">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.8">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit

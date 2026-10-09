@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.7">
+    <meta name="mws-shell-version" content="v0.1.8">
     <title>SimpleWiki</title>
 
     <!--
@@ -4023,6 +4023,16 @@ showSettings: false,
                    Das gilt nur fuer diese Anzeige: kein Feld der Seite
                    und kein Teil des Austauschformats. */
                 aufgeklappt: {},
+                /* Eine eben angelegte Huellseite lebt erst auf Widerruf:
+                   wer durch "+" oder einen noch leeren Link in den
+                   Editor kommt, hat die Seite noch nicht gewollt. Wer
+                   dann "Abbrechen" sagt oder die Seite verlässt, ohne zu
+                   sichern, bekommt sie ersatzlos zurueckgenommen - inkl.
+                   Server. "Sichern" macht sie dauerhaft. */
+                fluechtigeSeiteId: null,
+                /* Wo man sass, bevor eine Huellseite angelegt wurde:
+                   dahin geht der Blick zurueck, wenn sie verworfen wird. */
+                vorherigeSeiteId: null,
                 hinweisText: '',
                 hinweisTimer: null,
                     isDarkMode: false,
@@ -4544,6 +4554,10 @@ showSettings: false,
                 },
 
                 createPageWithTitle(titel) {
+                    /* Bevor "currentPage" wechselt: wo sitzt man gerade?
+                       Diese Stelle bekommt die Seite zurueck, wenn die
+                       neue als Huellseite verworfen wird. */
+                    this.vorherigeSeiteId = this.currentPage ? this.currentPage.id : null;
                     const neu = {
                         id: Date.now().toString(),
                         title: this.eindeutigerTitel(titel),
@@ -4553,6 +4567,7 @@ showSettings: false,
                         created: new Date().toISOString(),
                         updated: new Date().toISOString()
                     };
+                    this.fluechtigeSeiteId = neu.id;
                     this.pages.push(neu);
                     this.currentPage = neu;
                     this.seiteSichern(neu);
@@ -5749,11 +5764,12 @@ showSettings: false,
                         .replace('{grund}', (e && e.detail) || '?'));
                 },
 
-                createNewPage() {
+createNewPage() {
                     if (this.nurLesen) {
                         this.hinweis(this.t('nurLesen'));
                         return;
                     }
+                    this.vorherigeSeiteId = this.currentPage ? this.currentPage.id : null;
                     const newPage = {
                         id: Date.now().toString(),
                         title: this.eindeutigerTitel(this.t('untitled')),
@@ -5763,6 +5779,7 @@ showSettings: false,
                         created: new Date().toISOString(),
                         updated: new Date().toISOString()
                     };
+                    this.fluechtigeSeiteId = newPage.id;
                     this.pages.push(newPage);
                     this.currentPage = newPage;
                     this.isEditing = true;
@@ -5789,6 +5806,7 @@ showSettings: false,
                         this.hinweis(this.t('nurLesen'));
                         return;
                     }
+                    this.vorherigeSeiteId = this.currentPage ? this.currentPage.id : null;
                     const jetzt = new Date().toISOString();
                     const seite = {
                         id: Date.now().toString(),
@@ -5799,6 +5817,7 @@ showSettings: false,
                         created: jetzt,
                         updated: jetzt
                     };
+                    this.fluechtigeSeiteId = seite.id;
                     this.pages.push(seite);
                     this.seitenUebernehmen();
 
@@ -5817,6 +5836,17 @@ showSettings: false,
                 },
 
                 selectPage(page) {
+                    /* Wer die gerade angelegte Huellseite verlaesst, ohne
+                       zu sichern, hat sie nicht gewollt: sie verschwindet
+                       wieder - ob beim Klick auf eine andere Zeile, über
+                       einen Link oder vom Fluss aus. Nur "Abbrechen" tut
+                       dasselbe (seiteAnlegenRueckgaengig); "Sichern" hat
+                       den Vorbehalt vorhin aufgehoben. */
+                    if (this.fluechtigeSeiteId && this.currentPage
+                        && this.currentPage.id === this.fluechtigeSeiteId
+                        && (!page || page.id !== this.fluechtigeSeiteId)) {
+                        this.seiteAnlegenRueckgaengig();
+                    }
                     /* Eine Seite zu oeffnen beendet den Fluss – auch ein
                        Klick auf einen Link mitten im Fluss. */
                     this.fluss = false;
@@ -5934,6 +5964,10 @@ showSettings: false,
                         const mitgezogen = umbenannt
                             ? this.verweiseUmbenennen(alterTitel, titel)
                             : [];
+                        /* Mit dem Sichern ist die Seite gewollt: sie
+                           überlebt ein "Abbrechen" und ein Wegnavigieren
+                           von jetzt an. */
+                        this.fluechtigeSeiteId = null;
                         this.currentPage.title = titel;
                         this.currentPage.content = this.editContent;
                         this.currentPage.updated = new Date().toISOString();
@@ -5954,6 +5988,13 @@ showSettings: false,
                 },
 
                 cancelEditing() {
+                    /* Man hat es sich anders ueberlegt: die eben angelegte
+                       Huellseite verschwindet wieder, inkl. Server. */
+                    if (this.fluechtigeSeiteId && this.currentPage
+                        && this.currentPage.id === this.fluechtigeSeiteId) {
+                        this.seiteAnlegenRueckgaengig();
+                        return;
+                    }
                     this.isEditing = false;
                     this.destroyEditor();
                     this.editContent = '';
@@ -6028,6 +6069,11 @@ showSettings: false,
                     const stelle = quellIndex >= 0 ? this.unterbaumEnde(quellIndex) : 0;
                     this.pages.splice(stelle, 0, kopie);
                     this.currentPage = kopie;
+                    /* Wer eine eben angelegte Huellseite dupliziert, will
+                       nicht sie, sondern die Kopie: mit dem Duplizieren
+                       ist die Huellseite kein Kandidat fuer die Ruecknahme
+                       mehr. */
+                    this.fluechtigeSeiteId = null;
                     this.isEditing = false;
                     this.destroyEditor();
                     this.editContent = '';
@@ -6042,6 +6088,28 @@ showSettings: false,
 
                 confirmDelete() {
                     const deleted = this.pageToDelete;
+                    if (!deleted) return;
+                    this.seiteEntfernen(deleted);
+                    /* Auf eine gültige Seite wechseln, sonst zeigt das
+                       Wiki auf eine, die es nicht mehr gibt. */
+                    if (!this.currentPage || this.currentPage.id === deleted.id) {
+                        this.currentPage = this.pages.find(p => p.id === this.startPageId) || this.pages[0] || null;
+                    }
+                    this.isEditing = false;
+                    this.editTitle = '';
+                    this.editContent = '';
+                    this.destroyEditor();
+                    this.showDeleteModal = false;
+                    this.pageToDelete = null;
+                },
+
+                /* Eine Seite wirklich löschen - die Bestätigung benutzt
+                   das genauso wie die Ruecknahme der eben angelegten
+                   Huellseite. An Ort und Stelle entfernen (der Speicher
+                   zeigt auf dieselbe Liste), die Kinder rücken eine Ebene
+                   hoch und wandern mitgespeichert auf den Server, die
+                   Startseiten-Kennung wird heil gehalten. */
+                seiteEntfernen(deleted) {
                     if (!deleted) return;
 
                     /* An Ort und Stelle entfernen, nicht durch eine neue
@@ -6067,21 +6135,33 @@ showSettings: false,
                         SPEICHER.startseiteSetzen(this.startPageId);
                     }
 
-                    /* Auf eine gültige Seite wechseln und den Editor verlassen. */
-                    if (!this.currentPage || this.currentPage.id === deleted.id) {
-                        this.currentPage = this.pages.find(p => p.id === this.startPageId) || this.pages[0] || null;
-                    }
-                    this.isEditing = false;
-                    this.editTitle = '';
-                    this.editContent = '';
-                    this.destroyEditor();
-
                     /* Die Kinder gehoeren auf dem Server mitgespeichert,
                        sonst stehen dort die alten eltern-Werte. */
                     kinder.forEach((kind) => this.seiteSichern(kind));
                     SPEICHER.seiteLoeschen(deleted.id);
-                    this.showDeleteModal = false;
-                    this.pageToDelete = null;
+                },
+
+                /* "Abbrechen" oder Wegnavigieren nach dem Anlegen: die
+                   leere Huellseite war noch nicht gewollt. Sie wird
+                   ersatzlos zurueckgenommen - aus der Liste, vom Server
+                   und aus der Anzeige -, und der Blick kehrt zu
+                   der Seite zurueck, auf der man vorher war. */
+                seiteAnlegenRueckgaengig() {
+                    const verworfen = this.fluechtigeSeiteId;
+                    this.fluechtigeSeiteId = null;
+                    this.isEditing = false;
+                    this.destroyEditor();
+                    this.editContent = '';
+                    this.editTitle = '';
+                    const seite = this.pages.find(p => p.id === verworfen);
+                    if (!seite) return;
+                    const zurueck = this.vorherigeSeiteId
+                        ? this.pages.find(p => p.id === this.vorherigeSeiteId)
+                        : null;
+                    this.currentPage = zurueck
+                        || this.pages.find(p => p.id === this.startPageId)
+                        || null;
+                    this.seiteEntfernen(seite);
                 },
 
                 toggleTheme() {

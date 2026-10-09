@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.3">
+    <meta name="mws-shell-version" content="v0.1.4">
     <title>SimpleWiki</title>
 
     <!--
@@ -4242,7 +4242,7 @@ showSettings: false,
                             created: new Date().toISOString(),
                             updated: new Date().toISOString()
                         };
-                        this.pages.unshift(neu);
+                        this.pages.push(neu);
                         this.seiteSichern(neu);
                     }
                     if (!Array.isArray(this.currentPage.links)) {
@@ -4476,7 +4476,7 @@ showSettings: false,
                         created: new Date().toISOString(),
                         updated: new Date().toISOString()
                     };
-                    this.pages.unshift(neu);
+                    this.pages.push(neu);
                     this.currentPage = neu;
                     this.seiteSichern(neu);
                     this.startEditing();
@@ -5619,7 +5619,7 @@ showSettings: false,
                         created: new Date().toISOString(),
                         updated: new Date().toISOString()
                     };
-                    this.pages.unshift(newPage);
+                    this.pages.push(newPage);
                     this.currentPage = newPage;
                     this.isEditing = true;
                     this.editContent = '';

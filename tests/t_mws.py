@@ -246,10 +246,10 @@ script2 = r"""
                       head('Doppelte Titel beim Anlegen');
                       neueSeite();
                       setTimeout(function () {
-                        ok(speicher()[0].title === 'Neue Seite', 'erste neue Seite heisst ' + speicher()[0].title);
+                        ok(speicher().slice(-1)[0].title === 'Neue Seite', 'die erste neue Seite steht unten: ' + speicher().map(function (p) { return p.title; }).join('|'));
                         neueSeite();
                         setTimeout(function () {
-                          ok(speicher()[0].title === 'Neue Seite 2', 'zweite heisst ' + speicher()[0].title);
+                          ok(speicher().slice(-1)[0].title === 'Neue Seite 2', 'die zweite ebenso: ' + speicher().map(function (p) { return p.title; }).join('|'));
                           var alle = speicher().map(function (p) { return p.title; });
                           ok(alle.join('|').split('|').filter(function (x, i, a) { return a.indexOf(x) === i; }).length === alle.length,
                              'keine doppelten Namen: ' + alle.join('|'));

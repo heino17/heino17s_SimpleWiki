@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.3">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.4">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,17 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.4 — eine neue Seite kommt unten ins Verzeichnis — 809 Prüfungen
+
+Eine neue Seite landete bisher oben im Inhaltsverzeichnis: Sie wurde vorn
+angehängt und drängte die Startseite und alles andere nach unten — mit
+jeder Seite wuchs die Liste nach oben. Jetzt kommt sie unten an, egal ob
+sie über den Knopf „+ Neue Seite“, über einen Verweis auf eine noch
+fehlende Seite oder über den Verlinken-Dialog entsteht. Die Reihenfolge
+bleibt die übliche: Sie steht in der Datei und hält einem Neuladen und dem
+Austausch stand. Version v0.1.3 → v0.1.4. Geprüft über die volle Suite
+(809 Prüfungen, zwei Prüfblätter erwarten jetzt die neue Seite hinten).
 
 ### v0.1.3 — eine Seite kann unter einer anderen stehen — 808 Prüfungen
 

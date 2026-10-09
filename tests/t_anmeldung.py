@@ -170,6 +170,8 @@ schreiben = r"""
             setTimeout(function () {
               var titel = all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); });
               ok(titel.indexOf('Gamma') >= 0, 'die neue Seite steht im Verzeichnis: ' + titel.join('|'));
+              ok(titel[titel.length - 1] === 'Gamma',
+                 'sie steht unten, nicht oben: ' + titel.join('|'));
               log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
               out();
             }, 500);

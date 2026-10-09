@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.2">
+    <meta name="mws-shell-version" content="v0.1.3">
     <title>SimpleWiki</title>
 
     <!--
@@ -19,11 +19,21 @@
           version    1. Höhere Versionen werden abgelehnt, nicht teilweise
                      gelesen: eine Datei aus einer neueren SimpleWiki darf
                      keine Information stillschweigend verlieren.
-          seiten[]   { id, title, content, links[], tags[], created, updated }
+          seiten[]   { id, title, content, links[], tags[], created, updated,
+                     eltern }
                      content ist Markdown, created/updated sind ISO-8601 mit Z.
                      id muss eindeutig sein. Verknüpft wird über title, nicht
                      über id – deshalb dürfen keine zwei Seiten denselben
                      Namen haben.
+                     eltern heißt die Seite, unter der diese Seite im
+                     Inhaltsverzeichnis eingerückt steht – als title, nicht
+                     als id, wie alle Verweise hier. Fehlt eltern oder ist
+                     leer, steht die Seite auf der obersten Ebene. Gibt es
+                     die genannte Seite nicht, bleibt es wie ohne eltern:
+                     die Seite steht oben, und niemand sucht einen Titel,
+                     der nicht da ist. Kinder rücken beim Umbenennen der
+                     Eltern-Seite automatisch mit – eltern ist ein Verweis,
+                     und hier werden Verweise beim Umbenennen nachgezogen.
           startseite eine id, keine Überschrift.
           sprache    "de" | "en" – nur was SimpleWiki kennt.
           thema      "light" | "dark".
@@ -102,6 +112,13 @@ MWS stellt die Tiddler nicht als Datenblock bereit, sondern als
                        Reihenfolge von Tiddlern, SimpleWiki schon. Ohne dieses
                        Feld wäre sie nach dem Neuladen verloren. Im
                        TiddlyWiki-Editor stört das Feld nicht.
+          eltern       Titel der Seite, unter der diese Seite im
+                       Inhaltsverzeichnis eingerückt steht. Fehlt das Feld
+                       oder ist es leer, steht die Seite auf der obersten
+                       Ebene. Wie jeder Verweis in diesem Programm, über
+                       title, nicht über id – und wie jeder Verweis wandert
+                       es beim Umbenennen mit. Auch dieses Feld stört den
+                       TiddlyWiki-Editor nicht.
 
           Ein caption gibt es nicht mehr. Zwei Felder für denselben Titel
           waeren zwei Quellen der Wahrheit fuer denselben Titel, und eine von
@@ -1224,6 +1241,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             display: flex;
             justify-content: space-between;
             align-items: center;
+            /* Die Ebene sitzt als CSS-Variable am Element: jede Zeile
+               rueckt um die Tiefe ihrer Stufe ein, spielend ohne
+               JavaScript-Klassen pro Tiefe. 0 = oberste Ebene. */
+            padding-left: calc(12px + (var(--ebene, 0) * 18px));
         }
 
         .toc-item:hover {
@@ -1273,6 +1294,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         .toc-item.einfuegen-unten {
             box-shadow: inset 0 -3px 0 0 var(--accent-color);
+        }
+
+        /* Die dritte Zone beim Ziehen: die Zeile wird zur Elternseite.
+           Ein Balken links zeigt das an - die Zeile waechst, statt nur
+           aufgenommen zu werden. */
+        .toc-item.einfuegen-kind {
+            background: var(--bg-hover);
+            box-shadow: inset 4px 0 0 0 var(--accent-color);
         }
 
         /* Stern kennzeichnet die Startseite; die Spalte bleibt immer frei,
@@ -1904,6 +1933,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             justify-content: flex-end;
         }
 
+        /* Der Zusatz im Lösch-Dialog: was mit den Unter-Seiten
+           geschieht, und dass nichts von ihnen verloren geht. */
+        .modal-hint {
+            margin-top: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
 /* ---------- WYSIWYG-Editor an das Wiki-Thema anpassen ---------- */
         .md-host {
             min-height: 200px;
@@ -2423,11 +2460,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                      der Innenkante. Es steht beim Öffnen da, weil ein
                      Verzeichnis, das man sich erst suchen muss, keines ist.
 
-                     Dieselbe Liste wie im Panel rechts - dieselben Zeilen,
-                     dieselben Griffe, dieselbe Reihenfolge. Zwei Orte für
-                     dieselbe Sache sind hier gewollt: das Menü ist der
-                     bequeme Weg, das Panel rechts der Ort, an dem die Suche
-                     steht. -->
+                     Dieselbe Liste wie das Fluss-Querformat und in
+                     derselben Reihenfolge; die Einrückung zeigt die
+                     Verschachtelung: eine Seite steht unter ihrer
+                     eltern-Seite. Verschoben wird mit dem Griff (drei
+                     Zonen: davor, darunter, danach) oder mit Alt + Pfeil.
+                     Eine Seite zieht bei diesen Schritten ihren ganzen
+                     Unterbaum mit, und beim Löschen rücken die Kinder
+                     eine Ebene hoch. -->
                 <div class="toc-menu" :class="{ offen: tocMenuOffen }">
                     <div class="side-header toc-menu-kopf">
                         <h2>{{ t('tocTitle') }}</h2>
@@ -2436,9 +2476,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                         <div v-for="(page, i) in filteredPages" :key="page.id" class="toc-item" :class="{
                                 active: currentPage &amp;&amp; currentPage.id === page.id,
                                 'wird-gezogen': dragIndex === i,
-                                'einfuegen-oben': dropIndex === i &amp;&amp; dropHint === i &amp;&amp; dragIndex !== i,
-                                'einfuegen-unten': dropIndex === i &amp;&amp; dropHint === i + 1 &amp;&amp; dragIndex !== i
-                            }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
+                                'einfuegen-oben': dropIndex === i &amp;&amp; dropArt === 'oben',
+                                'einfuegen-unten': dropIndex === i &amp;&amp; dropArt === 'unten',
+                                'einfuegen-kind': dropIndex === i &amp;&amp; dropArt === 'kind'
+                            }" :style="{ '--ebene': hierarchie.ebene[page.id] || 0 }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
                             <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
                             <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
                             <span class="toc-item-title">{{ page.title }}</span>
@@ -2730,6 +2771,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             <div class="modal">
                 <h3>{{ t('deleteConfirm') }}</h3>
                 <p>{{ t('deleteMessage').replace('{title}', pageToDelete?.title || '') }}</p>
+                <p v-if="pageToDelete &amp;&amp; kinderZahl(pageToDelete)" class="modal-hint">
+                    {{ kinderZahl(pageToDelete) === 1 ? t('deleteKindHoch') : t('deleteKinderHoch') }}
+                </p>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" @click="showDeleteModal = false">
                         {{ t('deleteCancel') }}
@@ -2797,7 +2841,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "seitenN": "{n} Seiten",
                     "noticeError": "In dieser Datei steckt kein SimpleWiki.",
                     "noticeSaveError": "Das Sichern hat nicht geklappt.",
-                    "reorderHint": "Reihenfolge: Zeile am ⠿ ziehen oder Alt + ↑/↓",
+                    "reorderHint": "Reihenfolge: Zeile am ⠿ ziehen (davor, darunter, danach) oder Alt + ↑/↓ verschieben und Alt + →/← ein-/ausrücken",
                     "reorderBlocked": "Zum Ändern der Reihenfolge die Suche leeren.",
                     "riverTitle": "Fluss – alle Seiten",
                     "riverButton": "Fluss",
@@ -2832,6 +2876,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "tocEmpty": "Keine Seiten gefunden",
                     "deleteConfirm": "Seite löschen?",
                     "deleteMessage": "Möchtest du \"{title}\" wirklich löschen?",
+                    "deleteKindHoch": "Ihre Unter-Seite rückt eine Ebene hoch – nichts geht verloren.",
+                    "deleteKinderHoch": "Ihre Unter-Seiten rücken eine Ebene hoch – nichts geht verloren.",
                     "deleteCancel": "Abbrechen",
                     "deleteConfirmBtn": "Löschen",
                     "welcomeTitle": "Willkommen in Deinem SimpleWiki! 🎉",
@@ -2909,7 +2955,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "seitenN": "{n} pages",
                     "noticeError": "This file does not contain a SimpleWiki.",
                     "noticeSaveError": "Saving did not work.",
-                    "reorderHint": "Order: drag a row by ⠿ or press Alt + ↑/↓",
+                    "reorderHint": "Order: drag a row by ⠿ (before, as child, after) or use Alt + ↑/↓ to move and Alt + →/← to indent / outdent",
                     "reorderBlocked": "Clear the search to change the order.",
                     "riverTitle": "River – all pages",
                     "riverButton": "River",
@@ -2951,6 +2997,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "tocEmpty": "No pages found",
                     "deleteConfirm": "Delete page?",
                     "deleteMessage": "Do you really want to delete \"{title}\"?",
+                    "deleteKindHoch": "Its child page moves one level up – nothing is lost.",
+                    "deleteKinderHoch": "Its child pages move one level up – nothing is lost.",
                     "deleteCancel": "Cancel",
                     "deleteConfirmBtn": "Delete",
                     "welcomeTitle": "Welcome to your SimpleWiki! 🎉",
@@ -3131,7 +3179,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            reihenfolge ist eine Ergänzung dieses Programms: TiddlyWiki
            kennt keine Reihenfolge von Tiddlern, das Inhaltsverzeichnis
            von SimpleWiki aber schon. Ohne sie wäre die Reihenfolge nach
-           dem Neuladen verloren. Das Feld stört TiddlyWiki nicht. */
+           dem Neuladen verloren. Das Feld stört TiddlyWiki nicht.
+           eltern nennt die Seite, unter der diese Seite eingerückt
+           steht. Es ist wie jeder Verweis über title, nicht über id,
+           und wandert beim Umbenennen mit. Fehlt es, steht die Seite
+           oben. Beim Umbenennen einer Seite zieht verweiseUmbenennen
+           auch die eltern-Felder der Kinder nach. */
         function seiteZuTiddler(seite, felder) {
             const t = Object.assign({}, felder || {});
             /* Der Tiddler heisst wie die Seite. Das ist TiddlyWiki-nativ
@@ -3145,6 +3198,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             t.tags = zwTagsSchreiben(seite.tags);
             if (seite.created) t.created = isoNachZw(seite.created);
             if (seite.updated) t.modified = isoNachZw(seite.updated);
+            if (seite.eltern) t.eltern = String(seite.eltern);
+            else delete t.eltern;
             return t;
         }
 
@@ -3159,7 +3214,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 links: [],
                 tags: zwTagsLesen(t.tags),
                 created: zwNachIso(t.created),
-                updated: zwNachIso(t.modified)
+                updated: zwNachIso(t.modified),
+                eltern: t.eltern ? String(t.eltern) : ''
             };
         }
 
@@ -3886,6 +3942,10 @@ showSettings: false,
                 mwsHinweisAbblendend: false,
                 dragIndex: null,
                 dropIndex: null,
+                /* Wohin ein Ziehen zielt: 'oben' und 'unten' sind
+                   Geschwisterplätze, 'kind' macht die Zielzeile zur
+                   übergeordneten Seite. Leer heisst: kein Ziel. */
+                dropArt: '',
                 hinweisText: '',
                 hinweisTimer: null,
                     isDarkMode: false,
@@ -3964,6 +4024,47 @@ showSettings: false,
                         p.title.toLowerCase().includes(query) ||
                         p.content.toLowerCase().includes(query)
                     );
+                },
+
+                /* Die Verschachtelung des Inhaltsverzeichnisses: die
+                   Ebene jeder Seite (0 = oberste Ebene) und ihre direkten
+                   Kinder. Gebaut aus dem eltern-Feld, und zwar mit einem
+                   Weg nach oben - so stimmt die Tiefe auch dann, wenn
+                   eine fremde Datei die Reihenfolge nicht von Eltern zu
+                   Kindern gelegt hat. Ein eltern-Verweis, der ins Leere
+                   zeigt, zaehlt wie keine Angabe, und ein Kreis in den
+                   Daten endet am Zykluswaechter statt in einer
+                   Endlosschleife. */
+                hierarchie() {
+                    const ebene = {};
+                    const kinder = {};
+                    const vonTitel = {};
+                    const max = this.pages.length;
+                    this.pages.forEach((seite) => {
+                        ebene[seite.id] = 0;
+                        kinder[seite.id] = [];
+                        vonTitel[seite.title] = seite;
+                    });
+                    this.pages.forEach((seite) => {
+                        let stufe = 0;
+                        let gesehen = 0;
+                        let elternTitel = seite.eltern ? String(seite.eltern) : '';
+                        /* Das Kind einmal bei seiner direkten Elternseite
+                           melden - der Unterbaum setzt sich daraus nicht
+                           zusammen, aber das Löschen will die Zahl wissen. */
+                        if (elternTitel && vonTitel[elternTitel]) {
+                            kinder[vonTitel[elternTitel].id].push(seite.id);
+                        }
+                        while (elternTitel && vonTitel[elternTitel] && gesehen <= max) {
+                            gesehen++;
+                            stufe++;
+                            const elternSeite = vonTitel[elternTitel];
+                            if (elternSeite.id === seite.id) break;   /* Kreis */
+                            elternTitel = elternSeite.eltern ? String(elternSeite.eltern) : '';
+                        }
+                        ebene[seite.id] = stufe;
+                    });
+                    return { ebene: ebene, kinder: kinder };
                 },
 
                 /* Steht die Trefferliste unter dem Feld?
@@ -4456,17 +4557,66 @@ showSettings: false,
                     );
                 },
 
-                /* ---------- Reihenfolge im Inhaltsverzeichnis ---------- */
+                /* ---------- Reihenfolge und Verschachtelung ----------
+
+                   Die Liste lebt in Tiefensuche-Reihenfolge: eine Seite
+                   steht direkt vor ihrem Unterbaum. Aus dieser Ordnung
+                   kommen alle Bewegungen, und sie haelt die gespeicherte
+                   Reihenfolge (reihenfolge = Index) und das Bild im
+                   Takt - der Fluss zeigt dieselbe Folge wie das
+                   Verzeichnis. */
+
+                /* Steht eine Seite im Stammbaum einer anderen? Der Weg
+                   geht ueber eltern nach oben, bis die Ahnin gefunden
+                   oder das Ende erreicht ist. Der Zykluswaechter
+                   verhindert die Endlosschleife, falls fremde Daten
+                   einen Kreis mitbringen. */
+                istNachkomme(seite, ahnTitel) {
+                    let gesehen = 0;
+                    let elternTitel = seite.eltern ? String(seite.eltern) : '';
+                    while (elternTitel && gesehen <= this.pages.length) {
+                        gesehen++;
+                        if (elternTitel === ahnTitel) return true;
+                        const elternSeite = this.pages.find(p => p.title === elternTitel);
+                        if (!elternSeite) return false;
+                        elternTitel = elternSeite.eltern ? String(elternSeite.eltern) : '';
+                    }
+                    return false;
+                },
+
+                /* Ende des Unterbaums, der bei n beginnt - die erste
+                   Stelle hinter dem Block. Ein zusammenhangender Block
+                   ist er deshalb, weil die Liste in Tiefensuche-
+                   Reihenfolge lebt. */
+                unterbaumEnde(n) {
+                    if (n < 0 || n >= this.pages.length) return n + 1;
+                    const titel = this.pages[n].title;
+                    let i = n + 1;
+                    while (i < this.pages.length && this.istNachkomme(this.pages[i], titel)) i++;
+                    return i;
+                },
+
+                /* Die Zahl der direkten Kinder einer Seite - das
+                   Loeschen will sie wissen. Die Tiefe holt der Aufrufer
+                   sich ueber die Einrueckung (hierarchie().ebene). */
+                kinderZahl(seite) {
+                    if (!seite) return 0;
+                    const kinder = this.hierarchie.kinder[seite.id];
+                    return kinder ? kinder.length : 0;
+                },
 
                 /* Ziehen: der Griff nimmt die Zeile mit, die Zeile
-                   selbst ist das Ziel. Eingefügt wird vor oder hinter
-                   ihr, je nachdem wo der Zeiger steht – wie beim
-                   Umlegen eines Zettels. */
+                   selbst ist das Ziel. Drei Zonen sagen, was geschieht:
+                   oben kostet den Platz vor der Zeile, die Mitte macht
+                   die Zeile zur Elternseite (die gezogene Seite wird ihr
+                   letztes Kind), unten kostet den Platz hinter dem
+                   ganzen Unterbaum der Zeile. Bei jeder Bewegung zieht
+                   der Unterbaum mit. */
                 onDragStart(i, event) {
                     if (this.searchQuery.trim()) return;
                     this.dragIndex = i;
-                    this.dropIndex = i;
-                    this.dropHint = i;
+                    this.dropIndex = null;
+                    this.dropArt = '';
                     if (event.dataTransfer) {
                         event.dataTransfer.effectAllowed = 'move';
                         /* Firefox beginnt das Ziehen nur, wenn Daten
@@ -4480,73 +4630,195 @@ showSettings: false,
                 onDragOver(i, event) {
                     if (this.dragIndex === null) return;
                     const kasten = event.currentTarget.getBoundingClientRect();
-                    const unten = event.clientY > kasten.top + kasten.height / 2;
+                    const teil = (event.clientY - kasten.top) / Math.max(1, kasten.height);
+                    const art = teil < 1 / 3 ? 'oben' : (teil > 2 / 3 ? 'unten' : 'kind');
+                    /* In den eigenen Unterbaum darf nichts gelegt
+                       werden - sonst stünde eine Seite in sich selbst
+                       drin. */
+                    const gezogen = this.dragIndex;
+                    if (i >= gezogen && i < this.unterbaumEnde(gezogen)) {
+                        this.dropIndex = null;
+                        this.dropArt = '';
+                        return;
+                    }
                     this.dropIndex = i;
-                    this.dropHint = unten ? i + 1 : i;
+                    this.dropArt = art;
                 },
 
                 onDrop() {
                     if (this.dragIndex === null) return;
                     const von = this.dragIndex;
-                    const kante = this.dropHint;
+                    const art = this.dropArt;
+                    const ziel = this.dropIndex;
                     this.dragIndex = null;
                     this.dropIndex = null;
-                    this.movePage(von, kante);
+                    this.dropArt = '';
+                    if (ziel === null || !art || von < 0 || von >= this.pages.length) return;
+                    if (art === 'kind') {
+                        this.einruecken(von, ziel);
+                    } else {
+                        this.blockAnPosition(von, art === 'unten' ? this.unterbaumEnde(ziel) : ziel);
+                    }
                 },
 
                 onDragEnd() {
                     this.dragIndex = null;
                     this.dropIndex = null;
+                    this.dropArt = '';
                 },
 
-                /* Seite vor die Position "nach" setzen – Positionen
-                   beziehen sich immer auf die Liste vor dem Verschieben. */
-                movePage(von, nach) {
+                /* Den Block, der bei von anfaengt, so legen, dass er an
+                   Stelle ziel anfaengt. ziel bezieht sich - wie beim
+                   Verschieben einer einzelnen Seite vorher - auf die
+                   Liste vor dem Verschieben; so bleibt die Rechnung in
+                   den Tests einfach. */
+                blockAnPosition(von, ziel) {
                     if (von < 0 || von >= this.pages.length) return;
-                    let ziel = nach;
-                    if (von < nach) ziel = nach - 1;   /* der Rest rutscht eins vor */
-                    /* Die Zahl der Seiten minus die, die gerade rausgeht:
-                       das ist die groesste moegliche Stelle danach. */
-                    ziel = Math.max(0, Math.min(ziel, this.pages.length - 1));
-                    if (ziel === von) return;
+                    const ende = this.unterbaumEnde(von);
+                    const breite = ende - von;
+                    let z = ziel;
+                    if (von < z) z -= breite;   /* der Rest rutscht vor */
+                    z = Math.max(0, Math.min(z, this.pages.length - breite));
+                    if (z === von) return;
+                    const block = this.pages.slice(von, ende);
                     /* Umstellen an Ort und Stelle, nicht ueber eine neue
                        Liste: der Speicher zeigt auf dieselbe. */
-                    const seite = this.pages.splice(von, 1)[0];
-                    this.pages.splice(ziel, 0, seite);
+                    this.pages.splice(von, breite);
+                    this.pages.splice(z, 0, ...block);
                     this.seitenSichern();
                 },
 
-                /* Alt + Pfeil verschiebt die Zeile: für die Tastatur
-                   und dort, wo ein Browser nicht ziehen kann. */
+                /* Eine Seite mit ihrem Unterbaum zur letzten Kind-Seite
+                   der Zeile "elternZeile" machen - so entsteht oder
+                   vertieft sich die Verschachtelung. */
+                einruecken(von, elternZeile) {
+                    const seite = this.pages[von];
+                    const elternSeite = this.pages[elternZeile];
+                    if (!elternSeite || elternSeite.id === seite.id) return;
+                    if (seite.eltern === elternSeite.title) return;   /* ist schon Kind */
+                    if (this.istNachkomme(elternSeite, seite.title)) return;   /* in den eigenen Unterbaum */
+                    const ende = this.unterbaumEnde(von);
+                    const breite = ende - von;
+                    const block = this.pages.slice(von, ende);
+                    /* Das Ziel zuerst berechnen, sonst zaehlt der
+                       veraenderte eltern-Wert den Block schon zum
+                       Unterbaum der Elternseite dazu. */
+                    const ziel = this.unterbaumEnde(elternZeile);
+                    seite.eltern = elternSeite.title;
+                    let z = ziel;
+                    if (von < z) z -= breite;
+                    z = Math.max(0, Math.min(z, this.pages.length - breite));
+                    if (z === von) { this.seitenSichern(); return; }
+                    this.pages.splice(von, breite);
+                    this.pages.splice(z, 0, ...block);
+                    this.seitenSichern();
+                },
+
+                /* Eine Seite mit ihrem Unterbaum aus der
+                   Verschachtelung nehmen: sie steht danach auf der Ebene
+                   ihrer Elternseite, direkt hinter deren Unterbaum. */
+                ausruecken(von) {
+                    const seite = this.pages[von];
+                    if (!seite || !seite.eltern) return;
+                    const elternSeite = this.pages.find(p => p.title === seite.eltern);
+                    /* Zeigt eltern ins Leere, zaehlt es wie keine Angabe
+                       (siehe Vertrag): bleiben, wo es ist, nur das
+                       kaputte Feld loswerden. */
+                    if (!elternSeite) {
+                        seite.eltern = '';
+                        this.seitenSichern();
+                        return;
+                    }
+                    const ende = this.unterbaumEnde(von);
+                    const breite = ende - von;
+                    const block = this.pages.slice(von, ende);
+                    const ziel = this.unterbaumEnde(this.pages.indexOf(elternSeite));
+                    seite.eltern = elternSeite.eltern || '';
+                    let z = ziel;
+                    if (von < z) z -= breite;
+                    z = Math.max(0, Math.min(z, this.pages.length - breite));
+                    if (z === von) { this.seitenSichern(); return; }
+                    this.pages.splice(von, breite);
+                    this.pages.splice(z, 0, ...block);
+                    this.seitenSichern();
+                },
+
+                /* Der Fokus wandert zur Zeile, die der Befehl bewegt
+                   hat - in dieselbe Liste, aus der gekommen wurde. Aus
+                   dem ganzen Dokument geholt liefe er in die andere
+                   Liste, und man schriebe an einer Stelle und tippte an
+                   einer anderen. */
+                fokusNachNeuerStelle(gedrueckt, id) {
+                    this.$nextTick(() => {
+                        const liste = gedrueckt && gedrueckt.closest('.toc-list');
+                        if (!liste) return;
+                        const zeilen = [].slice.call(liste.querySelectorAll('.toc-item'));
+                        const neu = this.pages.findIndex(p => p.id === id);
+                        if (zeilen[neu]) zeilen[neu].focus();
+                    });
+                },
+
+                /* Alt + Pfeil bewegt die Zeile: fuer die Tastatur und
+                   dort, wo ein Browser nicht ziehen kann. Hoch und
+                   runter tauschen mit dem Nachbarn auf derselben Ebene,
+                   rechts rueckt unter die Zeile davor ein, links rueckt
+                   eine Ebene aus. Bei jedem Schritt zieht der Unterbaum
+                   mit. */
                 onZeileKeydown(event, page) {
                     if (!event.altKey) return;
                     const hoch = event.key === 'ArrowUp';
-                    if (!hoch && event.key !== 'ArrowDown') return;
+                    const runter = event.key === 'ArrowDown';
+                    const rechts = event.key === 'ArrowRight';
+                    const links = event.key === 'ArrowLeft';
+                    if (!hoch && !runter && !rechts && !links) return;
                     /* Bei einer Suche ist die Liste gefiltert und hat
                        damit keine feste Reihenfolge. */
                     if (this.searchQuery.trim()) return;
                     const i = this.pages.findIndex(p => p.id === page.id);
                     if (i < 0) return;
                     event.preventDefault();
-                    /* Die Liste festhalten, in der gedrueckt wurde. Es
-                       gibt zwei: das Menue links und das Panel rechts.
+                    /* Die Liste festhalten, in der gedrueckt wurde.
                        currentTarget ist nur waehrend der Zustellung
                        gueltig, darum hier oben. */
                     const gedrueckt = event.currentTarget;
-                    const ziel = Math.max(0, Math.min(this.pages.length - 1, i + (hoch ? -1 : 1)));
-                    if (ziel === i) return;
-                    this.movePage(i, hoch ? ziel : ziel + 1);
-                    this.$nextTick(() => {
-                        /* Der Fokus wandert in dieselbe Liste, aus der
-                           gekommen wurde. Aus dem ganzen Dokument geholt
-                           laeuft er in der anderen Liste, und man
-                           schreibt an einer Stelle und tippt an einer
-                           anderen. */
-                        const liste = gedrueckt && gedrueckt.closest('.toc-list');
-                        if (!liste) return;
-                        const zeilen = [].slice.call(liste.querySelectorAll('.toc-item'));
-                        if (zeilen[ziel]) zeilen[ziel].focus();
+
+                    if (rechts) {
+                        if (i === 0) return;
+                        const elternSeite = this.pages[i - 1];
+                        if (elternSeite.id === page.id) return;
+                        if (page.eltern === elternSeite.title) return;   /* schon Kind */
+                        if (this.istNachkomme(elternSeite, page.title)) return;
+                        this.einruecken(i, i - 1);
+                        this.fokusNachNeuerStelle(gedrueckt, page.id);
+                        return;
+                    }
+                    if (links) {
+                        this.ausruecken(i);
+                        this.fokusNachNeuerStelle(gedrueckt, page.id);
+                        return;
+                    }
+
+                    /* Hoch und runter: nur auf derselben Ebene.
+                       Geschwister sind die Zeilen mit derselben
+                       eltern-Seite, nicht die, die zufaellig daneben
+                       stehen. */
+                    const elternTitel = page.eltern || '';
+                    let vorher = -1;
+                    let nachher = -1;
+                    this.pages.forEach((p, idx) => {
+                        if (idx === i) return;
+                        if ((p.eltern || '') !== elternTitel) return;
+                        if (idx < i) vorher = Math.max(vorher, idx);
+                        if (idx > i) nachher = nachher < 0 ? idx : Math.min(nachher, idx);
                     });
+                    if (hoch) {
+                        if (vorher < 0) return;
+                        this.blockAnPosition(i, vorher);
+                    } else {
+                        if (nachher < 0) return;
+                        this.blockAnPosition(i, this.unterbaumEnde(nachher));
+                    }
+                    this.fokusNachNeuerStelle(gedrueckt, page.id);
                 },
 
                 onKeydown(event) {
@@ -4622,6 +4894,10 @@ showSettings: false,
                         seite.tags = Array.isArray(roh.tags) ? roh.tags.slice() : [];
                         seite.created = roh.created ? String(roh.created) : '';
                         seite.updated = roh.updated ? String(roh.updated) : '';
+
+                        /* Die übergeordnete Seite als title; fehlt das
+                           Feld, steht die Seite auf der obersten Ebene. */
+                        seite.eltern = roh.eltern ? String(roh.eltern) : '';
 
                         /* Verweise: die aus dem Text notierten Links
                            kommen dazu. Sonst zeigt der 🔗-Knopf bei
@@ -5079,7 +5355,13 @@ showSettings: false,
                         links.forEach((l, i) => {
                             if (l === alterTitel) { links[i] = neuerTitel; neuLinks = true; }
                         });
-                        if (nachher !== vorher || neuLinks) {
+                        /* eltern ist auch ein Verweis, wenn auch einer
+                           mit Folgen fuer den Platz im Verzeichnis: die
+                           Kinder wandern mit, damit das Bild nicht
+                           luegt. */
+                        const kind = seite.eltern === alterTitel;
+                        if (kind) seite.eltern = neuerTitel;
+                        if (nachher !== vorher || neuLinks || kind) {
                             seite.content = nachher;
                             seite.updated = new Date().toISOString();
                             geaendert.push(seite);
@@ -5580,10 +5862,20 @@ showSettings: false,
                         links: Array.isArray(quelle.links) ? quelle.links.slice() : [],
                         tags: Array.isArray(quelle.tags) ? quelle.tags.slice() : [],
                         created: new Date().toISOString(),
-                        updated: new Date().toISOString()
+                        updated: new Date().toISOString(),
+                        /* Die Kopie steht unter derselben Elternseite und
+                           direkt hinter dem Unterbaum der Vorlage - so
+                           liegt sie im Verzeichnis da, wo sie gesucht
+                           wird. */
+                        eltern: quelle.eltern || ''
                     };
 
-                    this.pages.unshift(kopie);
+                    /* Hinter den Unterbaum der Vorlage, damit die Kopie
+                       deren Platz behaelt und die Tiefensuche-Reihenfolge
+                       heil bleibt. */
+                    const quellIndex = this.pages.findIndex(p => p.id === quelle.id);
+                    const stelle = quellIndex >= 0 ? this.unterbaumEnde(quellIndex) : 0;
+                    this.pages.splice(stelle, 0, kopie);
                     this.currentPage = kopie;
                     this.isEditing = false;
                     this.destroyEditor();
@@ -5606,6 +5898,17 @@ showSettings: false,
                     const i = this.pages.findIndex(p => p.id === deleted.id);
                     if (i >= 0) this.pages.splice(i, 1);
 
+                    /* Die Kinder ruecken eine Ebene hoch: unter der
+                       Elternseite der geloeschten Seite werden sie deren
+                       Geschwister - nichts von ihnen geht verloren. Die
+                       Reihenfolge stimmt von selbst, weil die Liste in
+                       Tiefensuche-Reihenfolge lebt und die Kinder direkt
+                       hinter der geloeschten Seite standen. */
+                    const kinder = this.pages.filter(p => p.eltern === deleted.title);
+                    kinder.forEach(function (kind) {
+                        kind.eltern = deleted.eltern || '';
+                    });
+
                     /* War die gelöschte Seite die Startseite, eine neue
                        bestimmen – sonst zeigt das Wiki ins Leere. */
                     if (this.startPageId === deleted.id) {
@@ -5622,6 +5925,9 @@ showSettings: false,
                     this.editContent = '';
                     this.destroyEditor();
 
+                    /* Die Kinder gehoeren auf dem Server mitgespeichert,
+                       sonst stehen dort die alten eltern-Werte. */
+                    kinder.forEach((kind) => this.seiteSichern(kind));
                     SPEICHER.seiteLoeschen(deleted.id);
                     this.showDeleteModal = false;
                     this.pageToDelete = null;

@@ -57,7 +57,8 @@ script = r"""
             ok(!!a && a.content === '# Alpha\n\nInhalt mit *Betonung*', 'Inhalt unveraendert');
             ok(!!a && JSON.stringify(a.links) === '["Beta"]', 'Verknuepfungen unveraendert');
             ok(!!a && a.title === 'Alpha', 'Titel unveraendert');
-            ok(speicher()[0].title === 'Alpha (Kopie)', 'Kopie steht in der Liste vorn');
+            ok(speicher()[0].title === 'Alpha', 'die Vorlage steht vorn');
+            ok(speicher()[1].title === 'Alpha (Kopie)', 'die Kopie steht direkt hinter ihrem Unterbaum');
 
             head('Zweite Kopie: Nummerierung');
             btn(/Bearbeiten/).click();

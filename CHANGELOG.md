@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.2">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.3">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,33 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.3 — eine Seite kann unter einer anderen stehen — 808 Prüfungen
+
+Das Inhaltsverzeichnis war eine flache Liste: Reihenfolge ja, Gliederung
+nein. Jetzt kann eine Seite eine Elternseite haben, beliebig tief. Gesagt
+wird es über das bekannte Feld `eltern`, das den Titel der Elternseite
+nennt — an derselben Stelle, an der Verweise den Titel nennen, zieht es
+beim Umbenennen mit. Die Datei bleibt eine flache Liste in
+Tiefensuche-Reihenfolge: Die Elternseite steht direkt vor ihrem Unterbaum,
+und der Unterbaum zieht immer mit — beim Ziehen, beim Ein- und Ausrücken,
+beim Versetzen, beim Löschen.
+
+Ziehen hat jetzt drei Zonen je Zeile: oben legt davor, unten dahinter —
+hinter meint hier hinter dem ganzen Unterbaum, nicht hinter der einen Zeile —
+und die Mitte macht die Zeile zur Elternseite. Beim Tastaturweg tut dieselbe
+Dreiteilung: Alt + ↑/↓ tauscht nur mit Nachbarn auf derselben Ebene, Alt + → rückt
+unter die Zeile davor ein, Alt + ← rückt eine Ebene aus. Wer sucht, lässt
+nichts verschieben.
+
+Eine Kopie erbt die Elternseite und steht direkt hinter dem Unterbaum der
+Vorlage statt vorn in der Liste; das Löschen einer Seite mit Kindern stuft
+die Kinder eine Ebene hoch und sagt es vor dem Bestätigen („die Unter-Seite
+rückt eine Ebene hoch“, Deutsch und Englisch). Das Austauschformat bleibt
+Version 1: ein bekanntes Feld kommt hinzu, nichts ändert sich, fremde Felder
+bleiben erhalten. Version v0.1.2 → v0.1.3. Geprüft über die volle Suite
+(808 Prüfungen, davon 56 in drei neuen Prüfblättern zur Verschachtelung)
+und in MWS (`provision-simplewiki`).
 
 ### v0.1.2 — der Update-Hinweis wohnt im Einstellungen-Dialog — 751 Prüfungen
 

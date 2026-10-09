@@ -38,7 +38,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Inhaltsverzeichnis** | als Spalte links, drängt den Inhalt zur Seite und lässt die Kopfzeile frei; am Fähnchen zu- und aufklappbar, unter 640px Fensterbreite fängt es zugeklappt an |
 | **Verlinken** | `[[Seite]]` und `[[Beschriftung\|Seite]]` im Text, dazu ein Dialog beim Bearbeiten |
 | **Verweise** | Rück- und Ausgehende in einem eigenen Panel, mit Zähler im Kopf |
-| **Reihenfolge** | per Ziehen oder mit Alt + Pfeiltaste; die Reihenfolge überlebt das Neuladen |
+| **Gliederung** | Unter-Seiten unter einer Elternseite, beliebig tief; gebaut per Ziehen (drei Zonen je Zeile: davor, als Kind, dahinter) oder mit Alt + Pfeil: ↑/↓ auf gleicher Ebene, → einrücken, ← ausrücken |
 | **Duplizieren** | legt eine Kopie mit eigenem Namen an, ohne Verknüpfung zur Vorlage |
 | **Suche** | im Kopf; die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
@@ -51,20 +51,20 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 5674 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 5980 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
-    1–203    zwei Kommentare im <head>: der Austauschvertrag und der
+1–220    zwei Kommentare im <head>: der Austauschvertrag und der
              MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier
              steht, warum das Format so aussieht und was der Server
              liefern muss.
-      204    <script id="simplewiki-daten">  die Dateninsel
-   205–342   die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+      221    <script id="simplewiki-daten">  die Dateninsel
+    222–358   die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
              DOMPurify)
-   343–2300  das Stylesheet
-  2313–2743  die Oberfläche (Vue-Template)
-  2745–5673  das Programm
+    360–2337  das Stylesheet
+   2350–2787  die Oberfläche (Vue-Template)
+   2789–5980  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -84,7 +84,7 @@ besonders zu beachten:
 ## Die zwei Betriebsarten
 
 An **genau einer** Stelle im Programm steht, woher die Seiten kommen
-(`simplewiki.html:2896`, „Wo die Seiten liegen: Browser oder MWS“):
+(`simplewiki.html:3063`, „Wo die Seiten liegen: Browser oder MWS“):
 
 - **Browser** — der Normalfall. Seiten liegen in `localStorage`. Eine per
   Doppelklick geöffnete Datei merkt sich genau so.
@@ -120,7 +120,7 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.2">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.3">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit
@@ -159,7 +159,8 @@ lesen:
   "seiten": [
     {"id": "…", "title": "…", "content": "Markdown mit [[Verweisen]]",
      "links": ["Seitenname"], "tags": [], "created": "ISO-8601 mit Z",
-     "updated": "ISO-8601 mit Z"}
+     "updated": "ISO-8601 mit Z",
+     "eltern": "Titel der Elternseite (nur bei Unter-Seiten)"}
   ],
   "startseite": "id der Startseite",
   "sprache": "de",

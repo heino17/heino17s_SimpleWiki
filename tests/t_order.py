@@ -36,7 +36,11 @@ script = r"""
       function taste(key, alt) {
         return new KeyboardEvent('keydown', { key: key, altKey: !!alt, bubbles: true, cancelable: true });
       }
-      function mitte(z) { var k = z.getBoundingClientRect(); return k.top + k.height / 2; }
+      /* Drei Zonen: die oberste Treppe zielt davor, die unterste dahinter,
+         die Mitte drauf. Der Abstand nach aussen muss sicher in die Zone
+         treffen - darum der Abstand 2 statt des Rechnens aufs Drittel. */
+      function oben(z) { var k = z.getBoundingClientRect(); return k.top + 2; }
+      function unten(z) { var k = z.getBoundingClientRect(); return k.bottom - 2; }
       function ziehe(griff, ziel, clientY) {
         var d = new DataTransfer();
         griff.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: d }));
@@ -87,7 +91,7 @@ script = r"""
 
                     head('Ziehen: oberhalb einfuegen');
                     var v1 = titel();
-                    ziehe(grips()[3], zeile(1), mitte(zeile(1)) - 4);
+                    ziehe(grips()[3], zeile(1), oben(zeile(1)));
                     setTimeout(function () {
                       var s1 = erwartet(v1, 3, 1);
                       ok(titel().join('|') === s1, 'Vier vor die zweite Zeile: ' + titel().join('|'));
@@ -95,7 +99,7 @@ script = r"""
 
                       head('Ziehen: unterhalb einfuegen');
                       var v2 = titel();
-                      ziehe(grips()[0], zeile(3), mitte(zeile(3)) + 4);
+                      ziehe(grips()[0], zeile(3), unten(zeile(3)));
                       setTimeout(function () {
                         ok(titel().join('|') === erwartet(v2, 0, 4), 'erste Seite ans Ende: ' + titel().join('|'));
                         ok(titel()[3] === v2[0], 'und zwar als letzte: ' + titel().join('|'));
@@ -109,17 +113,17 @@ script = r"""
                         grips()[0].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: d }));
                         setTimeout(function () {
                           ok(!!q('.toc-item.wird-gezogen'), 'gezogene Zeile wird blasser');
-                          zeile(2).dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: d, clientY: mitte(zeile(2)) - 6 }));
+                          zeile(2).dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: d, clientY: oben(zeile(2)) }));
                           setTimeout(function () {
-                            ok(!!q('.toc-item.einfuegen-oben') && !q('.toc-item.einfuegen-unten'), 'Zeiger ueber der Mitte: Linie oben');
+                            ok(!!q('.toc-item.einfuegen-oben') && !q('.toc-item.einfuegen-unten') && !q('.toc-item.einfuegen-kind'), 'Zeiger oben: Linie davor');
                             grips()[0].dispatchEvent(new DragEvent('dragend', { bubbles: true, cancelable: true, dataTransfer: d }));
                             setTimeout(function () {
                               var d2 = new DataTransfer();
                               grips()[1].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: d2 }));
                               setTimeout(function () {
-                                zeile(2).dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: d2, clientY: mitte(zeile(2)) + 6 }));
+                                zeile(2).dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: d2, clientY: unten(zeile(2)) }));
                                 setTimeout(function () {
-                                  ok(!!q('.toc-item.einfuegen-unten') && !q('.toc-item.einfuegen-oben'), 'Zeiger unter der Mitte: Linie unten');
+                                  ok(!!q('.toc-item.einfuegen-unten') && !q('.toc-item.einfuegen-oben') && !q('.toc-item.einfuegen-kind'), 'Zeiger unten: Linie dahinter');
                                   grips()[1].dispatchEvent(new DragEvent('dragend', { bubbles: true, cancelable: true, dataTransfer: d2 }));
                                   setTimeout(function () {
                                     ok(!q('.toc-item.wird-gezogen') && !q('.toc-item.einfuegen-oben') && !q('.toc-item.einfuegen-unten'), 'nach dem Ziehen ist alles weg');

@@ -252,8 +252,9 @@ script4 = r"""
 """
 
 # Fuenfter Lauf: aus dem Register in den Fluss - alle Seiten mit dem
-# Schlagwort hintereinander, mit einem Filter-Etikett, das sich loesen
-# laesst; danach wieder die ganze Wiki ueber den Fluss-Knopf.
+# Schlagwort hintereinander, danach der Schlagwort-Filter im Fluss-Kopf
+# als Auswahlliste: ein anderes nehmen, auf "alle" zurueckstellen, und
+# ueber den Fluss-Knopf die ganze Wiki.
 script5 = r"""
     <script>
     (function () {
@@ -266,6 +267,7 @@ script5 = r"""
       function titel() { return all('.fluss-eintrag-titel .fluss-titel-knopf').map(function (e) { return e.textContent.trim(); }); }
       function zahl() { return q('.fluss-zahl') ? q('.fluss-zahl').textContent.replace(/\s+/g, ' ').trim() : '(keine)'; }
       function tagPille(name) { return all('.tags-row .tag-pill').filter(function (p) { return p.textContent.trim() === name; })[0]; }
+      function waehle(sel, wert) { sel.value = wert; sel.dispatchEvent(new Event('change', { bubbles: true })); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
@@ -282,29 +284,38 @@ script5 = r"""
               ok(!!q('.fluss'), 'der Fluss steht');
               ok(titel().join(' | ') === 'Alpha | Beta', 'nur das Schlagwort, in Reihenfolge: ' + titel().join(' | '));
               ok(document.querySelector('.footer') === null, 'die Fusszeile bleibt im Fluss weg');
-              ok(q('.fluss-tag-chip') && q('.fluss-tag-name').textContent.trim() === 'Mathe', 'das Filter-Etikett nennt das Schlagwort');
+              var wahl = q('.fluss-tag-filter');
+              ok(!!wahl, 'die Auswahlliste steht im Fluss-Kopf');
+              ok(wahl.value === 'Mathe' && wahl.options[wahl.selectedIndex].text === 'Mathe', 'sie steht auf dem Schlagwort: ' + wahl.value);
               ok(/2 Seiten mit dem Schlagwort/.test(zahl()) && /Mathe/.test(zahl()), 'die Zahl nennt Schlagwort und Seiten: ' + zahl());
 
-              head('Filter loesen: wieder alle Seiten');
-              q('.fluss-tag-chip .tag-pill-x').click();
+              head('In der Liste auf ein anderes Schlagwort');
+              waehle(wahl, 'Sport');
               setTimeout(function () {
-                ok(!q('.fluss-tag-chip'), 'das Etikett ist weg');
-                ok(titel().join(' | ') === 'Alpha | Beta | Gamma | Delta', 'alle Seiten stehen da: ' + titel().join(' | '));
-                ok(/4 Seiten hintereinander/.test(zahl()), 'die Zahl ist die ganze Wiki: ' + zahl());
+                ok(titel().join(' | ') === 'Delta', 'nur Sport bleibt: ' + titel().join(' | '));
+                ok(/1 Seite mit dem Schlagwort/.test(zahl()) && /Sport/.test(zahl()), 'die Zahl folgt der Wahl: ' + zahl());
 
-                head('Eine Seite im Fluss anklicken beendet ihn');
-                all('.fluss-titel-knopf').filter(function (b) { return b.textContent.trim() === 'Gamma'; })[0].click();
+                head('In der Liste auf "alle" zurueck');
+                waehle(q('.fluss-tag-filter'), '');
                 setTimeout(function () {
-                  ok(!q('.fluss'), 'der Fluss ist zu');
-                  ok(q('.content-title') && q('.content-title').textContent.trim() === 'Gamma', 'Gamma ist offen');
+                  ok(titel().join(' | ') === 'Alpha | Beta | Gamma | Delta', 'alle Seiten stehen da: ' + titel().join(' | '));
+                  ok(/4 Seiten hintereinander/.test(zahl()), 'die Zahl ist die ganze Wiki: ' + zahl());
 
-                  head('Der Fluss-Knopf im Kopf zeigt wieder die ganze Wiki');
-                  q('.kopf-fluss').click();
+                  head('Eine Seite im Fluss anklicken beendet ihn');
+                  all('.fluss-titel-knopf').filter(function (b) { return b.textContent.trim() === 'Gamma'; })[0].click();
                   setTimeout(function () {
-                    ok(!!q('.fluss') && !q('.fluss-tag-chip'), 'ganze Wiki, kein Filter-Etikett');
-                    ok(titel().length === 4, 'alle vier Seiten: ' + titel().join(' | '));
-                    log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-                    out();
+                    ok(!q('.fluss'), 'der Fluss ist zu');
+                    ok(q('.content-title') && q('.content-title').textContent.trim() === 'Gamma', 'Gamma ist offen');
+
+                    head('Der Fluss-Knopf im Kopf zeigt wieder die ganze Wiki');
+                    q('.kopf-fluss').click();
+                    setTimeout(function () {
+                      var wahl2 = q('.fluss-tag-filter');
+                      ok(!!q('.fluss') && wahl2 && wahl2.value === '', 'ganze Wiki, die Liste steht auf "alle"');
+                      ok(titel().length === 4, 'alle vier Seiten: ' + titel().join(' | '));
+                      log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+                      out();
+                    }, 400);
                   }, 400);
                 }, 400);
               }, 400);

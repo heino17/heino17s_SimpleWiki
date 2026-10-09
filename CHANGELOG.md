@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.10">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.11">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,21 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.11 — Der Schlagwort-Filter im Fluss-Kopf — 911 Prüfungen
+
+Der Fluss ließ sich bisher nur über das Register filtern. Jetzt steht im
+Fluss-Kopf, links neben «Drucken», eine Auswahlliste aller vergebenen
+Schlagworte: ein Schlagwort darin zeigt nur dessen Seiten, «Alle
+Schlagworte» wieder die ganze Wiki. Sie ersetzt das Etikett mit dem × aus
+v0.1.10 — dieselbe Sache, nur an einer Stelle statt an zweien: die
+Auswahlliste tut beides, wählen und den Zustand anzeigen. Kommt man über
+«Alle im Fluss» aus dem Register, steht die Liste schon auf dem richtigen
+Schlagwort. Beim Drucken fällt der ganze Fluss-Kopf weg, der Filter also
+mit ihm — auf dem Papier steht nur, was er ausgewählt hat. Version
+v0.1.10 → v0.1.11. Geprüft in `t_tags.py` (fünfter Lauf jetzt 16 Proben,
+55 insgesamt) und über die volle Suite (911 Prüfungen); `t_fluss.py`
+bestätigt, dass neben «Drucken» weiter nur dieser eine Knopf steht.
 
 ### v0.1.10 — Vom Schlagwort in den Fluss — 909 Prüfungen
 

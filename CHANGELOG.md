@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.8">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.9">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,28 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.9 — Schlagworte werden sichtbar und anklickbar — 894 Prüfungen
+
+TiddlyWiki kennt Schlagworte, SimpleWiki trug sie bisher nur im Feld
+`page.tags` spazieren — zu sehen war nichts. Jetzt steht unter jedem
+Seitentitel eine Zeile mit Schlagwort-Pillen. Ein Klick auf eine Pille
+öffnet das Register: ein Fenster, das alle Seiten mit diesem Schlagwort
+auflistet, mit der Zahl davor, und der Klick auf einen Eintrag führt
+direkt dorthin. Im Bearbeiten ist dieselbe Zeile ein Feld: Vorhandene
+Schlagworte stehen als Pille mit einem × zum Entfernen da, ein neues
+entsteht durch Tippen und Enter — mehrere auf einmal gehen, durch Komma
+getrennt. Ein Klick ins Feld listet die Schlagworte auf, die im Wiki schon
+vergeben sind und dieser Seite noch fehlen; Tippen schränkt die Liste ein,
+ein Klick oder Pfeil und Enter nimmt eines davon, danach bleibt die Liste
+offen für weitere. Gesichert landen sie in `page.tags` und gehen damit
+unverändert durch den Austausch mit MWS; am Verweisgraphen ändert das
+nichts, Schlagworte sind Etiketten, keine Verweise. Ein Schlagwort mit
+eckigen Klammern wird abgelehnt und der Grund gesagt, statt es still zu
+verlieren: die Klammern sind das Listenformat selbst. Neu prüfen es 38
+Proben in `t_tags.py` (Ansicht, Register, Bearbeiten, Vorschlagsliste,
+Ablehnung, englische Oberfläche). Version v0.1.8 → v0.1.9. Geprüft über
+die volle Suite (894 Prüfungen) und in MWS (`provision-simplewiki`).
 
 ### v0.1.8 — «+» und wieder Abbrechen — 856 Prüfungen
 

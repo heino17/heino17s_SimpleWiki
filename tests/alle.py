@@ -24,6 +24,7 @@ REIHENFOLGE = [
     't_dupen.py',      # Kopieren, englisch
     't_wikisyn.py',    # [[Seite]] und [[Text|Seite]]
     't_refs.py',       # Verweis-Panel
+    't_tags.py',       # Schlagworte: Pillen, Register, Bearbeiten
     't_kopf.py',        # Knopf im Kopf: Fluss umschalten, schmale Fenster
     't_menue.py',       # Inhaltsverzeichnis links als Menue, am Faehnchen zu- und aufklappbar
     't_panels.py',      # Panels rechts: geparkt am Rand, nicht neben dem Fenster
@@ -55,6 +56,7 @@ BESCHRIEBUNG = {
     't_dupen.py': 'Kopieren in englischer Oberflaeche',
     't_wikisyn.py': 'TiddlyWiki-Syntax [[Seite]]',
     't_refs.py': 'Verweis-Panel mit Zaehler und Speichern',
+    't_tags.py': 'Schlagworte: Pillen, Register, Bearbeiten, Ablehnung',
     't_kopf.py': 'Fluss-Knopf im Kopf, Reihenfolge, schmale Fenster',
     't_menue.py': 'Inhaltsverzeichnis links als Menue, Faehnchen, kein Loeschkreuz',
     't_panels.py': 'Panels rechts: geparkt genau auf der Fensterkante',

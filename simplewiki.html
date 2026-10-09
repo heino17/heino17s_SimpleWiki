@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.8">
+    <meta name="mws-shell-version" content="v0.1.9">
     <title>SimpleWiki</title>
 
     <!--
@@ -1817,9 +1817,142 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             line-height: 1.5;
         }
 
+        /* ---------- Schlagworte ----------
+
+           Ein Schlagwort steht an der Seite, nicht im Text - anders als
+           ein Verweis, der aus dem Text kommt. Unter dem Titel stehen die
+           Schlagworte als Pillen; ein Klick oeffnet das Register mit allen
+           Seiten, die dasselbe Schlagwort tragen. Beim Bearbeiten daneben
+           ein Feld fuer neue. */
+        .tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            cursor: pointer;
+        }
+
+        .tag-pill:hover {
+            border-color: var(--accent-color);
+            background: var(--bg-hover);
+        }
+
+        .tag-pill-x {
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .tag-pill-x:hover {
+            color: var(--danger-color);
+        }
+
+        .tags-editor {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .tags-editor .tag-pill {
+            cursor: default;
+        }
+
+        .tag-input {
+            flex: 1;
+            min-width: 140px;
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.85rem;
+        }
+
+        .tag-input:hover {
+            border-color: var(--accent-color);
+        }
+
+        .tag-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--bg-hover);
+        }
+
+        /* Das Feld mit der Vorschlagsliste. Die Liste haengt unter dem
+           Feld und legt sich darueber, statt den Text darunter zu
+           schieben. */
+        .tag-feld {
+            position: relative;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .tag-feld .tag-input {
+            width: 100%;
+        }
+
+        .tag-vorschlaege {
+            position: absolute;
+            z-index: 20;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 100%;
+            max-height: 210px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 4px;
+            list-style: none;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        }
+
+        .tag-vorschlag {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tag-vorschlag:hover,
+        .tag-vorschlag-aktiv {
+            background: var(--bg-hover);
+        }
+
         /* Dialog zum Verlinken */
         .modal-link {
             width: 460px;
+        }
+
+        /* Register: alle Seiten zu einem Schlagwort. */
+        .modal-tag {
+            width: 460px;
+        }
+
+        .tag-dialog-count {
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
         .link-new-input {
@@ -2615,8 +2748,47 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                                        :placeholder="t('titlePlaceholder')"
                                        :aria-label="t('titlePlaceholder')">
                             </div>
+                            <!-- Schlagworte der Seite. Sie haengen an der
+                                 Seite, nicht am Text: ein Klick auf das X
+                                 nimmt eines weg, Enter oder Komma im Feld
+                                 nimmt eines auf. -->
+                            <div class="tags-editor">
+                                <span v-for="tag in editTags" :key="tag" class="tag-pill">
+                                    {{ tag }}
+                                    <span class="tag-pill-x" role="button" tabindex="0"
+                                          :title="t('tagRemove')" :aria-label="t('tagRemove')"
+                                          @click="tagEntfernen(tag)"
+                                          @keydown.enter.prevent="tagEntfernen(tag)"
+                                          @keydown.space.prevent="tagEntfernen(tag)">×</span>
+                                </span>
+                                <span class="tag-feld">
+                                    <input type="text" class="tag-input" v-model="tagEingabe"
+                                           :placeholder="t('tagsPlaceholder')" :aria-label="t('tags')"
+                                           @focus="tagListeOeffnen"
+                                           @input="tagGetippt"
+                                           @keydown.enter.prevent="tagEnter"
+                                           @keydown="tagTaste"
+                                           @blur="tagAusEingabe">
+                                    <!-- Bereits vergebene Schlagworte zum
+                                         Anklicken. mousedown.prevent haelt den
+                                         Fokus im Feld, damit die Liste beim
+                                         Waehlen nicht zuklappt. -->
+                                    <ul v-if="tagListeOffen && tagVorschlaege.length" class="tag-vorschlaege">
+                                        <li v-for="(vorschlag, i) in tagVorschlaege" :key="vorschlag"
+                                            class="tag-vorschlag"
+                                            :class="{ 'tag-vorschlag-aktiv': i === tagMarkiert }"
+                                            @mousedown.prevent="tagWaehlen(vorschlag)">{{ vorschlag }}</li>
+                                    </ul>
+                                </span>
+                            </div>
                         </template>
-                        <h2 v-else="" class="content-title">{{ currentPage.title }}</h2>
+                        <template v-else="">
+                            <h2 class="content-title">{{ currentPage.title }}</h2>
+                            <div v-if="currentTags.length" class="tags-row">
+                                <button v-for="tag in currentTags" :key="tag" type="button" class="tag-pill"
+                                        :title="t('tagOpen')" @click="tagOeffnen(tag)">{{ tag }}</button>
+                            </div>
+                        </template>
                     </div>
 
                     <div v-if="currentPage" class="content-body">
@@ -2833,6 +3005,28 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 </div>
             </div>
         </div>
+        <!-- Register: alle Seiten zu einem Schlagwort. Der Klick auf eine
+             Pille oeffnet es, der Klick auf eine Zeile fuehrt zur Seite. -->
+        <div v-if="showTagDialog" class="modal-overlay" @click.self="showTagDialog = false">
+            <div class="modal modal-tag">
+                <h3>{{ t('tagDialogTitle') }}</h3>
+                <div class="refs-current">{{ tagDialogName }}</div>
+                <p class="tag-dialog-count">
+                    {{ tagDialogSeiten.length === 1 ? t('seite1') : t('seitenN').replace('{n}', seitenZahl(tagDialogSeiten.length)) }}
+                </p>
+                <div v-if="tagDialogSeiten.length" class="link-list">
+                    <button v-for="p in tagDialogSeiten" :key="p.id" class="link-item" @click="tagSeiteOeffnen(p)">
+                        <span class="link-item-titel">{{ p.title || t('untitled') }}</span>
+                    </button>
+                </div>
+                <p v-else="" class="link-leer">{{ t('tagDialogEmpty') }}</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="showTagDialog = false">
+                        {{ t('close') }}
+                    </button>
+                </div>
+            </div>
+        </div>
         <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
             <div class="modal">
                 <h3>{{ t('deleteConfirm') }}</h3>
@@ -2927,6 +3121,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "refsNoPage": "Es ist keine Seite geöffnet.",
 "backlinksTitle": "Verlinkt von",
                     "outgoingTitle": "Verlinkt auf",
+                    "tags": "Schlagworte",
+                    "tagsPlaceholder": "Schlagwort, Enter …",
+                    "tagRemove": "Schlagwort entfernen",
+                    "tagOpen": "Seiten mit diesem Schlagwort zeigen",
+                    "tagInvalid": "Ein Schlagwort darf kein „[“ und kein „]“ enthalten – die Klammern sind die Form der Liste.",
+                    "tagDialogTitle": "Seiten mit Schlagwort",
+                    "tagDialogEmpty": "Keine Seite trägt dieses Schlagwort.",
                     "startPageHint": "Diese Seite wird beim Öffnen des Wikis zuerst angezeigt.",
                     "appName": "SimpleWiki",
                     "search": "Suchen...",
@@ -3043,6 +3244,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "refsNoPage": "No page is open.",
 "backlinksTitle": "Linked from",
                     "outgoingTitle": "Links to",
+                    "tags": "Tags",
+                    "tagsPlaceholder": "Tag, Enter …",
+                    "tagRemove": "Remove tag",
+                    "tagOpen": "Show pages with this tag",
+                    "tagInvalid": "A tag cannot contain \"[\" or \"]\" – the brackets are the list syntax.",
+                    "tagDialogTitle": "Pages with tag",
+                    "tagDialogEmpty": "No page carries this tag.",
                     "startPageHint": "This page is shown first when the wiki is opened.",
                     "appName": "SimpleWiki",
                     "search": "Search...",
@@ -3955,6 +4163,16 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     linkSearch: '',
                     linkNewTitle: '',
                     pageToDelete: null,
+                /* Schlagworte: das Feld im Bearbeiten und das Register. */
+                editTags: [],
+                tagEingabe: '',
+                /* Die Vorschlagsliste am Schlagwortfeld: offen, solange
+                   der Fokus im Feld steht, und der mit den Pfeilen
+                   markierte Eintrag. */
+                tagListeOffen: false,
+                tagMarkiert: -1,
+                showTagDialog: false,
+                tagDialogName: '',
 showSettings: false,
                 showRefs: false,
                 /* Liegt eine neuere Oberflächen-Version bereit? Dann steht
@@ -4198,6 +4416,51 @@ showSettings: false,
                     return this.backlinks.length + this.outgoingLinks.length;
                 },
 
+                /* Die Schlagworte der offenen Seite - als Pillen unter dem
+                   Titel. Anders als die Verweise werden sie nicht aus dem
+                   Text gewonnen, sondern liegen an der Seite selbst. */
+                currentTags() {
+                    return (this.currentPage && Array.isArray(this.currentPage.tags))
+                        ? this.currentPage.tags
+                        : [];
+                },
+
+                /* Das Register: alle Seiten, die das geoeffnete Schlagwort
+                   tragen. Wird bei jeder Anzeige neu aus den Seiten
+                   gerechnet, damit es nie veraltet. */
+                tagDialogSeiten() {
+                    const name = this.tagDialogName;
+                    if (!name) return [];
+                    return this.pages.filter(p =>
+                        Array.isArray(p.tags) && p.tags.indexOf(name) >= 0
+                    );
+                },
+
+                /* Alle Schlagworte, die irgendwo im Wiki vergeben sind -
+                   die Quelle fuer die Vorschlagsliste. Wird je Anzeige
+                   aus den Seiten gerechnet und nirgends gespeichert. */
+                alleTags() {
+                    const gesehen = [];
+                    this.pages.forEach(p => {
+                        if (!Array.isArray(p.tags)) return;
+                        p.tags.forEach(t => {
+                            if (t && gesehen.indexOf(t) < 0) gesehen.push(t);
+                        });
+                    });
+                    return gesehen.sort((a, b) => a.localeCompare(b, 'de'));
+                },
+
+                /* Was im Feld zur Auswahl steht: vorhandene Schlagworte,
+                   die diese Seite noch nicht traegt, und - wenn getippt
+                   wurde - nur die, die dazu passen. */
+                tagVorschlaege() {
+                    const eingabe = String(this.tagEingabe || '').trim().toLowerCase();
+                    return this.alleTags.filter(t =>
+                        this.editTags.indexOf(t) < 0 &&
+                        (!eingabe || t.toLowerCase().indexOf(eingabe) >= 0)
+                    );
+                },
+
                 /* Der Grund, aus dem hier nicht geschrieben werden darf.
                    Zwei, nicht einer: wer nicht angemeldet ist, hat ein
                    anderes Problem als jemand, der angemeldet ist und
@@ -4340,6 +4603,118 @@ showSettings: false,
                     }
                     this.seiteSichern(this.currentPage);
                     this.showLinkDialog = false;
+                },
+
+                /* ---------- Schlagworte ---------- */
+
+                /* Ein Schlagwort aufnehmen. Die Liste lebt im Feld tags
+                   der Seite, nicht im Text; deshalb wird sie beim Sichern
+                   direkt mitgeschrieben. Ein "[" oder "]" kann das
+                   Listenformat nicht darstellen - statt es still zu
+                   verlieren, wird es abgelehnt und der Grund gesagt. */
+                tagHinzufuegen(name) {
+                    const sauber = String(name == null ? '' : name).trim();
+                    if (!sauber) return;
+                    if (sauber.indexOf('[') >= 0 || sauber.indexOf(']') >= 0) {
+                        this.hinweis(this.t('tagInvalid'));
+                        return;
+                    }
+                    if (this.editTags.indexOf(sauber) < 0) {
+                        this.editTags.push(sauber);
+                    }
+                },
+
+                /* Das Eingabefeld uebernehmen: Enter, Komma und der
+                   Fokuswechsel rufen das hier. Ein eingefuegtes "a, b, c"
+                   wird an den Kommas zerlegt. Der Fokuswechsel schliesst
+                   zugleich die Vorschlagsliste. */
+                tagAusEingabe() {
+                    const roh = this.tagEingabe;
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
+                    String(roh == null ? '' : roh).split(',').forEach(t => this.tagHinzufuegen(t));
+                },
+
+                /* Die Vorschlagsliste oeffnen, sobald der Fokus ins Feld
+                   kommt - und die Markierung zuruecksetzen. */
+                tagListeOeffnen() {
+                    this.tagListeOffen = true;
+                    this.tagMarkiert = -1;
+                },
+
+                /* Getippt: die Markierung faellt zurueck, und die Liste
+                   ist offen, sobald etwas dasteht - auch dann, wenn sie
+                   zuvor mit Escape geschlossen war. */
+                tagGetippt(e) {
+                    this.tagMarkiert = -1;
+                    if (e && e.target && e.target.value) this.tagListeOffen = true;
+                },
+
+                /* Einen Vorschlag uebernehmen. mousedown.prevent haelt den
+                   Fokus im Feld, deshalb bleibt die Liste offen - so kann
+                   man mehrere nacheinander waehlen. */
+                tagWaehlen(vorschlag) {
+                    this.tagHinzufuegen(vorschlag);
+                    this.tagEingabe = '';
+                    this.tagMarkiert = -1;
+                },
+
+                /* Enter nimmt den markierten Vorschlag, sonst das
+                   Getippte - so bleibt das freie Schreiben erhalten. Auf
+                   ein leeres Feld hin tut es nichts und laesst die Liste
+                   stehen. */
+                tagEnter() {
+                    const v = (this.tagListeOffen && this.tagMarkiert >= 0)
+                        ? this.tagVorschlaege[this.tagMarkiert] : null;
+                    if (v) {
+                        this.tagWaehlen(v);
+                    } else if (String(this.tagEingabe || '').trim()) {
+                        this.tagAusEingabe();
+                    }
+                },
+
+                /* Tasten im Feld: das Komma nimmt auf wie Enter, die
+                   Pfeile wandern durch die Vorschlaege, Escape schliesst
+                   die Liste und laesst das Getippte stehen. */
+                tagTaste(e) {
+                    if (!e) return;
+                    if (e.key === ',') {
+                        e.preventDefault();
+                        this.tagAusEingabe();
+                        return;
+                    }
+                    if (!this.tagListeOffen) return;
+                    const n = this.tagVorschlaege.length;
+                    if (!n) return;
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        this.tagMarkiert = (this.tagMarkiert + 1) % n;
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        this.tagMarkiert = (this.tagMarkiert - 1 + n) % n;
+                    } else if (e.key === 'Escape') {
+                        this.tagListeOffen = false;
+                        this.tagMarkiert = -1;
+                    }
+                },
+
+                tagEntfernen(tag) {
+                    const i = this.editTags.indexOf(tag);
+                    if (i >= 0) this.editTags.splice(i, 1);
+                },
+
+                /* Register oeffnen: alle Seiten mit diesem Schlagwort. */
+                tagOeffnen(tag) {
+                    if (!tag) return;
+                    this.tagDialogName = tag;
+                    this.showTagDialog = true;
+                },
+
+                /* Aus dem Register zur Seite: Dialog zu, Seite auf. */
+                tagSeiteOeffnen(page) {
+                    this.showTagDialog = false;
+                    this.selectPage(page);
                 },
 
                 /* Codeblöcke und Inline-Code ausblenden. Was dort steht, ist
@@ -5785,6 +6160,10 @@ createNewPage() {
                     this.isEditing = true;
                     this.editContent = '';
                     this.editTitle = newPage.title;
+                    this.editTags = [];
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
                     this.seiteSichern(newPage);
                     this.$nextTick(() => this.initEditor());
                 },
@@ -5868,6 +6247,15 @@ createNewPage() {
                     }
                     this.editContent = this.currentPage.content;
                     this.editTitle = this.currentPage.title;
+                    /* Die Schlagworte der Seite in den Editor heben - sie
+                       liegen an der Seite, nicht im Text, und werden erst
+                       beim Sichern zurueckgeschrieben. */
+                    this.editTags = Array.isArray(this.currentPage.tags)
+                        ? this.currentPage.tags.slice()
+                        : [];
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
                     this.isEditing = true;
                     this.$nextTick(() => this.initEditor());
                 },
@@ -5955,6 +6343,10 @@ createNewPage() {
                         if (this.mdEditor) {
                             this.editContent = this.mdEditor.getMarkdown();
                         }
+                        /* Ein noch nicht mit Enter bestaetigtes Schlagwort
+                           aus dem Feld aufnehmen, sonst ginge es mit dem
+                           Schliessen des Editors verloren. */
+                        this.tagAusEingabe();
                         const alterTitel = this.currentPage.title;
                         const umbenannt = !!alterTitel && alterTitel !== titel;
 
@@ -5970,6 +6362,7 @@ createNewPage() {
                         this.fluechtigeSeiteId = null;
                         this.currentPage.title = titel;
                         this.currentPage.content = this.editContent;
+                        this.currentPage.tags = this.editTags.slice();
                         this.currentPage.updated = new Date().toISOString();
                         this.isEditing = false;
                         this.destroyEditor();
@@ -5999,12 +6392,19 @@ createNewPage() {
                     this.destroyEditor();
                     this.editContent = '';
                     this.editTitle = '';
+                    this.editTags = [];
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
                 },
 
                 /* ---------- Seite duplizieren ---------- */
                 duplicatePage() {
                     if (!this.currentPage) return;
                     const quelle = this.currentPage;
+                    /* Ein noch nicht bestaetigtes Schlagwort gehoert in die
+                       Kopie wie der ungesicherte Text auch. */
+                    this.tagAusEingabe();
 
                     /* Ungespeichertes gehoert in die Kopie: geklickt wird
                        im Bearbeitungsmodus, also soll die Kopie genau das
@@ -6052,7 +6452,9 @@ createNewPage() {
                         title: titel,
                         content: inhalt,
                         links: Array.isArray(quelle.links) ? quelle.links.slice() : [],
-                        tags: Array.isArray(quelle.tags) ? quelle.tags.slice() : [],
+                        tags: Array.isArray(this.editTags)
+                            ? this.editTags.slice()
+                            : (Array.isArray(quelle.tags) ? quelle.tags.slice() : []),
                         created: new Date().toISOString(),
                         updated: new Date().toISOString(),
                         /* Die Kopie steht unter derselben Elternseite und
@@ -6078,6 +6480,10 @@ createNewPage() {
                     this.destroyEditor();
                     this.editContent = '';
                     this.editTitle = '';
+                    this.editTags = [];
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
                     this.seiteSichern(kopie);
                 },
 
@@ -6098,6 +6504,10 @@ createNewPage() {
                     this.isEditing = false;
                     this.editTitle = '';
                     this.editContent = '';
+                    this.editTags = [];
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
                     this.destroyEditor();
                     this.showDeleteModal = false;
                     this.pageToDelete = null;
@@ -6153,6 +6563,10 @@ createNewPage() {
                     this.destroyEditor();
                     this.editContent = '';
                     this.editTitle = '';
+                    this.editTags = [];
+                    this.tagEingabe = '';
+                    this.tagListeOffen = false;
+                    this.tagMarkiert = -1;
                     const seite = this.pages.find(p => p.id === verworfen);
                     if (!seite) return;
                     const zurueck = this.vorherigeSeiteId

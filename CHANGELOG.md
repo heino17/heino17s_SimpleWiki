@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.5">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.6">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,18 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.6 — der Titel ist im Bearbeiten ein Feld — 836 Prüfungen
+
+Das Titelfeld im Bearbeiten war ein solches ohne Rahmen: Es sah aus wie
+die eingegossene Überschrift der Ansicht und sagte nicht, dass hier
+etwas zu ändern ist. Jetzt ist es als Eingabefeld erkennbar — mit Rahmen
+und Rundung wie die Suche, einem Stift ✏️ davor und einem Ring, wenn der
+Fokus im Feld steht. Nichts daran ist neue Technik, nur das Aussehen;
+die Farben nehmen die Farbwelt mit, hell wie dunkel. Version v0.1.5 →
+v0.1.6. Geprüft über die volle Suite (836 Prüfungen, die Umbenenn- und
+Bearbeiten-Proben in `t_anmeldung.py`, `t_abnahme.py`, `t_mwsmode.py`,
+`t_hierarchie.py` laufen unverändert) und in MWS (`provision-simplewiki`).
 
 ### v0.1.5 — der Unterbaum verschwindet hinter einem Zähler — 836 Prüfungen
 

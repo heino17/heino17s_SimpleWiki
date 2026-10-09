@@ -121,7 +121,7 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.5">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.6">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit

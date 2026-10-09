@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.6">
+    <meta name="mws-shell-version" content="v0.1.7">
     <title>SimpleWiki</title>
 
     <!--
@@ -2535,11 +2535,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                                 'einfuegen-kind': dropIndex === i &amp;&amp; dropArt === 'kind'
                             }" :style="{ '--ebene': hierarchie.ebene[page.id] || 0 }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
                             <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
-                            <button v-if="hatKinder(page)" class="toc-klappen" :class="{ 'ist-zugeklappt': zugeklappt[page.id] }"
-                                    :title="zugeklappt[page.id] ? t('tocAufklappen') : t('tocZuklappen')"
-                                    :aria-label="zugeklappt[page.id] ? t('tocAufklappen') : t('tocZuklappen')"
-                                    :aria-expanded="zugeklappt[page.id] ? 'false' : 'true'"
-                                    @click.stop="zugeklapptUmschalten(page)">▾</button>
+                            <button v-if="hatKinder(page)" class="toc-klappen" :class="{ 'ist-zugeklappt': istZugeklappt(page) }"
+                                    :title="istZugeklappt(page) ? t('tocAufklappen') : t('tocZuklappen')"
+                                    :aria-label="istZugeklappt(page) ? t('tocAufklappen') : t('tocZuklappen')"
+                                    :aria-expanded="istZugeklappt(page) ? 'false' : 'true'"
+                                    @click.stop="klappenUmschalten(page)">▾</button>
                             <span class="toc-item-start" :class="{ 'is-empty': page.id !== startPageId }" :title="t('startPage')">★</span>
                             <span class="toc-item-title">{{ page.title }}</span>
                         </div>
@@ -4016,10 +4016,13 @@ showSettings: false,
                    Geschwisterplätze, 'kind' macht die Zielzeile zur
                    übergeordneten Seite. Leer heisst: kein Ziel. */
                 dropArt: '',
-                /* Zugeklappte Elternseiten im Verzeichnis: id -> true.
-                   Ein reines Anzeige-Ding des Browsers, kein Feld der
-                   Seite und kein Teil des Austauschformats. */
-                zugeklappt: {},
+                /* Aufgeklappte Elternseiten im Verzeichnis: id -> true.
+                   Der Ausgangszustand ist zugeklappt - beim Neuladen
+                   zeigt das Verzeichnis nur die oberste Ebene, und
+                   Unterbaeume bleiben offen, bis man sie schliesst.
+                   Das gilt nur fuer diese Anzeige: kein Feld der Seite
+                   und kein Teil des Austauschformats. */
+                aufgeklappt: {},
                 hinweisText: '',
                 hinweisTimer: null,
                     isDarkMode: false,
@@ -4203,19 +4206,6 @@ showSettings: false,
                    Farbe und Sprache bekannt - vorher wüsste die App
                    nicht, was der Server geschickt hat. */
                 this.loadPages();
-                /* Was zugeklappt ist, merkt sich der Browser pro Anzeige:
-                   kein Feld der Seite und kein Teil des Austauschformats.
-                   Aufgeklappt ist der Ausgangszustand - nur das Zuklappen
-                   wird notiert. Eintraege zu Seiten, die es nicht mehr
-                   gibt, sind wirkungslos: geprueft wird nur die
-                   Eltern-Kette der Zeilen, die gerade stehen. */
-                try {
-                    const roh = localStorage.getItem('simplewiki_zugeklappt');
-                    if (roh) {
-                        const alt = JSON.parse(roh) || {};
-                        this.zugeklappt = alt && typeof alt === 'object' ? alt : {};
-                    }
-                } catch (e) { /* ein unlesbarer Rest ist kein Grund zu fallen */ }
                 /* Wer den Serverhinweis schon hat ausblenden lassen, will
                    ihn nicht bei jedem Neuladen wieder haben - aber auch
                    nicht bei einer ganz neuen Session. */
@@ -4701,10 +4691,10 @@ showSettings: false,
                 },
 
                 /* Steckt die Seite in einem zugeklappten Unterbaum?
-                   Verdeckt ist, wessen Eltern- oder Grosseltern-Seite
-                   zugeklappt ist - dann fehlt die Zeile im
-                   Inhaltsverzeichnis. Ein Zyklus in den Daten endet am
-                   Waechter statt in einer Endlosschleife. */
+                   Zugeklappt ist der Ausgangszustand: verdeckt ist,
+                   wessen Eltern- oder Grosseltern-Seite nicht aufgeklappt
+                   ist. Ein Zyklus in den Daten endet am Waechter statt
+                   in einer Endlosschleife. */
                 imZugeklapptenBaum(seite) {
                     if (!seite) return false;
                     let titel = seite.eltern ? String(seite.eltern) : '';
@@ -4713,29 +4703,29 @@ showSettings: false,
                         gesehen++;
                         const elternSeite = this.pages.find(p => p.title === titel);
                         if (!elternSeite || elternSeite.id === seite.id) return false;
-                        if (this.zugeklappt[elternSeite.id]) return true;
+                        if (!this.aufgeklappt[elternSeite.id]) return true;
                         titel = elternSeite.eltern ? String(elternSeite.eltern) : '';
                     }
                     return false;
                 },
 
-                /* Den Zuklapp-Stand merken und speichern. Aufgeklappt ist
-                   die Ruhestellung, also wird statt eines leeren Objekts
-                   gern ein Schlüssel entfernt. */
-                zugeklapptFuer(id, wert) {
-                    const z = {};
-                    Object.assign(z, this.zugeklappt);
-                    if (wert) z[id] = true;
-                    else delete z[id];
-                    this.zugeklappt = z;
-                    try {
-                        localStorage.setItem('simplewiki_zugeklappt', JSON.stringify(z));
-                    } catch (e) { /* ohne lokalen Speicher bleibt es bei der Sitzung */ }
+                /* Ob eine Elternseite gerade zugeklappt ist - nur wer
+                   Kinder hat, kann ueberhaupt klappen. */
+                istZugeklappt(seite) {
+                    return !!seite && !!this.hatKinder(seite)
+                        && !this.aufgeklappt[seite.id];
                 },
 
-                zugeklapptUmschalten(seite) {
+                /* Auf- und zuklappen, fuer den Zaehler und die Pfeile.
+                   Gemerkt wird nur fuer diese Anzeige, und ohne die
+                   Kinder gibt es nichts zu klappen. */
+                klappenUmschalten(seite) {
                     if (!seite || !this.hatKinder(seite)) return;
-                    this.zugeklapptFuer(seite.id, !this.zugeklappt[seite.id]);
+                    const a = {};
+                    Object.assign(a, this.aufgeklappt);
+                    if (a[seite.id]) delete a[seite.id];
+                    else a[seite.id] = true;
+                    this.aufgeklappt = a;
                 },
 
                 /* Ziehen: der Griff nimmt die Zeile mit, die Zeile
@@ -4909,13 +4899,14 @@ showSettings: false,
                            sichtbar), also wird auch nicht gefaltet. */
                         if (this.searchQuery.trim()) return;
                         if (event.key === 'ArrowRight'
-                            && this.zugeklappt[page.id] && this.hatKinder(page)) {
+                            && this.istZugeklappt(page)) {
                             event.preventDefault();
-                            this.zugeklapptUmschalten(page);
+                            this.klappenUmschalten(page);
                         } else if (event.key === 'ArrowLeft'
-                            && !this.zugeklappt[page.id] && this.hatKinder(page)) {
+                            && this.hatKinder(page)
+                            && !this.istZugeklappt(page)) {
                             event.preventDefault();
-                            this.zugeklapptUmschalten(page);
+                            this.klappenUmschalten(page);
                         }
                         return;
                     }
@@ -5833,8 +5824,8 @@ showSettings: false,
                        auf: wer sie anklickt, will ihre Unter-Seiten und
                        nicht den Vorhang dahinter. Wieder zuklappen geht
                        ueber den Zaehler oder Pfeil links. */
-                    if (page && this.zugeklappt[page.id] && this.hatKinder(page)) {
-                        this.zugeklapptFuer(page.id, false);
+                    if (page && this.istZugeklappt(page)) {
+                        this.klappenUmschalten(page);
                     }
                     this.currentPage = page;
                     this.isEditing = false;

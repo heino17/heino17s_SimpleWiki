@@ -4,11 +4,13 @@ import mkcopy
 from mkcopy import build
 from _hilfe import pruefe
 mkcopy.EXTRA_REPLACEMENTS = []
+mkcopy.PRE_SCRIPT = ''
 
 # Verzeichnis auf- und zuklappen: eine Elternseite kann ihre Unter-Seiten
-# hinter einem Zaehler verbergen. Das ist ein Anzeige-Ding des Browsers,
-# kein Feld der Seite und kein Teil des Austauschformats - gemerkt wird
-# es in localStorage unter eigenem Schluessel, und nur das Zuklappen.
+# hinter einem Zaehler verbergen. Das ist ein Anzeige-Ding dieser Ansicht,
+# kein Feld der Seite und kein Teil des Austauschformats - und es gilt
+# ab dem Neuladen wieder der Ausgangszustand: zugeklappt. Gemerkt wird
+# also nichts, schon gar nichts in localStorage.
 pages = [
     {"id": "1", "title": "Haupt", "content": "# Haupt", "links": [], "tags": [], "created": "x", "updated": "x", "eltern": ""},
     {"id": "2", "title": "Unter1", "content": "# Unter1", "links": [], "tags": [], "created": "x", "updated": "x", "eltern": "Haupt"},
@@ -29,7 +31,7 @@ schablone = r"""
       function zeile(i) { return all('.toc-menu .toc-item')[i]; }
       function klappen() { return all('.toc-menu .toc-klappen'); }
       function sichtbar(el) { return !!el && getComputedStyle(el).display !== 'none'; }
-      function gezaehlt() { return JSON.parse(localStorage.getItem('simplewiki_zugeklappt') || '{}'); }
+      function nichtsGemerkt() { return localStorage.getItem('simplewiki_zugeklappt') === null; }
       function titel() { return all('.toc-menu .toc-item-title').map(function (t) { return t.textContent.trim(); }); }
       function taste(key, alt) {
         return new KeyboardEvent('keydown', { key: key, altKey: !!alt, bubbles: true, cancelable: true });
@@ -41,39 +43,51 @@ schablone = r"""
     </script>
 """
 
-# --- Teil 1: ein vorgetragenes Zuklappen haelt beim Start ----------------
-# PRE_SCRIPT setzt den localStorage-Eintrag, bevor die App hochfaehrt.
+# --- Teil 1: ab dem Start ist jede Elternseite zugeklappt -----------------
 teil1 = """
       setTimeout(function () {
         setTimeout(function () {
-          head('Vor dem Klicken: Haupt ist zugeklappt');
-          var ton = gezaehlt();
-          ok(ton['1'] === true, 'der Eintrag zu id 1 ist da');
+          head('Nach dem Laden: Haupt ist zugeklappt');
           ok(sichtbar(zeile(0)) && !sichtbar(zeile(1)) && !sichtbar(zeile(2)),
-             'Unter1 und Unter2 sind verdeckt, Haupt nicht: ' +
+             'nur die oberste Ebene steht da: ' +
              all('.toc-menu .toc-item').map(function (_, i) { return sichtbar(zeile(i)) ? titel()[i] : '(' + titel()[i] + ')'; }).join('|'));
+          ok(titel().join('|') === 'Haupt|Unter1|Unter2|Andere|Zweig',
+             'verdeckt ist nur die Anzeige, versetzt ist nichts: ' + titel().join('|'));
           ok(klappen().length === 2, 'zwei Zaehler (Haupt, Unter1): ' + klappen().length);
           var z = zeile(0).querySelector('.toc-klappen');
-          ok(!!z && z.getAttribute('aria-expanded') === 'false',
-             'Zaehler von Haupt sagt aus ', z ? z.getAttribute('aria-expanded') : 'KEINER');
+          ok(!!z && z.getAttribute('aria-expanded') === 'false'
+             && z.className.indexOf('ist-zugeklappt') !== -1,
+             'Zaehler von Haupt sagt aus-komma-zu: ' +
+             (z ? 'expanded=' + z.getAttribute('aria-expanded') + ' class=' + z.className : 'KEINER'));
+          ok(nichtsGemerkt(), 'nichts in localStorage: die Deckung gilt neu');
 
           head('Anklicken klappt auf und oeffnet die Seite');
           zeile(0).click();
           setTimeout(function () {
-            ok(sichtbar(zeile(1)) && sichtbar(zeile(2)),
-               'Unter1 und Unter2 sind wieder da');
-            ok(!('1' in gezaehlt()), 'der Eintrag ist weg: ' + JSON.stringify(gezaehlt()));
+            ok(sichtbar(zeile(1)) && !sichtbar(zeile(2)),
+               'Unter1 ist da; Unter2 wartet hinter dem eigenen Zaehler: ' +
+               all('.toc-menu .toc-item').map(function (_, i) { return sichtbar(zeile(i)) ? titel()[i] : '(' + titel()[i] + ')'; }).join('|'));
             ok(q('.content-title') && q('.content-title').textContent.trim() === 'Haupt',
                'die Seite ist geoeffnet: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
-            head('Ende Teil 1');
-            log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-            out();
+
+            head('Unter1 anklicken klappt die naechste Ebene auf');
+            zeile(1).click();
+            setTimeout(function () {
+              ok(sichtbar(zeile(2)),
+                 'auch Unter2 ist da');
+              ok(q('.content-title') && q('.content-title').textContent.trim() === 'Unter1',
+                 'geoeffnet ist jetzt Unter1: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+              ok(nichtsGemerkt(), 'offen bleiben ist die Sache dieser Anzeige');
+              head('Ende Teil 1');
+              log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+              out();
+            }, 600);
           }, 600);
         }, 600);
       }, 1500);
 """
 
-# --- Teil 2: Zaehler klappt zu und auf, Pfeile tun dasselbe --------------
+# --- Teil 2: Zaehler klappt auf und zu, Pfeile tun dasselbe ---------------
 teil2 = """
       setTimeout(function () {
         setTimeout(function () {
@@ -81,42 +95,45 @@ teil2 = """
             return !sichtbar(zeile(1)) && !sichtbar(zeile(2));
           }
 
-          head('Offen beginnen, Zaehler klappt zu');
-          ok(sichtbar(zeile(1)) && sichtbar(zeile(2)), 'alles offen');
+          head('Zugeklappt beginnen, Zaehler klappt auf');
+          ok(verdeckt(), 'das Verzeichnis kommt zugeklappt');
           ok(klappen().length === 2, 'zwei Zaehler: ' + klappen().length);
 
           klappen()[0].click();
           setTimeout(function () {
-            ok(verdeckt(), 'Unter1 und Unter2 sind weg');
-            ok(gezaehlt()['1'] === true, 'gemerkt: ' + JSON.stringify(gezaehlt()));
+            ok(!verdeckt(), 'Unter1 und Unter2 sind da');
             ok(q('.content-title') && q('.content-title').textContent.trim() === 'Haupt',
-               'Zuklappen hat nichts geoeffnet: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+               'der Zaehler oeffnet nichts: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+            ok(nichtsGemerkt(), 'nichts in localStorage: ' + localStorage.getItem('simplewiki_zugeklappt'));
 
-            head('Pfeil rechts klappt auf');
-            zeile(0).dispatchEvent(taste('ArrowRight', false));
+            head('Pfeil links klappt zu');
+            zeile(0).dispatchEvent(taste('ArrowLeft', false));
             setTimeout(function () {
-              ok(!verdeckt(), 'Pfeil rechts klappt auf');
-              ok(!('1' in gezaehlt()), 'gemerkt ist nichts mehr: ' + JSON.stringify(gezaehlt()));
+              ok(verdeckt(), 'Pfeil links klappt zu');
+              var z = zeile(0).querySelector('.toc-klappen');
+              ok(!!z && z.getAttribute('aria-expanded') === 'false',
+                 'Zaehler sagt wieder aus-komma-zu: ' + (z ? z.getAttribute('aria-expanded') : 'KEINER'));
+              ok(nichtsGemerkt(), 'auch hier nichts in localStorage');
 
-              head('Pfeil links klappt zu');
-              zeile(0).dispatchEvent(taste('ArrowLeft', false));
+              head('Pfeil rechts klappt auf');
+              zeile(0).dispatchEvent(taste('ArrowRight', false));
               setTimeout(function () {
-                ok(verdeckt(), 'wieder zu');
-                ok(gezaehlt()['1'] === true, 'wieder gemerkt: ' + JSON.stringify(gezaehlt()));
+                ok(!verdeckt(), 'Pfeil rechts klappt auf');
                 ok(q('.content-title') && q('.content-title').textContent.trim() === 'Haupt',
-                   'auch der Pfeil oeffnet nichts');
+                   'auch der Pfeil oeffnet nichts: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
 
-                head('Ohne Zaehler passiert nichts');
-                zeile(3).dispatchEvent(taste('ArrowLeft', false));
+                head('Ohne Kinder passiert nichts');
+                zeile(3).dispatchEvent(taste('ArrowRight', false));
                 setTimeout(function () {
-                  ok(verdeckt(), 'Andere hat keine Kinder - Liste bleibt zu');
-                  ok(gezaehlt()['1'] === true, 'kein neuer Eintrag: ' + JSON.stringify(gezaehlt()));
+                  ok(!verdeckt(), 'Andere hat keine Kinder - die Liste bleibt wie sie ist');
+                  ok(klappen().length === 2, 'kein neuer Zaehler: ' + klappen().length);
 
-                  head('Zaehler klappt wieder auf');
+                  head('Zaehler klappt zu');
                   klappen()[0].click();
                   setTimeout(function () {
-                    ok(!verdeckt(), 'wieder alles offen');
-                    ok(!('1' in gezaehlt()), 'Schluessel weg: ' + JSON.stringify(gezaehlt()));
+                    ok(verdeckt(), 'wieder zu');
+                    ok(!verdeckt() || zeile(0).querySelector('.toc-klappen').getAttribute('aria-expanded') === 'false',
+                       'und der Zaehler sagt aus-komma-zu');
                     head('Ende Teil 2');
                     log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                     out();
@@ -129,43 +146,36 @@ teil2 = """
       }, 1500);
 """
 
-# --- Teil 3: Suchen hebt die Deckung auf ----------------------------------
+# --- Teil 3: Suchen hebt die Deckung auf -----------------------------------
 teil3 = """
       setTimeout(function () {
         setTimeout(function () {
           head('Suchen zeigt auch verdeckte Treffer');
-          klappen()[0].click();
+          ok(!sichtbar(zeile(1)) && !sichtbar(zeile(2)), 'Haupt ist von Anfang an zu');
+          var feld = q('.search-box');
+          feld.value = 'Unter2';
+          feld.dispatchEvent(new Event('input', { bubbles: true }));
           setTimeout(function () {
-            ok(!sichtbar(zeile(1)) && !sichtbar(zeile(2)), 'Haupt ist zu');
-            var feld = q('.search-box');
-            feld.value = 'Unter2';
+            ok(titel().join('|') === 'Unter2', 'Trefferliste: ' + titel().join('|'));
+            ok(sichtbar(zeile(0)), 'der Treffer ist sichtbar, obwohl verdeckt');
+            ok(klappen().length === 0, 'im Treffer keine Zaehler');
+
+            head('Suche weg - die Deckung ist wieder da');
+            feld.value = '';
             feld.dispatchEvent(new Event('input', { bubbles: true }));
             setTimeout(function () {
-              ok(titel().join('|') === 'Unter2', 'Trefferliste: ' + titel().join('|'));
-              ok(sichtbar(zeile(0)), 'der Treffer ist sichtbar, obwohl verdeckt');
-              ok(klappen().length === 0, 'im Treffer keine Zaehler');
-
-              head('Suche weg - das Zuklappen ist wieder da');
-              feld.value = '';
-              feld.dispatchEvent(new Event('input', { bubbles: true }));
-              setTimeout(function () {
-                ok(titel().join('|') === 'Haupt|Unter1|Unter2|Andere|Zweig', 'alle wieder da: ' + titel().join('|'));
-                ok(!sichtbar(zeile(1)) && !sichtbar(zeile(2)), 'und Haupt immer noch zu');
-                head('Ende Teil 3');
-                log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-                out();
-              }, 500);
+              ok(titel().join('|') === 'Haupt|Unter1|Unter2|Andere|Zweig', 'alle wieder da: ' + titel().join('|'));
+              ok(!sichtbar(zeile(1)) && !sichtbar(zeile(2)), 'und Haupt immer noch zu');
+              head('Ende Teil 3');
+              log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+              out();
             }, 500);
-          }, 600);
+          }, 500);
         }, 600);
       }, 1500);
 """
 
-mkcopy.PRE_SCRIPT = ('<script>try{localStorage.setItem("simplewiki_zugeklappt",'
-                     'JSON.stringify({"1":true}));}catch(e){}</script>')
 pfad1 = build('_klapp1.html', schablone.replace('__INHALT__', teil1), pages)
-mkcopy.PRE_SCRIPT = ''
-
 pfad2 = build('_klapp2.html', schablone.replace('__INHALT__', teil2), pages)
 pfad3 = build('_klapp3.html', schablone.replace('__INHALT__', teil3), pages)
 

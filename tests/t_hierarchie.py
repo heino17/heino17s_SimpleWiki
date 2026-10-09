@@ -36,6 +36,12 @@ schablone = r"""
       function taste(key, alt) {
         return new KeyboardEvent('keydown', { key: key, altKey: !!alt, bubbles: true, cancelable: true });
       }
+      /* Standard ist zugeklappt: Beim Start zeigt das Verzeichnis nur
+         die oberste Ebene. Fuer diese Versuch- und Drag-Proben wird
+         alles aufgeklappt, damit die Zeilen da sind uns sichtbar sind. */
+      function alleAufklappen() {
+        all('.toc-menu .toc-klappen').forEach(function (b) { b.click(); });
+      }
       function oben(z) { return z.getBoundingClientRect().top + 2; }
       function mitte(z) { var k = z.getBoundingClientRect(); return k.top + k.height / 2; }
       function unten(z) { return z.getBoundingClientRect().bottom - 2; }
@@ -56,6 +62,7 @@ schablone = r"""
 # --- Teil 1: Tastatur, Ebenen, gespeicherte eltern ------------------------
 teil1 = """
       setTimeout(function () {
+        alleAufklappen();
         setTimeout(function () {
           head('Anzeige: die Ebenen stehen im Zeichenabstand');
           ok(titel().join('|') === 'Haupt|Unter1|Unter2|Andere|Zweig', 'Reihenfolge: ' + titel().join('|'));
@@ -117,6 +124,7 @@ teil1 = """
 # --- Teil 2: Drag & Drop mit drei Zonen -----------------------------------
 teil2 = """
       setTimeout(function () {
+        alleAufklappen();
         setTimeout(function () {
           head('Anzeige waehrend des Ziehens: drei Zonen');
           var d = new DataTransfer();
@@ -194,6 +202,7 @@ teil3 = """
       function knopf(re) { return all('.footer .btn').filter(function (b) { return re.test(b.textContent); })[0]; }
       function seite(t) { return gespeichert().filter(function (p) { return p.title === t; })[0]; }
       setTimeout(function () {
+        alleAufklappen();
         setTimeout(function () {
           head('Duplizieren: die Kopie erbt die Elternseite');
           all('.toc-menu .toc-item-title').filter(function (t) { return t.textContent.trim() === 'Unter1'; })[0].click();

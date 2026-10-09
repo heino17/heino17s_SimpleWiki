@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.4">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.5">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,25 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.5 — der Unterbaum verschwindet hinter einem Zähler — 836 Prüfungen
+
+Eine Elternseite im Inhaltsverzeichnis kann jetzt ihre Unter-Seiten
+verbergen: wer viele Seiten hat, sieht auf einen Blick die oberste Ebene
+und klappt den Unterbaum auf, wenn er hinein will. Der Zähler ▼ steht
+nur an Zeilen mit Kindern; zuklappen geht am Zähler oder mit Pfeil links,
+aufklappen am Zähler, mit Pfeil rechts oder einfach durch Anklicken der
+Seite. Der zugeklappte Unterbaum bleibt beim Ziehen ein Block: Er zieht
+als Ganzes mit, und „dahinter“ heißt weiterhin hinter dem ganzen
+Unterbaum.
+
+Das ist ein Anzeige-Ding des Browsers und kein Feld der Seite: Es steht
+in keinem Austauschformat (die Version bleibt 1), gemerkt wird es nur im
+lokalen Speicher unter `simplewiki_zugeklappt`, und nur das Zuklappen.
+Beim Suchen gilt die Deckung nicht — ein Treffer muss sichtbar sein,
+auch wenn seine Elternseite zugeklappt ist. Version v0.1.4 → v0.1.5.
+Geprüft über die volle Suite (836 Prüfungen, davon 27 im neuen Prüfblatt
+`t_klapp.py`) und in MWS (`provision-simplewiki`).
 
 ### v0.1.4 — eine neue Seite kommt unten ins Verzeichnis — 809 Prüfungen
 

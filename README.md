@@ -39,6 +39,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Verlinken** | `[[Seite]]` und `[[Beschriftung\|Seite]]` im Text, dazu ein Dialog beim Bearbeiten |
 | **Verweise** | Rück- und Ausgehende in einem eigenen Panel, mit Zähler im Kopf |
 | **Gliederung** | Unter-Seiten unter einer Elternseite, beliebig tief; gebaut per Ziehen (drei Zonen je Zeile: davor, als Kind, dahinter) oder mit Alt + Pfeil: ↑/↓ auf gleicher Ebene, → einrücken, ← ausrücken |
+| **Zuklappen** | Elternseiten mit Unter-Seiten tragen einen Zähler ▼: der Unterbaum verschwindet dahinter (Pfeil links tut dasselbe), aufklappen am Zähler, mit Pfeil rechts oder durch Anklicken — gemerkt im Browser, nicht in der Datei |
 | **Duplizieren** | legt eine Kopie mit eigenem Namen an, ohne Verknüpfung zur Vorlage |
 | **Suche** | im Kopf; die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
@@ -120,7 +121,7 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.4">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.5">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit

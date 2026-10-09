@@ -2649,7 +2649,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <p class="shell-update-titel">{{ t('updateUeberschrift') }}</p>
                     <p>{{ shellUpdateText }}</p>
                     <div class="shell-update-zeile">
-                        <button type="button" class="shell-update-uebernehmen" @click="shellUebernehmen" :disabled="shellTaetig">{{ shellTaetig ? t('updateTaetig') : t('updateKnopf') }}</button>
+                        <button type="button" class="shell-update-uebernehmen" @click="shellUebernehmen" :disabled="shellTaetig" :title="t('updateTooltip')">{{ shellTaetig ? t('updateTaetig') : t('updateKnopf') }}</button>
                         <button type="button" class="shell-update-spaeter" @click="shellZurueckstellen">{{ t('updateVergessen') }}</button>
                         <button type="button" class="shell-update-spaeter" @click="shellErinnereMonat">{{ t('updateMonat') }}</button>
                     </div>
@@ -2864,6 +2864,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateVergessen": "Beim nächsten Update erinnern",
                     "updateMonat": "In einem Monat erinnern",
                     "updateFehler": "Das hat nicht geklappt. Bitte noch einmal versuchen.",
+                    "updateTooltip": "Die Inhalte Deines Wikis werden bei diesem Update nicht verändert!",
                     "menuSettingsUpdate": "Einstellungen, neue Oberflächen-Version verfügbar"
                 }
             },
@@ -2975,6 +2976,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateVergessen": "Remind me at the next update",
                     "updateMonat": "Remind me in a month",
                     "updateFehler": "That did not work. Please try again.",
+                    "updateTooltip": "The contents of your wiki are untouched by this update!",
                     "menuSettingsUpdate": "Settings, new interface version available"
                 }
             }

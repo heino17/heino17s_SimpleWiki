@@ -51,18 +51,20 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 4749 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 5674 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
-  1–181    zwei Kommentare im <head>: der Austauschvertrag und der
-           MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier steht,
-           warum das Format so aussieht und was der Server liefern muss.
-    182    <script id="simplewiki-daten">  die Dateninsel
- 183–320   die eingebetteten Bibliotheken (Vue, marked, TOAST UI inkl. DOMPurify)
- 321–1814  das Stylesheet
-1827–2157  die Oberfläche (Vue-Template)
-2159–4749  das Programm
+    1–203    zwei Kommentare im <head>: der Austauschvertrag und der
+             MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier
+             steht, warum das Format so aussieht und was der Server
+             liefern muss.
+      204    <script id="simplewiki-daten">  die Dateninsel
+   205–342   die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+             DOMPurify)
+   343–2300  das Stylesheet
+  2313–2743  die Oberfläche (Vue-Template)
+  2745–5673  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -116,13 +118,22 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 **PUT, nicht POST**; so ist es in `RecipeRoutes.ts` des MWS festgeschrieben.
 
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
-Wiki steht (die Antwort von `/status` trägt das unter `shell`). Ein Wiki mit
+Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
+Oberfläche nennt ihre Version selbst über
+`<meta name="mws-shell-version" content="v0.1.2">` im Kopf von
+`simplewiki.html` — dieser Name erscheint in der Verwaltung und im
+Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
+Oberflächenänderung erhöht. Ein Wiki mit
 der Politik **notify**, für das eine neuere Version bereitliegt, zeigt nur
-der **Besitzerin** und den **Administratoren** einen Hinweis mit einem Knopf
+der **Besitzerin** und den **Administratoren** ein Zeichen: ein Punkt am
+Zahnrad (⚙️) und im **Einstellungen**-Dialog ein Hinweis mit einem Knopf
 „Übernehmen“ — der ruft `PUT /recipe/<name>/shell/update` auf, der Server
-verschiebt den Pin auf die neueste Version, und die Wiki lädt neu. Wer nur
-schreiben darf, sieht den Hinweis nicht: eine Oberfläche zu übernehmen ist
-eine Eigentumsentscheidung.
+verschiebt den Pin auf die neueste Version, und die Wiki lädt neu. Der
+Knopf trägt einen Tipp: **Die Inhalte Deines Wikis werden bei diesem
+Update nicht verändert!** Weggedrückt wird der Hinweis je angebotener
+Version — entweder bis zu einem neuen Angebot oder für einen Monat. Wer
+nur schreiben darf, sieht den Hinweis nicht: eine Oberfläche übernehmen
+ist eine Eigentumsentscheidung.
 
 Vier Betriebszustände, alle am Server erkannt und nicht geraten:
 

@@ -3,12 +3,74 @@
 Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
-Es gibt noch keine Versionsnummer. Eine zu erfinden, die niemand erhöht, wäre
-schlechter als ein Datum — deshalb wird nach Tag datiert.
+Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
+`<meta name="mws-shell-version" content="v0.1.2">` im Kopf von
+`simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
+Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
+Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
+Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
 
+## 2026-10-09
+
+### v0.1.2 — der Update-Hinweis wohnt im Einstellungen-Dialog — 751 Prüfungen
+
+Der Hinweis auf die neue Oberfläche war ein Geschwister von `#app`: ein
+eigenes Skript hängte ihn von außen in die Seite — mit eigener Sprache,
+eigenem Stil, eigenem Zug auf die Konfig-Tiddler. Die alte Begründung, ein
+Kind würde Vue bei der nächsten Aktualisierung selbst wieder entfernen,
+war richtig für eine schwebende Meldung — aber der Hinweis hat jetzt ein
+Zuhause, das die App selbst baut: Ein Punkt am Zahnrad (⚙️) kündigt eine
+bereitliegende Version an, und im Einstellungen-Dialog steht die Meldung
+mit dem Knopf „Übernehmen“. Als Kind der App spricht der Hinweis dieselbe
+Sprache wie sie (auch nach dem Umschalten), zeichnet mit denselben
+Variablen und verschwindet mit `v-if="shellUpdate"` spurlos — die zwei
+Gerüste oben und unten sind keins mehr.
+
+Aufgeben heißt jetzt etwas anderes als vorher: Der Hinweis merkt sich die
+**angebotene** Version, nicht die gelieferte. „Beim nächsten Update
+erinnern“ legt einen Schlüssel für die angebotene Nummer — ein neues
+Angebot bekommt einen neuen Schlüssel und meldet sich wieder; „In einem
+Monat erinnern“ legt einen Stichtag, nach dem derselbe Hinweis zurückkehrt.
+Und der Knopf „Übernehmen“ sagt vor dem Klick, was keiner vorher nachlesen
+musste: Die Inhalte des Wikis werden bei dem Update nicht verändert
+(als Tipp am Knopf, in Deutsch und Englisch).
+
+Version v0.1.1 → v0.1.2. Geprüft über die volle Suite (751 Prüfungen) und
+in MWS (`provision-simplewiki`, Update-Hinweis im Dialog vor und nach dem
+Übernehmen).
+
+### v0.1.1 — der Willkommensgruß ist persönlich — 751 Prüfungen
+
+Die erste Wiki begrüßte allgemein — die App wusste es doch besser. Die
+Begrüßung redet die Leserin jetzt an, wo immer einer frischen, leeren Wiki
+etwas entgegensteht: „Willkommen in Deinem SimpleWiki! 🎉“ (englisch
+„Welcome to your SimpleWiki! 🎉“). Version v0.1.0 → v0.1.1. Geprüft über
+die volle Suite (751 Prüfungen).
+
 ## 2026-10-08
+
+### v0.1.0 — die Oberfläche nennt ihre Version — 751 Prüfungen
+
+Bisher erzählten die zählenden Versionsnummern (Release 6, 10 …), *wie oft*
+die Schale gespeichert wurde, nicht, *was* sie ist. Jetzt trägt die Datei
+eine menschenlesbare Version über denselben Weg, den MWS dafür vorsieht:
+
+    <meta name="mws-shell-version" content="v0.1.0">
+
+`provision-simplewiki` liest den Wert beim Provisionieren aus dem HTML
+(`extractShellLabel`) und trägt ihn als Label der neuen Version ein; die
+MWS-Verwaltung zeigt ihn in den Schalen-Feldern der Wiki, und der
+Update-Hinweis nennt ihn statt der Nummer: „Diese Wiki läuft auf v0.1.0. Zum
+Übernehmen bereit steht v0.1.1.“ Wer die Bezeichnung weglässt, bekommt die
+Nummer — nichts Neues geht kaputt.
+
+Der Hinweis selbst blieb unverändert: Er vergleicht weiterhin die
+Release-Nummern, die der Server liefert, und fällt nur bei der *Anzeige* auf
+die Bezeichnung um, wenn sie vorhanden ist (`shell-release-label` bzw.
+`-latest`). Geprüft über die volle Suite (751 Prüfungen) und in MWS
+(`provision-simplewiki`, Update-Hinweis vor und nach dem Übernehmen).
 
 ### Die Wiki nimmt eine neue Oberfläche — der Update-Hinweis — 751 Prüfungen
 

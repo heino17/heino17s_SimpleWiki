@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.9">
+    <meta name="mws-shell-version" content="v0.1.10">
     <title>SimpleWiki</title>
 
     <!--
@@ -1593,7 +1593,29 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .fluss-aktionen {
             display: flex;
             flex: none;
+            align-items: center;
             gap: 8px;
+        }
+
+        /* Der Schlagwort-Filter im Fluss-Kopf: ein Etikett mit einem X,
+           das ihn wieder loest. */
+        .fluss-tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+        }
+
+        .fluss-tag-name {
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .fluss-eintrag {
@@ -2713,9 +2735,22 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                         <div class="fluss-kopf">
                             <div>
                                 <h2 class="fluss-titel">{{ t('riverTitle') }}</h2>
-                                <p class="fluss-zahl">{{ t('riverCount').replace('{zahl}', seitenZahl(flussSeiten.length)) }}</p>
+                                <p v-if="flussTag" class="fluss-zahl">
+                                    {{ t('riverTagCount').replace('{tag}', flussTag).replace('{zahl}', seitenZahl(flussSeiten.length)) }}
+                                </p>
+                                <p v-else="" class="fluss-zahl">{{ t('riverCount').replace('{zahl}', seitenZahl(flussSeiten.length)) }}</p>
                             </div>
                             <div class="fluss-aktionen">
+                                <!-- Der Schlagwort-Filter, sichtbar und mit
+                                     einem X wieder zu loesen. -->
+                                <span v-if="flussTag" class="fluss-tag-chip">
+                                    <span class="fluss-tag-name">{{ flussTag }}</span>
+                                    <span class="tag-pill-x" role="button" tabindex="0"
+                                          :title="t('riverTagClear')" :aria-label="t('riverTagClear')"
+                                          @click="flussTagLoesen"
+                                          @keydown.enter.prevent="flussTagLoesen"
+                                          @keydown.space.prevent="flussTagLoesen">×</span>
+                                </span>
                                 <button class="btn btn-secondary" @click="drucken">
                                     🖨 {{ t('riverPrint') }}
                                 </button>
@@ -3021,6 +3056,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 </div>
                 <p v-else="" class="link-leer">{{ t('tagDialogEmpty') }}</p>
                 <div class="modal-actions">
+                    <!-- Statt die Seiten einzeln anzuklicken: alle
+                         hintereinander im Fluss, nur dieses Schlagwort. -->
+                    <button v-if="tagDialogSeiten.length" class="btn btn-primary" @click="tagAlsFluss">
+                        🌊 {{ t('tagShowRiver') }}
+                    </button>
                     <button class="btn btn-secondary" @click="showTagDialog = false">
                         {{ t('close') }}
                     </button>
@@ -3113,6 +3153,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "riverPrint": "Drucken",
                     "riverNoText": "(Seite ohne Text)",
                     "riverEmpty": "Keine Seite passt zur Suche.",
+                    "riverTagCount": "{zahl} mit dem Schlagwort „{tag}“",
+                    "riverTagClear": "Schlagwort-Filter aufheben: wieder alle Seiten",
 "refsTitle": "Verweise",
                     "refsButton": "Verweise dieser Seite",
                     "refsCreate": "Seite anlegen",
@@ -3128,6 +3170,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "tagInvalid": "Ein Schlagwort darf kein „[“ und kein „]“ enthalten – die Klammern sind die Form der Liste.",
                     "tagDialogTitle": "Seiten mit Schlagwort",
                     "tagDialogEmpty": "Keine Seite trägt dieses Schlagwort.",
+                    "tagShowRiver": "Alle im Fluss",
                     "startPageHint": "Diese Seite wird beim Öffnen des Wikis zuerst angezeigt.",
                     "appName": "SimpleWiki",
                     "search": "Suchen...",
@@ -3236,6 +3279,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "riverPrint": "Print",
                     "riverNoText": "(page without text)",
                     "riverEmpty": "No page matches the search.",
+                    "riverTagCount": "{zahl} with the tag \"{tag}\"",
+                    "riverTagClear": "Clear tag filter: all pages again",
 "refsTitle": "Links",
                     "refsButton": "Links of this page",
                     "refsCreate": "Create page",
@@ -3251,6 +3296,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "tagInvalid": "A tag cannot contain \"[\" or \"]\" – the brackets are the list syntax.",
                     "tagDialogTitle": "Pages with tag",
                     "tagDialogEmpty": "No page carries this tag.",
+                    "tagShowRiver": "All in the river",
                     "startPageHint": "This page is shown first when the wiki is opened.",
                     "appName": "SimpleWiki",
                     "search": "Search...",
@@ -4189,6 +4235,11 @@ showSettings: false,
                    Mal neu zuklappen muessen. */
                 tocMenuOffen: window.innerWidth > TOC_MENUE_OFFEN_BIS,
                 fluss: false,
+                /* Im Fluss nur die Seiten eines Schlagworts zeigen. Leer
+                   heisst: alle Seiten - so kommt man ueber die
+                   Schlagwort-Pille im Kopf zu "alle auf einmal" und
+                   ueber den Fluss-Knopf wieder zur ganzen Wiki. */
+                flussTag: '',
                 druckModus: false,
                 /* Unbekannte Angaben oben aus einer eingelesenen Datei. */
                 fremdeDaten: {},
@@ -4394,9 +4445,14 @@ showSettings: false,
 
                 /* Seitenliste, die im Fluss erscheint: wie im
                    Inhaltsverzeichnis, also sortiert wie dort – und
-                   gefiltert, wenn oben etwas gesucht wird. */
+                   gefiltert, wenn oben etwas gesucht wird. Kommt ein
+                   Schlagwort dazu, bleibt nur, was es traegt. */
                 flussSeiten() {
-                    return this.filteredPages;
+                    const seiten = this.filteredPages;
+                    if (!this.flussTag) return seiten;
+                    return seiten.filter(p =>
+                        Array.isArray(p.tags) && p.tags.indexOf(this.flussTag) >= 0
+                    );
                 },
 
                 /* Ob der Fluss gerade zu sehen ist – auch beim Druck. */
@@ -4717,6 +4773,19 @@ showSettings: false,
                     this.selectPage(page);
                 },
 
+                /* Alle Seiten dieses Schlagworts hintereinander: Dialog
+                   zu, Fluss auf, nur dieses Schlagwort. Die Suche wird
+                   fallen gelassen, sonst blendete sie Seiten aus, die
+                   eigentlich dazugehoeren. */
+                tagAlsFluss() {
+                    if (!this.tagDialogName) return;
+                    const tag = this.tagDialogName;
+                    this.showTagDialog = false;
+                    this.searchQuery = '';
+                    this.flussTag = tag;
+                    this.flussOeffnen();
+                },
+
                 /* Codeblöcke und Inline-Code ausblenden. Was dort steht, ist
                    Quelltext und kein Link – auch dann nicht, wenn man
                    die Syntax selbst dokumentiert. */
@@ -4827,11 +4896,22 @@ showSettings: false,
                     this.fluss = false;
                 },
 
+                /* Den Schlagwort-Filter loesen: aus "alle mit Mathe" wird
+                   wieder "alle Seiten", ohne den Fluss zu verlassen. */
+                flussTagLoesen() {
+                    this.flussTag = '';
+                },
+
                 /* Knopf im Kopf: einmal druecken zeigt den Fluss, nochmal
-                   druecken holt die Seite zurueck. */
+                   druecken holt die Seite zurueck. Aus dem Kopf kommt
+                   immer die ganze Wiki, nicht ein Schlagwort - deshalb
+                   faellt ein Filter hier weg. */
                 flussUmschalten() {
                     if (this.fluss) this.flussSchliessen();
-                    else this.flussOeffnen();
+                    else {
+                        this.flussTag = '';
+                        this.flussOeffnen();
+                    }
                 },
 
                 /* Drucken: der Fluss ist die Lesesicht, die sich auf

@@ -174,6 +174,7 @@ script3 = r"""
           setTimeout(function () {
             ok(q('.modal-tag h3').textContent.trim() === 'Pages with tag', 'Titel: ' + q('.modal-tag h3').textContent.trim());
             ok(/2 pages/.test(q('.tag-dialog-count').textContent), 'Zahl: ' + q('.tag-dialog-count').textContent.replace(/\s+/g, ' ').trim());
+            ok(/river/i.test(q('.modal-tag .btn-primary').textContent), 'Fluss-Knopf: ' + q('.modal-tag .btn-primary').textContent.replace(/\s+/g, ' ').trim());
             log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
             out();
           }, 500);
@@ -250,9 +251,75 @@ script4 = r"""
     </script>
 """
 
+# Fuenfter Lauf: aus dem Register in den Fluss - alle Seiten mit dem
+# Schlagwort hintereinander, mit einem Filter-Etikett, das sich loesen
+# laesst; danach wieder die ganze Wiki ueber den Fluss-Knopf.
+script5 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function all(s) { return [].slice.call(document.querySelectorAll(s)); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      function head(m) { log.push('--- ' + m); out(); }
+      function titel() { return all('.fluss-eintrag-titel .fluss-titel-knopf').map(function (e) { return e.textContent.trim(); }); }
+      function zahl() { return q('.fluss-zahl') ? q('.fluss-zahl').textContent.replace(/\s+/g, ' ').trim() : '(keine)'; }
+      function tagPille(name) { return all('.tags-row .tag-pill').filter(function (p) { return p.textContent.trim() === name; })[0]; }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+
+      setTimeout(function () {
+        all('.toc-item-title').filter(function (t) { return t.textContent.trim() === 'Alpha'; })[0].click();
+        setTimeout(function () {
+          tagPille('Mathe').click();
+          setTimeout(function () {
+            head('Aus dem Register in den Fluss');
+            var knopf = q('.modal-tag .btn-primary');
+            ok(!!knopf && /Fluss/.test(knopf.textContent), 'der Knopf steht im Register: ' + (knopf ? knopf.textContent.trim() : '(fehlt)'));
+            knopf.click();
+            setTimeout(function () {
+              ok(!q('.modal-tag'), 'das Register ist zu');
+              ok(!!q('.fluss'), 'der Fluss steht');
+              ok(titel().join(' | ') === 'Alpha | Beta', 'nur das Schlagwort, in Reihenfolge: ' + titel().join(' | '));
+              ok(document.querySelector('.footer') === null, 'die Fusszeile bleibt im Fluss weg');
+              ok(q('.fluss-tag-chip') && q('.fluss-tag-name').textContent.trim() === 'Mathe', 'das Filter-Etikett nennt das Schlagwort');
+              ok(/2 Seiten mit dem Schlagwort/.test(zahl()) && /Mathe/.test(zahl()), 'die Zahl nennt Schlagwort und Seiten: ' + zahl());
+
+              head('Filter loesen: wieder alle Seiten');
+              q('.fluss-tag-chip .tag-pill-x').click();
+              setTimeout(function () {
+                ok(!q('.fluss-tag-chip'), 'das Etikett ist weg');
+                ok(titel().join(' | ') === 'Alpha | Beta | Gamma | Delta', 'alle Seiten stehen da: ' + titel().join(' | '));
+                ok(/4 Seiten hintereinander/.test(zahl()), 'die Zahl ist die ganze Wiki: ' + zahl());
+
+                head('Eine Seite im Fluss anklicken beendet ihn');
+                all('.fluss-titel-knopf').filter(function (b) { return b.textContent.trim() === 'Gamma'; })[0].click();
+                setTimeout(function () {
+                  ok(!q('.fluss'), 'der Fluss ist zu');
+                  ok(q('.content-title') && q('.content-title').textContent.trim() === 'Gamma', 'Gamma ist offen');
+
+                  head('Der Fluss-Knopf im Kopf zeigt wieder die ganze Wiki');
+                  q('.kopf-fluss').click();
+                  setTimeout(function () {
+                    ok(!!q('.fluss') && !q('.fluss-tag-chip'), 'ganze Wiki, kein Filter-Etikett');
+                    ok(titel().length === 4, 'alle vier Seiten: ' + titel().join(' | '));
+                    log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+                    out();
+                  }, 400);
+                }, 400);
+              }, 400);
+            }, 500);
+          }, 500);
+        }, 600);
+      }, 1200);
+    })();
+    </script>
+"""
+
 kopie1 = build('_tags1.html', script, pages, startpage='a')
 kopie2 = build('_tags2.html', script2, pages, startpage='a')
 kopie3 = build('_tags3.html', script3, pages, lang='en', startpage='a')
 kopie4 = build('_tags4.html', script4, pages, startpage='a')
+kopie5 = build('_tags5.html', script5, pages, startpage='a')
 
-pruefe(kopie1, kopie2, kopie3, kopie4)
+pruefe(kopie1, kopie2, kopie3, kopie4, kopie5)

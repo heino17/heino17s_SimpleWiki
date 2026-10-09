@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.9">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.10">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,25 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-09
+
+### v0.1.10 — Vom Schlagwort in den Fluss — 909 Prüfungen
+
+Im Register eines Schlagworts stand bisher nur die Liste der Seiten. Wer
+sie alle lesen wollte, klickte eine nach der anderen an. Jetzt steht dort
+der Knopf «Alle im Fluss»: er schließt das Register und öffnet den Fluss,
+die Lesesicht mit allen Seiten hintereinander — aber nur mit denen, die
+das Schlagwort tragen. Im Fluss-Kopf steht das Schlagwort als Etikett mit
+einem ×; ein Klick darauf löst den Filter und zeigt wieder die ganze
+Wiki, ohne den Fluss zu verlassen. Die Zahl daneben nennt Schlagwort und
+Menge. Der Fluss-Knopf im Kopf zeigt weiterhin immer die ganze Wiki und
+räumt einen stehengebliebenen Filter weg; die Suche wird beim Sprung vom
+Schlagwort fallen gelassen, sonst blendete sie Seiten aus, die
+dazugehören. Nichts davon ist ein zweiter Fluss: es ist derselbe, nur
+gefiltert, mit Drucken und Scrollen wie gehabt. Version v0.1.9 → v0.1.10.
+Neu prüfen es 15 Proben im fünften Lauf von `t_tags.py` (53 Proben
+insgesamt); die gefilterte Zahl und das Weglassen der Fußzeile inklusive.
+Geprüft über die volle Suite (909 Prüfungen) und in MWS
+(`provision-simplewiki`).
 
 ### v0.1.9 — Schlagworte werden sichtbar und anklickbar — 894 Prüfungen
 

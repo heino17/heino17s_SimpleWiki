@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.11">
+    <meta name="mws-shell-version" content="v0.1.12">
     <title>SimpleWiki</title>
 
     <!--
@@ -5606,6 +5606,31 @@ showSettings: false,
                     return daten;
                 },
 
+                /* Was fuer eine Datei ist geoffnet? Ein Fingerabdruck aus
+                   ihrem Datenblock sagt es. Er ist gleich, wenn dieselbe
+                   Datei noch einmal geoffnet wird, und verschieden, sobald
+                   eine andere oder neuere Datei offen liegt. Nur so lasst
+                   sich beides auseinanderhalten: der eigene Stand im
+                   Browserspeicher und der Inhalt einer frisch geladenen
+                   Datei. Ein leerer Datenblock oder eine leere Seite hat
+                   keinen Fingerabdruck - dann bleibt alles wie bisher.
+
+                   Warum der Umfang mitgezahlt wird: eine FNV-1a-Summe
+                   allein hatte schon bei kurzen Texten Zwillinge; Laenge
+                   davor macht zwei verschiedene Dateien so gut wie sicher
+                   unterscheidbar, und mehr braucht es hier nicht. */
+                dateiFingerabdruck() {
+                    if (!document.getElementById('simplewiki-daten')) return '';
+                    if (!this.readDatenAusDatei()) return '';
+                    const halter = document.getElementById('simplewiki-daten');
+                    const text = halter.textContent || '';
+                    let h = 0x811c9dc5;
+                    for (let i = 0; i < text.length; i++) {
+                        h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
+                    }
+                    return 'f' + text.length + '-' + h.toString(36);
+                },
+
                 /* Startseite, Sprache und Farbe aus der Datei übernehmen.
 
                    Bewusst ohne Bedingung: wer eine Datei einliest, will
@@ -5809,6 +5834,16 @@ showSettings: false,
                         this.seitenUebernehmen();
                         this.seitenSichern();
                         this.uebernehmenAusDatei(daten);
+                        /* Die eingelesenen Seiten sind jetzt der Stand des
+                           Browsers. Der Fingerabdruck bleibt deshalb der
+                           der offenen Datei: dieselbe Datei gleich noch
+                           einmal zu oeffnen, soll diesen Stand nicht
+                           gleich wieder ersetzen. (Nur im Browser zaehlt
+                           er - auf dem Server schreibt das Einlesen
+                           ohnehin gegen die Tiddler.) */
+                        if (SPEICHER.art === 'browser') {
+                            SimpleWikiStore.set('simplewiki_digest', this.dateiFingerabdruck() || '');
+                        }
                         /* Die bisher offene Seite existiert vielleicht
                            nicht mehr - auf die Startseite gehen. */
                         this.currentPage =
@@ -5851,7 +5886,20 @@ showSettings: false,
                    Die Reihenfolge der Zustände bleibt: was der Speicher
                    liefert, gewinnt - sonst der Inhalt aus der Datei -
                    sonst eine neue Wiki. Der Speicher entscheidet selbst,
-                   ob er aus dem Browser oder vom Server kommt. */
+                   ob er aus dem Browser oder vom Server kommt.
+
+                   Eine Ausnahme dazu: eine andere oder neuere Datei.
+                   Alle doppelgeklickten Dateien teilen sich denselben
+                   Browserspeicher; ohne Pruefung zeigte eine frisch
+                   geladene Datei also ewig den Stand der zuletzt
+                   geoffneten, bis der Speicher geleert ist. Laeuft die
+                   Datei im Browser, wird deshalb ihr Fingerabdruck mit
+                   dem des letzten Mal verglichen: ist er anders - oder dort
+                   steht noch keiner - gehoert der Datenblock einer anderen
+                   (oder noch nie gesehenen) Datei, und ihr Inhalt ersetzt
+                   den Stand im Browser. Ist er gleich, wird es dieselbe
+                   Datei sein, und was der Browser hat, bleibt stehen
+                   (auch eigene Aenderungen). */
                 loadPages() {
                     const geladen = SPEICHER.laden();
                     this.mwsModus = SPEICHER.art === 'mws';
@@ -5859,18 +5907,30 @@ showSettings: false,
                     this.showRefs = !!geladen.verweise;
 
                     const ausDatei = this.readDatenAusDatei();
+                    const finger = this.dateiFingerabdruck();
 
                     if (geladen.vorhanden) {
-                        this.pages = this.normiereSeiten(geladen.seiten);
-                        this.seitenUebernehmen();
-                        this.startPageId = geladen.startseite || '';
-                        this.einstellungenMerken(geladen);
+                        if (!this.mwsModus && finger && ausDatei.seiten.length &&
+                                finger !== SimpleWikiStore.get('simplewiki_digest', '')) {
+                            this.fremdeAngabenMerken(ausDatei);
+                            this.pages = this.normiereSeiten(ausDatei.seiten);
+                            this.seitenUebernehmen();
+                            this.seitenSichern();
+                            this.uebernehmenAusDatei(ausDatei);
+                            SimpleWikiStore.set('simplewiki_digest', finger);
+                        } else {
+                            this.pages = this.normiereSeiten(geladen.seiten);
+                            this.seitenUebernehmen();
+                            this.startPageId = geladen.startseite || '';
+                            this.einstellungenMerken(geladen);
+                        }
                     } else if (ausDatei && ausDatei.seiten && ausDatei.seiten.length) {
                         this.fremdeAngabenMerken(ausDatei);
                         this.pages = this.normiereSeiten(ausDatei.seiten);
                         this.seitenUebernehmen();
                         this.seitenSichern();
                         this.uebernehmenAusDatei(ausDatei);
+                        if (finger) SimpleWikiStore.set('simplewiki_digest', finger);
                     } else {
                         this.pages = [
                             {

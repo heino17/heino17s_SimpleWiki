@@ -46,7 +46,8 @@ BROWSER_SEITEN = mkcopy._maskieren(json.dumps([{
 }], ensure_ascii=False))
 VORAB = ('<script>try{localStorage.setItem("simplewiki_pages",' + BROWSER_SEITEN + ');'
          'localStorage.setItem("simplewiki_startpage","x1");'
-         'localStorage.setItem("simplewiki_theme","light");}catch(e){}</' + 'script>')
+         'localStorage.setItem("simplewiki_theme","light");}catch(e){}</' + 'script>'
+         + mkcopy.digest_seed())
 
 # Was das Mapping aushalten muss: Umlaute, Sonderzeichen, ein Tiddler
 # ohne Namen, doppelte Schlagworte, eine Zeit ohne Millisekunden und

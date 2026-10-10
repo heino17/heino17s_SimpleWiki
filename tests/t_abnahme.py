@@ -175,7 +175,8 @@ ALTER_STAND = mkcopy._maskieren(json.dumps([
 VORAB_ALT = ('<script>try{if(!localStorage.getItem("__abnahme_gesaet")){'
              'localStorage.setItem("simplewiki_pages",' + ALTER_STAND + ');'
              'localStorage.setItem("simplewiki_startpage","alt1");'
-             'localStorage.setItem("__abnahme_gesaet","1");}}catch(e){}</' + 'script>')
+             'localStorage.setItem("__abnahme_gesaet","1");}}catch(e){}</' + 'script>'
+             + mkcopy.digest_seed())
 
 skript3 = abnahme_durchgang("""
         var schon = sessionStorage.getItem('__abnahme');

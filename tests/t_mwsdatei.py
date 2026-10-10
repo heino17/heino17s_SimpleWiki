@@ -150,7 +150,8 @@ BROWSER = mkcopy._maskieren(json.dumps([{
     'updated': '2026-03-01T10:00:00.000Z'
 }], ensure_ascii=False))
 VORAB = ('<script>try{localStorage.setItem("simplewiki_pages",' + BROWSER + ');'
-         'localStorage.setItem("simplewiki_startpage","x1");}catch(e){}</' + 'script>')
+         'localStorage.setItem("simplewiki_startpage","x1");}catch(e){}</' + 'script>'
+         + mkcopy.digest_seed())
 
 teil3 = r"""
     <script>

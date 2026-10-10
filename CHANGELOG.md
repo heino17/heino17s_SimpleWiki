@@ -4,13 +4,39 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.11">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.12">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
+
+## 2026-10-10
+
+### v0.1.12 — Der Fingerabdruck der Datei — 929 Prüfungen
+
+Doppelgeklickte Dateien sind alle derselben Herkunft: `file://` teilt sich
+einen Browserspeicher. Bisher gewann immer, was im Browser lag — und so
+zeigte eine frisch geladene Datei ewig den Stand einer anderen, bis man den
+Speicher leerte. Jetzt stellt die App beim Öffnen den Fingerabdruck ihres
+Datenblocks fest (FNV-1a über den Text und seine Länge) und merkt ihn sich
+als `simplewiki_digest` im Browserspeicher. Öffnet man dieselbe Datei noch
+einmal, gleicht der Fingerabdruck dem gemerkten: der Stand im Browser
+gewinnt weiter, eigene Änderungen bleiben, nichts verdoppelt sich. Liegt
+aber eine andere Datei vor — auch eine neuere Fassung derselben — laufen
+die Fingerabdrücke auseinander, und der Inhalt der Datei ersetzt den
+sonstigen Browserstand, ohne dass jemand erst den Speicher leeren muss.
+Einen Fingerabdruck gibt es nur, wo der Datenblock Seiten trägt; ein leerer
+Datenblock und eine leere Seite lassen alles beim Alten. Im MWS-Betrieb
+ändern sich die Regeln nicht: dort entscheidet weiterhin der Server.
+Version v0.1.11 → v0.1.12. Neuer Test `t_finger.py`: er öffnet zwei
+verschiedene Dateien abwechselnd viermal in ein und demselben Chromium-
+profil und stellt fest, dass die andere Datei gewinnt und die gleiche den
+Stand behält — 18 Prüfungen. Die Suite (929 Prüfungen, 30 Testdateien) ist
+grün; die drei Stellen, an denen ein Test Browserstand vor einem Datenblock
+erwartet (`t_abnahme`, `t_mwsdatei`, `t_mwsmode`), merken sich die offene
+Datei über `mkcopy.digest_seed()` selbst als dieselbe Datei.
 
 ## 2026-10-09
 

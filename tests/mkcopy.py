@@ -36,6 +36,29 @@ _SEED_VORHAGE = ('<script>try{localStorage.setItem("simplewiki_pages",%s);'
                 'localStorage.setItem("simplewiki_refs","0");}'
                 'catch(e){}</script>\n')
 
+
+def digest_seed():
+    """Vorablauf-Skript, das den Fingerabdruck der Datei als Digest setzt.
+
+    Wer den Browserzustand vorfuellt und will, dass dieser Zustand in
+    dem Sinn "zur Datei gehoert", der den Fingerabdruck mitfuert, setzt
+    damit simplewiki_digest aus der offenen Datei. So bleibt der
+    Entscheidung des Programms nichts verborgen: dieselbe Datei (wie
+    der Digest) laesst den Browser gewinnen, eine andere Datei laesst
+    die Datei gewinnen.
+
+    Die Summe ist dieselbe wie in der App: FNV-1a ueber den Datenblock,
+    voran die Laenge, Basis 36, als 'f<Laenge>-<Summe>'. Dieser Seed
+    rechnet sie auf demselben Dokumenttext aus - ein Versetzen gegen
+    die App waere sofort ein roter Test.
+    """
+    return ('<script>try{var d=document.getElementById(\'simplewiki-daten\');'
+            'if(d){var t=d.textContent||\'\',o=JSON.parse(t);'
+            'if(o&&Array.isArray(o.seiten)){var h=0x811c9dc5,i;'
+            'for(i=0;i<t.length;i++){h=Math.imul(h^t.charCodeAt(i),0x01000193)>>>0;}'
+            'localStorage.setItem(\'simplewiki_digest\','
+            '\'f\'+t.length+\'-\'+h.toString(36));}}}catch(e){}</' + 'script>')
+
 _DATENBLOCK = r'<script id="simplewiki-daten"[^>]*>[\s\S]*?</script>'
 
 # Der Punkt, an dem MWS die Tiddler des Wikis einsetzt. Der Server sucht

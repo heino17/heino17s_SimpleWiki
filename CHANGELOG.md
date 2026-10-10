@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.15">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.16">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,26 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-10
+
+### v0.1.16 — Auswahl wie im Sprachmenü der Verwaltung — 952 Prüfungen
+
+Das Locale-Menü der MWS-Verwaltung (`hero-locale-menu`) führt seine
+Sprachen in einer festen Reihenfolge und beschriftet jede mit Flagge und
+Namen. Die Auswahl unter den Einstellungen soll genauso aussehen, damit
+niemand zwei Listen nebeneinander vergleichen muss. Deshalb steht die
+Reihenfolge jetzt in `SIMPLEWIKI_LANG_REIHENFOLGE` — `en, de, ru, es,
+fr, ja, ko, zh-cn`, dieselbe wie `supportedLocales` —, und `languages()`
+sortiert nicht mehr selbst; die Hauptsprache steht nicht länger vorn,
+Englisch beginnt. Jede Sprache trägt als `name` dieselbe Beschriftung wie
+`localeLabels` der Verwaltung: `🇺🇸 American`, `🇩🇪 Deutsch`, `🇷🇺 Русский`,
+`🇪🇸 Español`, `🇫🇷 Français`, `🇯🇵 日本語`, `🇰🇷 한국어`, `🇨🇳 中文`. Der Vertrag
+im Kopf nennt die Codes in derselben Reihenfolge. Sprachen, die nicht in
+der Reihenfolge stehen, hängen sich hinten an, statt zu verschwinden. Die
+Beschriftungen kommen aus der Verwaltung, nicht aus der Wiki: der Eintrag
+heißt „🇺🇸 American", wie im Server, und nicht „English". Beide Listen
+zeigen damit dasselbe. Der Test `t_sprachen.py` hält Reihenfolge und
+Beschriftung fest. Version v0.1.15 → v0.1.16. Die Suite (952 Prüfungen,
+31 Testdateien) ist grün.
 
 ### v0.1.15 — Sprachcode wie in der Verwaltung — 953 Prüfungen
 

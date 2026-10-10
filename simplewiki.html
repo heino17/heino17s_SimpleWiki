@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.15">
+    <meta name="mws-shell-version" content="v0.1.16">
     <title>SimpleWiki</title>
 
     <!--
@@ -35,7 +35,7 @@
                      Eltern-Seite automatisch mit – eltern ist ein Verweis,
                      und hier werden Verweise beim Umbenennen nachgezogen.
           startseite eine id, keine Überschrift.
-          sprache    ein Code aus SIMPLEWIKI_LANGS, z. B. "de", "en",
+          sprache    ein Code aus SIMPLEWIKI_LANGS, z. B. "en", "de",
                      "ru", "es", "fr", "ja", "ko", "zh-cn".
           thema      "light" | "dark".
           palette    "pergament" | "nord" | "wacholder" | "sol" – die
@@ -3102,7 +3102,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            einzige Datei und funktioniert ohne Server und ohne Netz. */
         const SIMPLEWIKI_LANGS = {
             "de": {
-                name: "Deutsch",
+                name: "🇩🇪 Deutsch",
                 translations: {
                     "settings": "Einstellungen",
                     "close": "Schließen",
@@ -3229,7 +3229,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "en": {
-                name: "English",
+                name: "🇺🇸 American",
                 translations: {
                     "settings": "Settings",
                     "close": "Close",
@@ -3356,7 +3356,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "ru": {
-                name: "Русский",
+                name: "🇷🇺 Русский",
                 translations: {
                     "settings": "Настройки",
                     "close": "Закрыть",
@@ -3482,7 +3482,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "es": {
-                name: "Español",
+                name: "🇪🇸 Español",
                 translations: {
                     "settings": "Ajustes",
                     "close": "Cerrar",
@@ -3608,7 +3608,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "fr": {
-                name: "Français",
+                name: "🇫🇷 Français",
                 translations: {
                     "settings": "Réglages",
                     "close": "Fermer",
@@ -3734,7 +3734,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "ja": {
-                name: "日本語",
+                name: "🇯🇵 日本語",
                 translations: {
                     "settings": "設定",
                     "close": "閉じる",
@@ -3860,7 +3860,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "ko": {
-                name: "한국어",
+                name: "🇰🇷 한국어",
                 translations: {
                     "settings": "설정",
                     "close": "닫기",
@@ -3986,7 +3986,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 }
             },
             "zh-cn": {
-                name: "简体中文",
+                name: "🇨🇳 中文",
                 translations: {
                     "settings": "设置",
                     "close": "关闭",
@@ -4115,6 +4115,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         /* Hauptsprache und Rückfall-Kette: fehlt ein Text, wird Deutsch genommen */
         const SIMPLEWIKI_BASE_LANG = 'de';
+
+        /* Die Reihenfolge der Sprachen in der Auswahl – dieselbe wie im
+           Locale-Menue der MWS-Verwaltung. Die Hauptsprache steht darin
+           nicht mehr vorn; Englisch beginnt, wie dort. */
+        const SIMPLEWIKI_LANG_REIHENFOLGE = ['en', 'de', 'ru', 'es', 'fr', 'ja', 'ko', 'zh-cn'];
 
         /* Die Farbwelten, die es gibt. Der Name steht im Austauschvertrag;
            eine der Welten ist immer aktiv, im Zweifel Pergament. Wer eine
@@ -5095,16 +5100,18 @@ showSettings: false,
                 },
 
                 languages() {
-                    return Object.keys(SIMPLEWIKI_LANGS)
-                        .map(code => ({
-                            code: code,
-                            name: SIMPLEWIKI_LANGS[code].name
-                        }))
-                        .sort(function (a, b) {
-                            if (a.code === SIMPLEWIKI_BASE_LANG) return -1;
-                            if (b.code === SIMPLEWIKI_BASE_LANG) return 1;
-                            return a.name.localeCompare(b.name);
-                        });
+                    /* Die Reihenfolge kommt aus SIMPLEWIKI_LANG_REIHENFOLGE,
+                       nicht aus der Einfuegereihenfolge im Objekt. Sprachen,
+                       die dort nicht stehen, folgen danach - so geht keine
+                       verloren, wenn eine dazukommt. */
+                    const bekannt = SIMPLEWIKI_LANG_REIHENFOLGE
+                        .filter(code => SIMPLEWIKI_LANGS[code]);
+                    const uebrig = Object.keys(SIMPLEWIKI_LANGS)
+                        .filter(code => bekannt.indexOf(code) < 0);
+                    return bekannt.concat(uebrig).map(code => ({
+                        code: code,
+                        name: SIMPLEWIKI_LANGS[code].name
+                    }));
                 },
 
                 /* Die Farbwelten in der Reihenfolge des Vertrags, mit dem

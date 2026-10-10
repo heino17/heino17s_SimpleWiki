@@ -1,12 +1,13 @@
 """Die Sprachauswahl: Die eingebauten Sprachen stehen vollstaendig im
-Dropdown unter den Einstellungen, jede nennt sich selbst und jede
-uebersetzt die Oberflaeche.
+Dropdown unter den Einstellungen, in der Reihenfolge des Locale-Menues
+der MWS-Verwaltung und mit dessen Beschriftungen (Flagge und Name).
+Jede Auswahl uebersetzt die Oberflaeche.
 
 Die Codes kommen aus dem Austauschvertrag im Kopf von simplewiki.html;
-die Namen sind Eigenbezeichnungen, keine Uebersetzungen. Geprueft wird
-darum das Paar aus Code und Name und die Kopfzeile des Panels - ein
-Wort, das aus der jeweiligen Uebersetzung stammt und nicht aus der
-Hauptsprache.
+Reihenfolge und Beschriftungen folgen `supportedLocales` und
+`localeLabels` der Verwaltung. Geprueft wird darum die ganze Liste samt
+Reihenfolge und die Kopfzeile des Panels - ein Wort, das aus der
+jeweiligen Uebersetzung stammt und nicht aus der Hauptsprache.
 """
 
 import sys, os
@@ -53,10 +54,12 @@ script = r"""
       var kopf = { de: 'Einstellungen', en: 'Settings', ru: 'Настройки',
                    es: 'Ajustes', fr: 'Réglages', ja: '設定', ko: '설정',
                    'zh-cn': '设置' };
-      var namen = { de: 'Deutsch', en: 'English', ru: 'Русский',
-                    es: 'Español', fr: 'Français', ja: '日本語',
-                    ko: '한국어', 'zh-cn': '简体中文' };
-      var codes = ['de', 'en', 'ru', 'es', 'fr', 'ja', 'ko', 'zh-cn'];
+      /* Reihenfolge und Beschriftungen wie im Locale-Menue der Verwaltung
+         (supportedLocales und localeLabels). */
+      var codes = ['en', 'de', 'ru', 'es', 'fr', 'ja', 'ko', 'zh-cn'];
+      var namen = { en: '🇺🇸 American', de: '🇩🇪 Deutsch', ru: '🇷🇺 Русский',
+                    es: '🇪🇸 Español', fr: '🇫🇷 Français', ja: '🇯🇵 日本語',
+                    ko: '🇰🇷 한국어', 'zh-cn': '🇨🇳 中文' };
       var i = 0;
 
       function weiter() {
@@ -81,16 +84,14 @@ script = r"""
           var opts = all('#settings-language option');
           var got = opts.map(function (o) { return o.value; });
           ok(got.length === 8, 'acht Sprachen: ' + got.join('|'));
-          ok(got[0] === 'de', 'Deutsch steht vorn: ' + got[0]);
-          var fehlen = codes.filter(function (c) { return got.indexOf(c) < 0; });
-          ok(fehlen.length === 0,
-             'alle Codes sind da' + (fehlen.length ? ' - es fehlt: ' + fehlen.join(',') : ''));
+          ok(got.join('|') === codes.join('|'),
+             'Reihenfolge wie in der Verwaltung: ' + got.join('|'));
 
           var gelesen = {};
           opts.forEach(function (o) { gelesen[o.value] = o.textContent.trim(); });
           var falsch = codes.filter(function (c) { return gelesen[c] !== namen[c]; });
           ok(falsch.length === 0,
-             'jede Sprache nennt sich selbst' +
+             'jede Sprache mit Flagge und Name' +
              (falsch.length ? ' - falsch: ' + falsch.map(function (c) { return c + '=' + gelesen[c]; }).join(' ') : ''));
 
           head('Jede Sprache uebersetzt die Oberflaeche');

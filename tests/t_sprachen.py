@@ -52,11 +52,11 @@ script = r"""
 
       var kopf = { de: 'Einstellungen', en: 'Settings', ru: 'Настройки',
                    es: 'Ajustes', fr: 'Réglages', ja: '設定', ko: '설정',
-                   zh_CN: '设置' };
+                   'zh-cn': '设置' };
       var namen = { de: 'Deutsch', en: 'English', ru: 'Русский',
                     es: 'Español', fr: 'Français', ja: '日本語',
-                    ko: '한국어', zh_CN: '简体中文' };
-      var codes = ['de', 'en', 'ru', 'es', 'fr', 'ja', 'ko', 'zh_CN'];
+                    ko: '한국어', 'zh-cn': '简体中文' };
+      var codes = ['de', 'en', 'ru', 'es', 'fr', 'ja', 'ko', 'zh-cn'];
       var i = 0;
 
       function weiter() {

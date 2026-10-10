@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.14">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.15">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,19 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-10
+
+### v0.1.15 — Sprachcode wie in der Verwaltung — 953 Prüfungen
+
+Der Code für vereinfachtes Chinesisch hieß in v0.1.14 `zh_CN`. Die
+MWS-Verwaltung führt dieselbe Sprache als `zh-cn`; zwei Schreibweisen für
+eine Sache sind genau die Art Stolperstein, über die man später rätselt.
+Der Code heißt jetzt `zh-cn` — dieselbe Schreibweise wie im Server und
+durchgehend klein wie `de`, `en`, `ru`, `es`, `fr`, `ja` und `ko`. Am
+Inhalt der Übersetzung ändert das nichts, nur am gespeicherten Wert. Eine
+Wiki, die noch `zh_CN` als `sprache` trägt, fällt auf Deutsch zurück; im
+Austauschvertrag im Kopf von `simplewiki.html` steht die neue Liste. Der
+Test `t_sprachen.py` prüft weiterhin alle acht Sprachen. Version
+v0.1.14 → v0.1.15. Die Suite (953 Prüfungen, 31 Testdateien) ist grün.
 
 ### v0.1.14 — Sechs weitere Sprachen — 953 Prüfungen
 

@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.13">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.14">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,27 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-10
+
+### v0.1.14 — Sechs weitere Sprachen — 953 Prüfungen
+
+SimpleWiki sprach bisher Deutsch und Englisch. Jetzt kommen Russisch,
+Spanisch, Französisch, Japanisch, Koreanisch und vereinfachtes Chinesisch
+dazu — als vollwertige Übersetzungen der 121 Texte. Die Auswahl unter den
+Einstellungen füllt sich aus `SIMPLEWIKI_LANGS`; sie musste dafür nicht
+angefasst werden. Eine Sprache hinzufügen heißt von nun an: einen Eintrag
+unter `SIMPLEWIKI_LANGS` mit `name` und `translations`. Jede Sprache trägt
+dieselben Schlüssel; fehlt einer, greift Deutsch als Hauptsprache. Der Code
+für vereinfachtes Chinesisch heißt `zh_CN`, wie er in der Datei steht;
+das ist derselbe Inhalt, den die MWS-Verwaltung als `zh-cn` führt — die
+Schreibweise folgt hier dem Sprachcode, nicht der Verwaltung. Der
+Austauschvertrag im Kopf von `simplewiki.html` nennt jetzt die ganze
+Codeliste statt nur `"de"` und `"en"`; der Feldname `sprache` und das
+Format selbst bleiben unverändert, der Server sieht nur weitere erlaubte
+Werte. Neuer Test `t_sprachen.py` (20 Prüfungen): alle acht Sprachen
+stehen im Dropdown, jede nennt sich selbst, jede übersetzt die Kopfzeile
+des Einstellungen-Panels, und jede wird als `simplewiki_lang` gemerkt.
+Version v0.1.13 → v0.1.14. Die Suite (953 Prüfungen, 31 Testdateien) ist
+grün.
 
 ### v0.1.13 — Die Suche findet auch Schlagworte — 933 Prüfungen
 

@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.12">
+    <meta name="mws-shell-version" content="v0.1.13">
     <title>SimpleWiki</title>
 
     <!--
@@ -4377,12 +4377,19 @@ showSettings: false,
                         : '';
                 },
 
+                /* Die Suche geht ueber Titel, Inhalt und Schlagworte.
+                   Fremde Dateien koennen tags auch als fehlendes Feld
+                   mitbringen - der Array-Check steht deshalb nicht dort,
+                   um Zeit zu sparen, sondern weil die App darauf besteht,
+                   zu wissen, was sie durchsucht. */
                 filteredPages() {
                     const query = this.searchQuery.trim().toLowerCase();
                     if (!query) return this.pages;
                     return this.pages.filter(p =>
                         p.title.toLowerCase().includes(query) ||
-                        p.content.toLowerCase().includes(query)
+                        p.content.toLowerCase().includes(query) ||
+                        (Array.isArray(p.tags) && p.tags.some(
+                            t => t && t.toLowerCase().includes(query)))
                     );
                 },
 

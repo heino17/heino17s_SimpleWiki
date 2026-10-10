@@ -6,7 +6,7 @@ from _hilfe import pruefe
 pages = [
     {"id": "a", "title": "Alpha", "content": "# Alpha\n\nEin **fetter** Text.\n\n- Punkt 1", "tags": [], "created": "x", "updated": "x"},
     {"id": "b", "title": "Beta", "content": "# Beta\n\nInhalt von Beta", "tags": [], "created": "x", "updated": "x"},
-    {"id": "c", "title": "Leer", "content": "", "tags": [], "created": "x", "updated": "x"},
+    {"id": "c", "title": "Leer", "content": "", "tags": ["markiert"], "created": "x", "updated": "x"},
 ]
 
 script = r"""
@@ -117,6 +117,25 @@ script = r"""
                 q('.clear-search').click();
                 setTimeout(function () {
                   ok(all('.toc-menu .toc-item-title').length === 3, 'Suche zurückgesetzt');
+
+                  head('Suche findet auch Schlagworte');
+                  var s2 = q('.search-box');
+                  s2.value = 'markiert'; s2.dispatchEvent(new Event('input', { bubbles: true }));
+                  setTimeout(function () {
+                    ok(q('.such-kopf').textContent.trim() === '1 Seite gefunden',
+                       'das Schlagwort trifft: ' + q('.such-kopf').textContent.trim());
+                    var treffer2 = all('.toc-menu .toc-item-title').map(function (e) { return e.textContent.trim(); });
+                    ok(treffer2.join() === 'Leer', 'nur die markierte Seite: ' + treffer2.join('|'));
+                    var leerseite = JSON.parse(localStorage.getItem('simplewiki_pages'))
+                        .filter(function (p) { return p.tags && p.tags.indexOf('markiert') >= 0; })[0];
+                    ok(leerseite && leerseite.title === 'Leer' &&
+                       !/markiert/i.test(leerseite.title + ' ' + leerseite.content),
+                       'getroffen hat das Schlagwort, nicht Titel oder Inhalt');
+                    q('.clear-search').click();
+                    setTimeout(function () {
+                      ok(all('.toc-menu .toc-item-title').length === 3, 'und wieder zurueckgesetzt');
+                    }, 500);
+                  }, 500);
 
                   head('Editor');
                   tswitch().then(function () {

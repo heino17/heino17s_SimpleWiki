@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.12">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.13">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,22 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-10
+
+### v0.1.13 — Die Suche findet auch Schlagworte — 933 Prüfungen
+
+Die Suche im Kopf fand bisher Titel und Inhalt; ein Schlagwort musste man
+kennen und anklicken, statt es finden zu können. Jetzt durchsucht sie
+`filteredPages` auch die Schlagworte einer Seite — dieselbe Stelle im
+Programm, dieselbe Trefferliste, keine neue Bedienung: wer zu einem
+Schlagwort sucht, sieht die Seiten, die es tragen, ihr Titel folgt
+trotzdem nur dem Titel. Ein Schlagwort ist ein Wort an der Seite, kein
+Unterscheidungszeichen, und es gehört deshalb zur Suche. Fremde Dateien
+können `tags` ganz weglassen; die Suche prüft deshalb zuerst, ob das Feld
+überhaupt ein Array ist, und wertet es sonst nicht aus. Version
+v0.1.12 → v0.1.13. In `t_suite.py` trägt die Seite «Leer» jetzt das
+Schlagwort «markiert» — Titel und Inhalt sagen es nirgends, und vier neue
+Proben stellen fest, dass die Suche «markiert» genau diese Seite liefert.
+Die Suite (933 Prüfungen, 30 Testdateien) ist grün.
 
 ### v0.1.12 — Der Fingerabdruck der Datei — 929 Prüfungen
 

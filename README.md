@@ -41,7 +41,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Gliederung** | Unter-Seiten unter einer Elternseite, beliebig tief; gebaut per Ziehen (drei Zonen je Zeile: davor, als Kind, dahinter) oder mit Alt + Pfeil: ↑/↓ auf gleicher Ebene, → einrücken, ← ausrücken |
 | **Zuklappen** | Beim Neuladen steht nur die oberste Ebene: Elternseiten mit Unter-Seiten tragen einen Zähler ▼ und kommen zugeklappt (Pfeil links tut dasselbe); aufklappen am Zähler, mit Pfeil rechts oder durch Anklicken — nichts davon landet in der Datei |
 | **Duplizieren** | legt eine Kopie mit eigenem Namen an, ohne Verknüpfung zur Vorlage |
-| **Suche** | im Kopf; die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
+| **Suche** | im Kopf; sie sucht Titel, Inhalt **und Schlagworte**, die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
 | **Hell / Dunkel** | auch im Editor |
 | **Sprache** | Deutsch und Englisch, fest eingebaut |
@@ -52,7 +52,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 5980 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 6770 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -61,11 +61,12 @@ Reihenfolge:
              steht, warum das Format so aussieht und was der Server
              liefern muss.
       221    <script id="simplewiki-daten">  die Dateninsel
-    222–358   die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+    225–359   die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
              DOMPurify)
-    360–2337  das Stylesheet
-   2350–2787  die Oberfläche (Vue-Template)
-   2789–5980  das Programm
+   360–2549  das Stylesheet
+   2550–2559  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+   2562–3090  die Oberfläche (Vue-Template)
+   3091–6770  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -85,7 +86,7 @@ besonders zu beachten:
 ## Die zwei Betriebsarten
 
 An **genau einer** Stelle im Programm steht, woher die Seiten kommen
-(`simplewiki.html:3063`, „Wo die Seiten liegen: Browser oder MWS“):
+(`simplewiki.html:3391`, „Wo die Seiten liegen: Browser oder MWS“):
 
 - **Browser** — der Normalfall. Seiten liegen in `localStorage`. Eine per
   Doppelklick geöffnete Datei merkt sich genau so.
@@ -121,7 +122,7 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.8">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.13">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit
@@ -213,7 +214,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **24 Testdateien**, 751 Prüfungen, rund 68 Browserläufe pro Suite-Lauf
+- **30 Testdateien**, 933 Prüfungen, rund 78 Browserläufe pro Suite-Lauf
   (die beiden Drucktests starten Chromium ein zweites Mal für das PDF).
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die

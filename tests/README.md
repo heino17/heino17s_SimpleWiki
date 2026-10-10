@@ -35,7 +35,7 @@ der Browser nur noch hart neu laden (Strg+Umschalt+R).
 
 Ein Test steht nicht in `alle.py`, weil er einen **echten** Server startet:
 `live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur
-aus `mwsserver.py`. Fünf weitere Tests starten zwar auch einen Server — aber den
+aus `mwsserver.py`. Sechs weitere Tests starten zwar auch einen Server — aber den
 kleinen aus `mwsserver.py`, und genau deshalb gehören sie in `alle.py`.
 
 ```bash
@@ -88,7 +88,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | Datei | Deckt ab |
 |---|---|
 | `t_empty.py` | Leerzustand, wenn keine Seite existiert |
-| `t_suite.py` | Grundfunktionen: Oberfläche, **Suche mit Trefferliste unter dem Feld**, Editor, Dunkelmodus |
+| `t_suite.py` | Grundfunktionen: Oberfläche, **Suche über Titel, Inhalt und Schlagworte mit Trefferliste unter dem Feld**, Editor, Dunkelmodus |
 | `t_link4.py` | Verlinken: Dialog, Seite anlegen, Rückverweise |
 | `t_dup.py` | Kopieren einer Seite, unabhängige Verknüpfungen |
 | `t_dupen.py` | dasselbe in englischer Oberfläche |
@@ -111,6 +111,12 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |
 | `t_scroll.py` | Scrollen im Fluss bei kurzem Fenster, Druck über mehrere Seiten |
 | `t_textur.py` | **die Textur kommt in beiden Modi an — und die CSS-Falle, die sie einmal verschluckt hat** |
+| `t_abbrechen.py` | **Abbrechen bei einer frisch angelegten Seite**: die Hüllseiten leben auf Widerruf, Sichern macht sie dauerhaft |
+| `t_klapp.py` | **Zuklappen im Verzeichnis**: der Zähler ist ein Anzeige-Ding dieser Ansicht, ab dem Neuladen wieder zugeklappt, nichts in `localStorage` |
+| `t_hierarchie.py` | **das Feld `eltern`**: Tiefensuche-Reihenfolge, die Elternseite steht direkt vor ihrem Unterbaum, der wandert immer mit |
+| `t_tags.py` | **Schlagworte stehen an der Seite, nicht im Text** — der Verweisgraph bleibt davon unberührt |
+| `t_palette.py` | **die Farbwelten**: Auswahl im Einstellungen-Dialog, Hell und Dunkel darin, Austausch über `localStorage` bzw. Startseiten-Tiddler |
+| `t_finger.py` | **der Fingerabdruck der Datei** entscheidet beim erneuten Öffnen, welche von zwei gestapelten Dateien gilt — ohne den Browserspeicher zu leeren |
 
 ### Headless nimmt kein Fenster unter 500 Pixeln
 

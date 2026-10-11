@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.25">
+    <meta name="mws-shell-version" content="v0.1.26">
     <title>SimpleWiki</title>
 
     <!--
@@ -790,7 +790,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         .header h1 {
             font-size: 1.3rem;
-            color: var(--text-primary);
+            /* Ohne eigene Ueberschriftenfarbe bleibt es beim Textton -
+               die Rueckfallkette steht in der eigenen Farbwelt bereit. */
+            color: var(--h1-color, var(--text-primary));
             white-space: nowrap;
         }
 
@@ -1672,7 +1674,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         .content-title {
             font-size: 1.5rem;
-            color: var(--text-primary);
+            color: var(--h2-color, var(--text-primary));
         }
 
         /* Der Titel ist im Bearbeiten ein Feld und soll so aussehen: mit
@@ -1759,9 +1761,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             line-height: 1.8;
         }
 
-        .preview h1 { font-size: 2rem; margin: 1.5rem 0 1rem; }
-        .preview h2 { font-size: 1.5rem; margin: 1.25rem 0 0.75rem; }
-        .preview h3 { font-size: 1.25rem; margin: 1rem 0 0.5rem; }
+        .preview h1 { font-size: 2rem; margin: 1.5rem 0 1rem; color: var(--h1-color, var(--text-primary)); }
+        .preview h2 { font-size: 1.5rem; margin: 1.25rem 0 0.75rem; color: var(--h2-color, var(--text-primary)); }
+        .preview h3 { font-size: 1.25rem; margin: 1rem 0 0.5rem; color: var(--h3-color, var(--text-primary)); }
         .preview p { margin-bottom: 1rem; }
         .preview ul, .preview ol { margin: 1rem 0 1rem 2rem; }
         .preview li { margin-bottom: 0.5rem; }
@@ -1930,7 +1932,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             padding: 0;
             border: none;
             background: none;
-            color: var(--accent-color);
+            /* Der Seitentitel im Fluss traegt dieselbe Farbe wie die
+               Ueberschrift der geoeffneten Seite (.content-title); ohne
+               eigene Farbe bleibt es der Akzent. */
+            color: var(--h2-color, var(--accent-color));
             font: inherit;
             text-align: left;
             cursor: pointer;
@@ -3534,6 +3539,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "Dunkel",
                     "farbenZuruecksetzen": "Zurücksetzen",
                     "farbgruppeFlaechen": "Flächen",
+                    "farbgruppeUeberschriften": "Überschriften",
                     "farbgruppeText": "Text",
                     "farbgruppeRahmen": "Rahmen und Akzente",
                     "farbgruppeKaesten": "Kästen",
@@ -3542,6 +3548,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "Karten und Leisten",
                     "farbeBgHover": "Hervorhebung",
                     "farbeBgActive": "Hervorhebung kräftig",
+                    "farbeH1Color": "Überschrift 1",
+                    "farbeH2Color": "Überschrift 2",
+                    "farbeH3Color": "Überschrift 3",
                     "farbeTextPrimary": "Text",
                     "farbeTextSecondary": "Text daneben",
                     "farbeTextMuted": "Leiser Text",
@@ -3677,6 +3686,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "Dark",
                     "farbenZuruecksetzen": "Reset",
                     "farbgruppeFlaechen": "Surfaces",
+                    "farbgruppeUeberschriften": "Headings",
                     "farbgruppeText": "Text",
                     "farbgruppeRahmen": "Lines and accents",
                     "farbgruppeKaesten": "Boxes",
@@ -3685,6 +3695,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "Cards and bars",
                     "farbeBgHover": "Highlight",
                     "farbeBgActive": "Strong highlight",
+                    "farbeH1Color": "Heading 1",
+                    "farbeH2Color": "Heading 2",
+                    "farbeH3Color": "Heading 3",
                     "farbeTextPrimary": "Text",
                     "farbeTextSecondary": "Secondary text",
                     "farbeTextMuted": "Muted text",
@@ -3862,6 +3875,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "Тёмная",
                     "farbenZuruecksetzen": "Сбросить",
                     "farbgruppeFlaechen": "Фоны",
+                    "farbgruppeUeberschriften": "Заголовки",
                     "farbgruppeText": "Текст",
                     "farbgruppeRahmen": "Линии и акценты",
                     "farbgruppeKaesten": "Блоки",
@@ -3870,6 +3884,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "Карточки и панели",
                     "farbeBgHover": "Подсветка",
                     "farbeBgActive": "Сильная подсветка",
+                    "farbeH1Color": "Заголовок 1",
+                    "farbeH2Color": "Заголовок 2",
+                    "farbeH3Color": "Заголовок 3",
                     "farbeTextPrimary": "Текст",
                     "farbeTextSecondary": "Второй текст",
                     "farbeTextMuted": "Тихий текст",
@@ -4025,6 +4042,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "Oscura",
                     "farbenZuruecksetzen": "Restablecer",
                     "farbgruppeFlaechen": "Superficies",
+                    "farbgruppeUeberschriften": "Encabezados",
                     "farbgruppeText": "Texto",
                     "farbgruppeRahmen": "Líneas y acentos",
                     "farbgruppeKaesten": "Cajas",
@@ -4033,6 +4051,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "Tarjetas y barras",
                     "farbeBgHover": "Resaltado",
                     "farbeBgActive": "Resaltado fuerte",
+                    "farbeH1Color": "Encabezado 1",
+                    "farbeH2Color": "Encabezado 2",
+                    "farbeH3Color": "Encabezado 3",
                     "farbeTextPrimary": "Texto",
                     "farbeTextSecondary": "Texto secundario",
                     "farbeTextMuted": "Texto tenue",
@@ -4188,6 +4209,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "Sombre",
                     "farbenZuruecksetzen": "Réinitialiser",
                     "farbgruppeFlaechen": "Fonds",
+                    "farbgruppeUeberschriften": "Titres",
                     "farbgruppeText": "Texte",
                     "farbgruppeRahmen": "Lignes et accents",
                     "farbgruppeKaesten": "Blocs",
@@ -4196,6 +4218,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "Cartes et barres",
                     "farbeBgHover": "Survol",
                     "farbeBgActive": "Survol appuyé",
+                    "farbeH1Color": "Titre 1",
+                    "farbeH2Color": "Titre 2",
+                    "farbeH3Color": "Titre 3",
                     "farbeTextPrimary": "Texte",
                     "farbeTextSecondary": "Texte secondaire",
                     "farbeTextMuted": "Texte discret",
@@ -4351,6 +4376,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "ダーク",
                     "farbenZuruecksetzen": "リセット",
                     "farbgruppeFlaechen": "背景",
+                    "farbgruppeUeberschriften": "見出し",
                     "farbgruppeText": "テキスト",
                     "farbgruppeRahmen": "線とアクセント",
                     "farbgruppeKaesten": "枠",
@@ -4359,6 +4385,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "カードとバー",
                     "farbeBgHover": "ハイライト",
                     "farbeBgActive": "強いハイライト",
+                    "farbeH1Color": "見出し 1",
+                    "farbeH2Color": "見出し 2",
+                    "farbeH3Color": "見出し 3",
                     "farbeTextPrimary": "テキスト",
                     "farbeTextSecondary": "補助テキスト",
                     "farbeTextMuted": "控えめなテキスト",
@@ -4514,6 +4543,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "어둡게",
                     "farbenZuruecksetzen": "초기화",
                     "farbgruppeFlaechen": "배경",
+                    "farbgruppeUeberschriften": "제목",
                     "farbgruppeText": "텍스트",
                     "farbgruppeRahmen": "선과 강조",
                     "farbgruppeKaesten": "상자",
@@ -4522,6 +4552,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "카드와 막대",
                     "farbeBgHover": "강조",
                     "farbeBgActive": "강한 강조",
+                    "farbeH1Color": "제목 1",
+                    "farbeH2Color": "제목 2",
+                    "farbeH3Color": "제목 3",
                     "farbeTextPrimary": "텍스트",
                     "farbeTextSecondary": "보조 텍스트",
                     "farbeTextMuted": "흐린 텍스트",
@@ -4677,6 +4710,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenDunkel": "深色",
                     "farbenZuruecksetzen": "重置",
                     "farbgruppeFlaechen": "表面",
+                    "farbgruppeUeberschriften": "标题",
                     "farbgruppeText": "文本",
                     "farbgruppeRahmen": "线条和强调",
                     "farbgruppeKaesten": "框",
@@ -4685,6 +4719,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbeBgSecondary": "卡片和栏",
                     "farbeBgHover": "高亮",
                     "farbeBgActive": "强高亮",
+                    "farbeH1Color": "标题 1",
+                    "farbeH2Color": "标题 2",
+                    "farbeH3Color": "标题 3",
                     "farbeTextPrimary": "文本",
                     "farbeTextSecondary": "次要文本",
                     "farbeTextMuted": "柔和文本",
@@ -4744,12 +4781,25 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         /* Die Farbvariablen einer Welt, in der Reihenfolge des Editors.
            Der Name ist der CSS-Name ohne fuehrendes --; jede Welt
-           ueberschreibt genau diese. */
+           ueberschreibt genau diese.
+
+           Die drei Ueberschriften-Farben sind ein Sonderfall: eine feste
+           Welt setzt sie nicht als Variable, ihre CSS-Regel faellt auf
+           den Textton zurueck (siehe .header h1, .content-title,
+           .preview h1 bis h3 und .fluss-titel-knopf). Nur die eigene Welt
+           traegt sie als Inline-Variablen - dort, und nur dort, aendern
+           sie das Bild. */
         const SIMPLEWIKI_FARBEN = ['bg-primary', 'bg-secondary', 'bg-hover', 'bg-active',
             'text-primary', 'text-secondary', 'text-muted', 'border-color',
             'accent-color', 'accent-hover', 'danger-color', 'danger-hover',
             'code-bg', 'blockquote-border', 'table-header-bg', 'overlay-bg',
-            'shadow-color', 'textur-kopf', 'textur-inhalt'];
+            'shadow-color', 'textur-kopf', 'textur-inhalt',
+            'h1-color', 'h2-color', 'h3-color'];
+
+        /* Die Ueberschriften-Farben als eigene Liste: der Editor zeigt
+           fuer sie den Textton, wenn kein eigener Wert gesetzt ist, weil
+           keine feste Welt eine Variable dafuer traegt. */
+        const SIMPLEWIKI_FARBEN_UEBERSCHRIFT = ['h1-color', 'h2-color', 'h3-color'];
 
         /* Dieselben Variablen, in Gruppen mit einer Ueberschrift fuer den
            Farb-Editor. Rein zur Anzeige - die Reihenfolge in
@@ -4757,6 +4807,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         const SIMPLEWIKI_FARBGRUPPEN = [
             { schluessel: 'farbgruppeFlaechen',
               farben: ['bg-primary', 'bg-secondary', 'bg-hover', 'bg-active'] },
+            { schluessel: 'farbgruppeUeberschriften',
+              farben: ['h1-color', 'h2-color', 'h3-color'] },
             { schluessel: 'farbgruppeText',
               farben: ['text-primary', 'text-secondary', 'text-muted'] },
             { schluessel: 'farbgruppeRahmen',
@@ -8381,12 +8433,19 @@ createNewPage() {
                 },
 
                 /* Der angezeigte Wert einer Farbe: der eigene, wenn es
-                   einen gibt, sonst der, der gerade wirkt. */
+                   einen gibt, sonst der, der gerade wirkt. Die
+                   Ueberschriften-Farben traegt keine feste Welt als
+                   Variable; ohne eigenen Wert steht dort der Textton. */
                 farbWert(name) {
                     const satz = this.farbSatz;
                     if (satz && satz[name]) return satz[name];
-                    return getComputedStyle(document.body)
+                    const wert = getComputedStyle(document.body)
                         .getPropertyValue('--' + name).trim();
+                    if (!wert && SIMPLEWIKI_FARBEN_UEBERSCHRIFT.indexOf(name) >= 0) {
+                        return getComputedStyle(document.body)
+                            .getPropertyValue('--text-primary').trim();
+                    }
+                    return wert;
                 },
 
                 farbWertHex(name) {

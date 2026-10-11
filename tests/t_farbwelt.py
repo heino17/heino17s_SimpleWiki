@@ -64,8 +64,10 @@ teil1 = r"""
           pal.dispatchEvent(new Event('change', { bubbles: true }));
           setTimeout(function () {
             ok(!!q('.farb-editor'), 'der Farb-Editor ist da');
-            ok(all('.farb-feld').length === 15, 'fuenfzehn Farbwaehler: ' + all('.farb-feld').length);
+            ok(all('.farb-feld').length === 18, 'achtzehn Farbwaehler: ' + all('.farb-feld').length);
             ok(all('.farb-text').length === 4, 'vier Textfelder fuer Transparenz: ' + all('.farb-text').length);
+            var gruppen = all('.farb-gruppe-titel').map(function (g) { return g.textContent.trim(); });
+            ok(gruppen.indexOf('Überschriften') >= 0, 'die Gruppe Ueberschriften: ' + gruppen.join('|'));
 
             head('Aus Nord klonen');
             var quelle = q('.farb-klon select');
@@ -83,8 +85,24 @@ teil1 = r"""
                 var bg = all('.farb-feld')[0];
                 bg.value = '#123456';
                 bg.dispatchEvent(new Event('input', { bubbles: true }));
+                head('Die Ueberschriften tragen eigene Farben');
+                var h1f = all('.farb-feld')[4];
+                var h2f = all('.farb-feld')[5];
+                var h3f = all('.farb-feld')[6];
+                h1f.value = '#aa0000';
+                h1f.dispatchEvent(new Event('input', { bubbles: true }));
+                h2f.value = '#00aa00';
+                h2f.dispatchEvent(new Event('input', { bubbles: true }));
+                h3f.value = '#0000aa';
+                h3f.dispatchEvent(new Event('input', { bubbles: true }));
                 setTimeout(function () {
                   ok(wert('bg-primary') === '#123456', 'die neue Hintergrundfarbe wirkt: ' + wert('bg-primary'));
+                  ok(getComputedStyle(q('.header h1')).color === 'rgb(170, 0, 0)',
+                     'h1: der Wiki-Titel: ' + getComputedStyle(q('.header h1')).color);
+                  ok(getComputedStyle(q('.preview h1')).color === 'rgb(170, 0, 0)',
+                     'h1: die Ueberschrift im Text: ' + getComputedStyle(q('.preview h1')).color);
+                  ok(getComputedStyle(q('.content-title')).color === 'rgb(0, 170, 0)',
+                     'h2: der Seitentitel: ' + getComputedStyle(q('.content-title')).color);
 
                   head('Der dunkle Zweig');
                   all('.farb-modus')[1].click();
@@ -131,7 +149,7 @@ kopie1 = build('_fw1.html', teil1, seiten, startpage='a')
 
 # ---------------------------------------------------------------- Teil 2
 # Persistenz: der eigene Stand kommt beim Start wieder an
-EIGEN = {'basis': 'nord', 'hell': {'bg-primary': '#123456'},
+EIGEN = {'basis': 'nord', 'hell': {'bg-primary': '#123456', 'h2-color': '#00aa00'},
          'dunkel': {'bg-primary': '#ffffff'}}
 mkcopy.PRE_SCRIPT = ("<script>try{localStorage.setItem('simplewiki_eigene_farben',"
                      + json.dumps(json.dumps(EIGEN))
@@ -150,12 +168,21 @@ teil2 = r"""
       setTimeout(function () {
         ok(document.body.classList.contains('pal-nord'), 'Basis Nord aus dem Speicher: ' + document.body.className);
         ok(wert('bg-primary') === '#123456', 'der helle Wert aus dem Speicher: ' + wert('bg-primary'));
-        q('.theme-toggle').click();
+        q('.kopf-fluss').click();
         setTimeout(function () {
-          ok(document.body.classList.contains('dark-mode'), 'dunkel geworden');
-          ok(wert('bg-primary') === '#ffffff', 'der dunkle Wert aus dem Speicher: ' + wert('bg-primary'));
-          log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-          out();
+          var fk = q('.fluss-titel-knopf');
+          ok(!!fk && getComputedStyle(fk).color === 'rgb(0, 170, 0)',
+             'der Fluss-Titel traegt die eigene h2-Farbe: ' + (fk ? getComputedStyle(fk).color : 'kein Knopf'));
+          q('.kopf-fluss').click();
+          setTimeout(function () {
+            q('.theme-toggle').click();
+            setTimeout(function () {
+              ok(document.body.classList.contains('dark-mode'), 'dunkel geworden');
+              ok(wert('bg-primary') === '#ffffff', 'der dunkle Wert aus dem Speicher: ' + wert('bg-primary'));
+              log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+              out();
+            }, 400);
+          }, 400);
         }, 400);
       }, 2000);
     })();

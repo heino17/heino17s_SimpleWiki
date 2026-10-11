@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.25">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.26">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,21 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.26 — die Überschriften haben eigene Farben — 1021 Prüfungen
+
+In der eigenen Farbwelt („eigene Farben") gibt es jetzt drei neue Zeilen für die
+Überschriften: H1, H2 und H3. Man wählt also für jede Ebene eine eigene Farbe,
+statt sie der Textfarbe zu überlassen. Die H2-Farbe färbt zusätzlich den Namen
+im Fluss-Kopf (`<h2 class="content-title">` und `.fluss-titel-knopf`) — wer die
+H2-Farbe ändert, sieht sie an beiden Stellen. Die neuen Farbnamen `h1-color`,
+`h2-color` und `h3-color` setzt nur die eigene Farbwelt; die festen Farbwelten
+lassen sie leer, deshalb bleibt deren Aussehen unverändert (der Fluss-Knopf
+behält weiterhin seine Akzentfarbe). Ohne eigene Farbwahl zeigt das Feld die
+Textfarbe als Vorschau, nicht Schwarz. Die drei Namen sind optional und dürfen
+fehlen — der Austausch mit MWS bleibt unberührt, es wächst nur die Zahl der
+Einträge in `eigeneFarben` (Farben 15 → 18). Geändert hat sich nur das
+SimpleWiki. Version v0.1.25 → v0.1.26.
 
 ### v0.1.25 — der Untertitel rückt unter den Namen — 1016 Prüfungen
 

@@ -128,6 +128,11 @@ teil1 = r"""
         ok(q('.preview h1') && q('.preview h1').textContent.trim() === 'Alpha', 'Inhalt der Startseite');
         ok(q('.preview').textContent.indexOf('Nur Inhalt') < 0, 'nur die Startseite ist offen');
 
+        log.push('--- Der Kopf traegt den Wiki-Namen');
+        ok(q('.header h1') && q('.header h1').textContent.indexOf('Alpha-Wiki') >= 0,
+           'Kopf zeigt $:/SiteTitle statt des festen Namens: ' +
+           (q('.header h1') ? q('.header h1').textContent.trim() : '-'));
+
         log.push('--- Inhalt genaue');
         ok(q('.preview').innerHTML.indexOf('data-wiki-link="Beta"') > 0,
            'Verweis auf Beta wird klickbar gemacht');

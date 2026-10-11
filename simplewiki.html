@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.22">
+    <meta name="mws-shell-version" content="v0.1.23">
     <title>SimpleWiki</title>
 
     <!--
@@ -2829,7 +2829,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
     <div id="app">
         <div class="app">
             <header class="header">
-                <h1>📚 SimpleWiki</h1>
+                <h1>📚 {{ wikiTitel || t('appName') }}</h1>
                 <!-- Suche. Das Feld steht im Kopf, und die Treffer kommen
                      direkt darunter.
 
@@ -5723,6 +5723,10 @@ showSettings: false,
                 fremdeDaten: {},
                 /* Der Server hat kein Schreiben erlaubt. */
                 nurLesen: false,
+                /* Der Wiki-Name aus $:/SiteTitle - der Anzeigename, den die
+                   Verwaltung dem Wiki gibt. Im Browser leer; dann steht oben
+                   der feste Name. */
+                wikiTitel: '',
                 /* Wer hier gerade arbeitet. Der Name ist das einzige,
                    was der Server freiwillig nennt, und er steht nur da,
                    wenn der Server ihn genannt hat. */
@@ -7463,6 +7467,7 @@ showSettings: false,
                     const geladen = SPEICHER.laden();
                     this.mwsModus = SPEICHER.art === 'mws';
                     this.nurLesen = !!geladen.nurLesen;
+                    this.wikiTitel = geladen.wikiTitel || '';
                     this.showRefs = !!geladen.verweise;
 
                     const ausDatei = this.readDatenAusDatei();

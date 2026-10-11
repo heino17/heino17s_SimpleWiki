@@ -57,6 +57,24 @@ teil1 = r"""
         pal.dispatchEvent(new Event('change', { bubbles: true }));
         setTimeout(dann, 400);
       }
+      /* Eine Welt in beiden Modi pruefen: die Klasse bleibt am body,
+         und die Tinte ist in hell und dunkel die der Welt. */
+      function weltPruefen(id, hell, dunkel, dann) {
+        farbwelt(id, function () {
+          ok(welt() === 'pal-' + id, id + ': Klasse am body: ' + welt());
+          ok(tint() === hell, id + ' hell: ' + tint());
+          q('.theme-toggle').click();
+          setTimeout(function () {
+            ok(welt() === 'pal-' + id, id + ' bleibt im Dunkeln: ' + welt());
+            ok(tint() === dunkel, id + ' dunkel: ' + tint());
+            q('.theme-toggle').click();
+            setTimeout(function () {
+              ok(document.body.classList.contains('dark-mode') === false, id + ': wieder hell');
+              dann();
+            }, 400);
+          }, 400);
+        });
+      }
 
       /* Den Export abfangen, wie es der Austausch-Test tut. */
       window.__blob = null; window.__name = null;
@@ -77,9 +95,11 @@ teil1 = r"""
           var pal = document.getElementById('settings-palette');
           ok(!!pal, 'das Dropdown ist da');
           var ids = all('#settings-palette option').map(function (o) { return o.value; });
-          ok(ids.join('|') === 'pergament|nord|wacholder|sol', 'alle vier Welten: ' + ids.join('|'));
+          ok(ids.join('|') === 'pergament|nord|wacholder|sol|flexoki|vanille|wueste|daemmerung',
+             'alle acht Welten: ' + ids.join('|'));
           var namen = all('#settings-palette option').map(function (o) { return o.textContent.trim(); });
-          ok(namen.join('|') === 'Pergament|Nord|Wacholder|Sol', 'mit Namen: ' + namen.join('|'));
+          ok(namen.join('|') === 'Pergament|Nord|Wacholder|Sol|Flexoki|Vanille|Wüste|Dämmerung',
+             'mit Namen: ' + namen.join('|'));
           ok(pal.value === 'pergament', 'gewaehlt ist Pergament: ' + pal.value);
 
           head('Wechsel in eine andere Welt');
@@ -108,17 +128,29 @@ teil1 = r"""
                   farbwelt('sol', function () {
                     ok(tint() === '88,110,117', 'Sol: ' + tint());
 
-                    head('Die Welt steht im Austausch');
-                    knopf('JSON').click();
-                    setTimeout(function () {
-                      ok(window.__name === 'simplewiki.json', 'Dateiname: ' + window.__name);
-                      window.__blob.text().then(function (text) {
-                        var d = JSON.parse(text);
-                        ok(d.palette === 'sol', 'im Export: ' + d.palette);
-                        localStorage.setItem('simplewiki_palette', palStand || '');
-                        ende();
+                    head('Die vier neuen Farbwelten');
+                    weltPruefen('flexoki', '16,15,15', '206,205,195', function () {
+                      weltPruefen('vanille', '51,51,51', '230,230,230', function () {
+                        weltPruefen('wueste', '45,42,35', '233,224,199', function () {
+                          weltPruefen('daemmerung', '58,52,42', '179,179,179', function () {
+                            farbwelt('sol', function () {
+
+                              head('Die Welt steht im Austausch');
+                              knopf('JSON').click();
+                              setTimeout(function () {
+                                ok(window.__name === 'simplewiki.json', 'Dateiname: ' + window.__name);
+                                window.__blob.text().then(function (text) {
+                                  var d = JSON.parse(text);
+                                  ok(d.palette === 'sol', 'im Export: ' + d.palette);
+                                  localStorage.setItem('simplewiki_palette', palStand || '');
+                                  ende();
+                                });
+                              }, 800);
+                            });
+                          });
+                        });
                       });
-                    }, 800);
+                    });
                   });
                 });
               }, 400);

@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.18">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.19">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,34 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.19 — vier Farbwelten aus TiddlyWiki — 984 Prüfungen
+
+SimpleWiki kannte bisher vier Stimmungen (Pergament, Nord, Wacholder, Sol).
+Dazu kommen vier Farbwelten, die aus den TiddlyWiki-Paletten stammen, die in
+den Wikis auf diesem Server liegen: **Flexoki**, **Vanille**, **Wüste** und
+**Dämmerung**. Flexoki führt beide Zweige schon mit (FlexokiLight und
+FlexokiDark); Vanille, Wüste und Dämmerung bringen nur eine Seite mit — Vanilla
+und DesertSand sind hell, Twilight ist dunkel —, und die fehlende Gegenseite
+wurde aus dem Ton der vorhandenen Palette abgeleitet, damit jede Welt sich rund
+anfühlt.
+
+Jede Farbwelt steht in beiden Modi: `body.pal-<welt>` im hellen,
+`body.dark-mode.pal-<welt>` im dunklen Erscheinungsbild. Die Variablen sind
+dieselben wie bei den vorhandenen Welten (`--bg-primary` bis `--textur-inhalt`),
+sodass auch die Texturen der TiddlyWiki-Oberfläche mitwandern. Die Farbcodes
+sind aus den Paletten übernommen, wo es sie gab (Flexoki aus dem Rezeptbuch,
+Vanilla, DesertSand und Twilight aus dem TiddlyWiki-Kern), und sonst aus dem
+jeweiligen Welt-eigenen Ton gebildet — hell für Flächen, dunkler bzw. heller für
+Hover und Aktiv.
+
+Die Auswahl steht im Einstellungen-Dialog, jetzt mit acht Einträgen; die
+Beschriftungen liegen in allen acht Sprachen vor (deutsch Flexoki, Vanille,
+Wüste, Dämmerung; englisch Flexoki, Vanilla, Desert, Twilight). `t_palette.py`
+prüft die acht Namen in der Auswahlliste und je Welt Farbe, Zweig und den
+Wechsel zwischen hell und dunkel; `t_textur.py` erwartet die doppelte Zahl der
+Textur-Variablen (acht Welten mal zwei Modi). Version v0.1.18 → v0.1.19. Die
+Suite (984 Prüfungen, 32 Testdateien) ist grün.
 
 ### v0.1.18 — ein Bild bleibt ein Bild, auch nach leeren Absätzen — 964 Prüfungen
 

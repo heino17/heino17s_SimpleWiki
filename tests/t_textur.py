@@ -141,6 +141,6 @@ merde('die Farbe steht an beiden Benutzern direkt',
 merde('und die Schraffur ebenso',
       bool(re.search(r'var\(--textur-kopf\)', quelle)), True)
 merde('die Farbe ist je Welt und je Modus an genau einer Stelle ueberschrieben',
-      len(re.findall(r'--textur-inhalt:', quelle)), 8)   # :root, dark-mode, 3 Welten x 2 Modi
+      len(re.findall(r'--textur-inhalt:', quelle)), 16)  # :root, dark-mode, 7 Welten x 2 Modi
 
 pruefe(kopie, schon_fehler=fehler_d)

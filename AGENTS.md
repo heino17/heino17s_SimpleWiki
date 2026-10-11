@@ -52,7 +52,7 @@ python3 tests/t_kopf.py          # einen einzelnen Test
 
 Zwei Abhängigkeiten: **python3** und **chromium** im Pfad. Für die
 Drucktests zusätzlich **`pdfinfo`** und **`pdftotext`**. Stand: 32
-Testdateien, 964 Prüfungen.
+Testdateien, 984 Prüfungen.
 
 **Nach jeder Änderung an `simplewiki.html` die Suite laufen lassen.** Sie
 prüft im echten Browser und hat schon Dinge gefunden, die kein Blick auf den

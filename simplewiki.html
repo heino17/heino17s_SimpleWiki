@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.18">
+    <meta name="mws-shell-version" content="v0.1.19">
     <title>SimpleWiki</title>
 
     <!--
@@ -576,6 +576,184 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             --table-header-bg: #073642;
             --textur-kopf: rgba(147, 161, 161, 0.05);
             --textur-inhalt: rgba(147, 161, 161, 0.05);
+        }
+
+        /* Aus TiddlyWiki uebernommene Farbwelten.
+
+           flexoki ist ein echtes Tag/Nacht-Paar aus FlexokiLight und
+           FlexokiDark. Vanille (Vanilla) und Wueste (DesertSand) sind
+           im Original nur hell, Daemmerung (Twilight) nur dunkel; die
+           jeweils fehlende Seite ist aus dem vorhandenen Ton abgeleitet,
+           damit jede Welt auch hier einen hellen und einen dunklen
+           Zweig hat. Die Farben der Originalseite stammen aus den
+           Palettentiddlern der Wikis auf dem MWS. */
+        body.pal-flexoki {
+            --bg-primary: #F2F0E5;
+            --bg-secondary: #FFFCF0;
+            --bg-hover: #F2F0E5;
+            --bg-active: #E6E4D9;
+            --text-primary: #100F0F;
+            --text-secondary: #4c4a48;
+            --text-muted: #878580;
+            --border-color: #CECDC3;
+            --accent-color: #24837B;
+            --accent-hover: #1f6f68;
+            --danger-color: #AF3029;
+            --danger-hover: #9a2a24;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #F2F0E5;
+            --blockquote-border: #A02F6F;
+            --table-header-bg: #F2F0E5;
+            --textur-kopf: rgba(16, 15, 15, 0.045);
+            --textur-inhalt: rgba(16, 15, 15, 0.05);
+        }
+        body.dark-mode.pal-flexoki {
+            --bg-primary: #100F0F;
+            --bg-secondary: #1C1B1A;
+            --bg-hover: #242322;
+            --bg-active: #2C2B29;
+            --text-primary: #CECDC3;
+            --text-secondary: #aaa9a2;
+            --text-muted: #878580;
+            --border-color: #343331;
+            --accent-color: #3AA99F;
+            --accent-hover: #41bcb1;
+            --danger-color: #D14D41;
+            --danger-hover: #d66056;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #100F0F;
+            --blockquote-border: #CE5D97;
+            --table-header-bg: #282726;
+            --textur-kopf: rgba(206, 205, 195, 0.045);
+            --textur-inhalt: rgba(206, 205, 195, 0.05);
+        }
+        body.pal-vanille {
+            --bg-primary: #f4f4f4;
+            --bg-secondary: #ffffff;
+            --bg-hover: #f2f2f2;
+            --bg-active: #e8e8e8;
+            --text-primary: #333333;
+            --text-secondary: #777777;
+            --text-muted: #bbbbbb;
+            --border-color: #e1e1e8;
+            --accent-color: #5778d8;
+            --accent-hover: #4267d3;
+            --danger-color: #c0392b;
+            --danger-hover: #ab3326;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #f7f7f9;
+            --blockquote-border: #bbbbbb;
+            --table-header-bg: #f0f0f0;
+            --textur-kopf: rgba(51, 51, 51, 0.045);
+            --textur-inhalt: rgba(51, 51, 51, 0.05);
+        }
+        body.dark-mode.pal-vanille {
+            --bg-primary: #1a1b1e;
+            --bg-secondary: #24262a;
+            --bg-hover: #2c2f34;
+            --bg-active: #34383e;
+            --text-primary: #e6e6e6;
+            --text-secondary: #b8babf;
+            --text-muted: #8a8f98;
+            --border-color: #3a3d42;
+            --accent-color: #7aa2f7;
+            --accent-hover: #92b3f8;
+            --danger-color: #e35d5d;
+            --danger-hover: #e77373;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #1f2125;
+            --blockquote-border: #7aa2f7;
+            --table-header-bg: #2c2e33;
+            --textur-kopf: rgba(230, 230, 230, 0.045);
+            --textur-inhalt: rgba(230, 230, 230, 0.05);
+        }
+        body.pal-wueste {
+            --bg-primary: #e0d3af;
+            --bg-secondary: #E9E0C7;
+            --bg-hover: #e4d9ba;
+            --bg-active: #ded1ac;
+            --text-primary: #2D2A23;
+            --text-secondary: #656258;
+            --text-muted: #9D998E;
+            --border-color: #C3BAA1;
+            --accent-color: #5B6F55;
+            --accent-hover: #4f614a;
+            --danger-color: #ad3434;
+            --danger-hover: #992e2e;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #F3EDDF;
+            --blockquote-border: #9D998E;
+            --table-header-bg: #B0AA98;
+            --textur-kopf: rgba(45, 42, 35, 0.045);
+            --textur-inhalt: rgba(45, 42, 35, 0.05);
+        }
+        body.dark-mode.pal-wueste {
+            --bg-primary: #1d1a13;
+            --bg-secondary: #2a251b;
+            --bg-hover: #332d21;
+            --bg-active: #3c3527;
+            --text-primary: #e9e0c7;
+            --text-secondary: #c3bcaa;
+            --text-muted: #9d998e;
+            --border-color: #453f30;
+            --accent-color: #8aa07e;
+            --accent-hover: #97ab8d;
+            --danger-color: #d06a4c;
+            --danger-hover: #d57b60;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #262117;
+            --blockquote-border: #9d998e;
+            --table-header-bg: #332e22;
+            --textur-kopf: rgba(233, 224, 199, 0.045);
+            --textur-inhalt: rgba(233, 224, 199, 0.05);
+        }
+        body.pal-daemmerung {
+            --bg-primary: #f3ede0;
+            --bg-secondary: #fdfaf3;
+            --bg-hover: #f4ecda;
+            --bg-active: #ece0c4;
+            --text-primary: #3a342a;
+            --text-secondary: #645c51;
+            --text-muted: #8d8578;
+            --border-color: #e3dac6;
+            --accent-color: #c9911a;
+            --accent-hover: #b28117;
+            --danger-color: #c0392b;
+            --danger-hover: #ab3326;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --shadow-color: rgba(0,0,0,0.1);
+            --code-bg: #f5efe0;
+            --blockquote-border: #c9911a;
+            --table-header-bg: #efe7d6;
+            --textur-kopf: rgba(58, 52, 42, 0.045);
+            --textur-inhalt: rgba(58, 52, 42, 0.05);
+        }
+        body.dark-mode.pal-daemmerung {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #262626;
+            --bg-hover: #2e2e2e;
+            --bg-active: #383838;
+            --text-primary: #b3b3b3;
+            --text-secondary: #a0a0a0;
+            --text-muted: #8d8d8d;
+            --border-color: #3a3a3a;
+            --accent-color: #ffc966;
+            --accent-hover: #ffd280;
+            --danger-color: #ff5e5e;
+            --danger-hover: #ff7878;
+            --overlay-bg: rgba(0,0,0,0.7);
+            --shadow-color: rgba(0,0,0,0.3);
+            --code-bg: #1e1e1e;
+            --blockquote-border: #e0b45c;
+            --table-header-bg: #2e2e2e;
+            --textur-kopf: rgba(179, 179, 179, 0.045);
+            --textur-inhalt: rgba(179, 179, 179, 0.05);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -3206,6 +3384,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "Wacholder",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "Vanille",
+                    "paletteWueste": "Wüste",
+                    "paletteDaemmerung": "Dämmerung",
                     "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nurLesenKurz": "Nur lesen",
                     "nichtAngemeldet": "Du bist an diesem Wiki nicht angemeldet. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
@@ -3312,6 +3494,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "Juniper",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "Vanilla",
+                    "paletteWueste": "Desert",
+                    "paletteDaemmerung": "Twilight",
                     "newPage": "+ New Page",
                     "edit": "✏️ Edit",
                     "save": "💾 Save",
@@ -3460,6 +3646,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "Можжевельник",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "Ваниль",
+                    "paletteWueste": "Пустыня",
+                    "paletteDaemmerung": "Сумерки",
                     "nurLesen": "В эту вики нельзя писать. Вы можете всё читать, но не можете ничего создавать, изменять или удалять.",
                     "nurLesenKurz": "Только чтение",
                     "nichtAngemeldet": "Вы не вошли в эту вики. Вы можете всё читать, но не можете ничего создавать, изменять или удалять.",
@@ -3586,6 +3776,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "Enebro",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "Vainilla",
+                    "paletteWueste": "Desierto",
+                    "paletteDaemmerung": "Crepúsculo",
                     "nurLesen": "No se puede escribir en este wiki. Puedes leerlo todo, pero no crear, cambiar ni eliminar nada.",
                     "nurLesenKurz": "Solo lectura",
                     "nichtAngemeldet": "No has iniciado sesión en este wiki. Puedes leerlo todo, pero no crear, cambiar ni eliminar nada.",
@@ -3712,6 +3906,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "Genévrier",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "Vanille",
+                    "paletteWueste": "Désert",
+                    "paletteDaemmerung": "Crépuscule",
                     "nurLesen": "Ce wiki n'est pas modifiable. Vous pouvez tout lire, mais rien créer, modifier ni supprimer.",
                     "nurLesenKurz": "Lecture seule",
                     "nichtAngemeldet": "Vous n'êtes pas connecté à ce wiki. Vous pouvez tout lire, mais rien créer, modifier ni supprimer.",
@@ -3838,6 +4036,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "ジュニパー",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "バニラ",
+                    "paletteWueste": "砂漠",
+                    "paletteDaemmerung": "黄昏",
                     "nurLesen": "この Wiki には書き込めません。すべて読めますが、作成・変更・削除はできません。",
                     "nurLesenKurz": "閲覧のみ",
                     "nichtAngemeldet": "この Wiki にログインしていません。すべて読めますが、作成・変更・削除はできません。",
@@ -3964,6 +4166,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "주니퍼",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "바닐라",
+                    "paletteWueste": "사막",
+                    "paletteDaemmerung": "황혼",
                     "nurLesen": "이 위키에는 쓸 수 없습니다. 모두 읽을 수 있지만 만들거나 바꾸거나 삭제할 수는 없습니다.",
                     "nurLesenKurz": "읽기 전용",
                     "nichtAngemeldet": "이 위키에 로그인하지 않았습니다. 모두 읽을 수 있지만 만들거나 바꾸거나 삭제할 수는 없습니다.",
@@ -4090,6 +4296,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteNord": "Nord",
                     "paletteWacholder": "杜松",
                     "paletteSol": "Sol",
+                    "paletteFlexoki": "Flexoki",
+                    "paletteVanille": "香草",
+                    "paletteWueste": "沙漠",
+                    "paletteDaemmerung": "黄昏",
                     "nurLesen": "此 Wiki 不可写入。你可以阅读全部内容，但不能创建、更改或删除任何内容。",
                     "nurLesenKurz": "只读",
                     "nichtAngemeldet": "你尚未登录此 Wiki。你可以阅读全部内容，但不能创建、更改或删除任何内容。",
@@ -4126,7 +4336,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            Welt ergaenzen will, braucht eine CSS-Regel body.pal-<name> (und
            body.dark-mode.pal-<name> fuer den dunklen Zweig) plus die
            Uebersetzungen palette<Name>. */
-        const SIMPLEWIKI_PALETTEN = ['pergament', 'nord', 'wacholder', 'sol'];
+        const SIMPLEWIKI_PALETTEN = ['pergament', 'nord', 'wacholder', 'sol',
+            'flexoki', 'vanille', 'wueste', 'daemmerung'];
 
         /* Sicherer Zugriff auf den Browserspeicher: funktioniert auch dann,
            wenn localStorage gesperrt ist (privater Modus, blockierte Cookies). */

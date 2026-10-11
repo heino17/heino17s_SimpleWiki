@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.19">
+    <meta name="mws-shell-version" content="v0.1.20">
     <title>SimpleWiki</title>
 
     <!--
@@ -1070,6 +1070,94 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .settings-btn:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
+        }
+
+        /* Der Farb-Editor der eigenen Welt */
+        .farb-klon {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .farb-klon .select-input {
+            flex: 1;
+            width: auto;
+            padding: 10px 12px;
+            font-size: 1rem;
+        }
+
+        .farb-klon .settings-btn {
+            width: auto;
+            margin-top: 0;
+            white-space: nowrap;
+        }
+
+        .farb-modi {
+            display: flex;
+            gap: 8px;
+            margin: 14px 0 6px;
+        }
+
+        .farb-modus {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .farb-modus.aktiv {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .farb-gruppe {
+            margin-top: 14px;
+        }
+
+        .farb-gruppe-titel {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .farb-zeile {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 4px 0;
+        }
+
+        .farb-name {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .farb-feld {
+            width: 44px;
+            height: 28px;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            cursor: pointer;
+        }
+
+        .farb-text {
+            width: 190px;
+            padding: 5px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: inherit;
+            font-size: 0.85rem;
         }
 
         /* Die Dateiauswahl ist nur technisch sichtbar. */
@@ -3167,6 +3255,29 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </select>
                     <p class="settings-hint">{{ t('paletteHint') }}</p>
                 </div>
+                <div v-if="palette === 'eigene'" class="settings-section farb-editor">
+                    <label class="settings-label">{{ t('farbenBearbeiten') }}</label>
+                    <p class="settings-hint">{{ t('farbenHinweis') }}</p>
+                    <div class="farb-klon">
+                        <select class="select-input" v-model="farbQuelle" :aria-label="t('farbenQuelle')">
+                            <option v-for="q in farbQuellen" :key="q.id" :value="q.id">{{ q.name }}</option>
+                        </select>
+                        <button type="button" class="settings-btn" @click="farbeKlonen">{{ t('farbenUebernehmen') }}</button>
+                    </div>
+                    <div class="farb-modi">
+                        <button type="button" class="farb-modus" :class="{ aktiv: farbModus === 'hell' }" @click="farbModusSetzen('hell')">{{ t('farbenHell') }}</button>
+                        <button type="button" class="farb-modus" :class="{ aktiv: farbModus === 'dunkel' }" @click="farbModusSetzen('dunkel')">{{ t('farbenDunkel') }}</button>
+                    </div>
+                    <div v-for="g in farbgruppen" :key="g.titel" class="farb-gruppe">
+                        <p class="farb-gruppe-titel">{{ g.titel }}</p>
+                        <label v-for="f in g.farben" :key="f.name" class="farb-zeile">
+                            <span class="farb-name">{{ f.label }}</span>
+                            <input v-if="istAlphaFarbe(f.name)" type="text" class="farb-text" :value="farbWert(f.name)" @change="farbeAendern(f.name, $event.target.value)" spellcheck="false" />
+                            <input v-else type="color" class="farb-feld" :value="farbWertHex(f.name)" @input="farbeAendern(f.name, $event.target.value)" />
+                        </label>
+                    </div>
+                    <button type="button" class="settings-btn" @click="eigeneZuruecksetzen">{{ t('farbenZuruecksetzen') }}</button>
+                </div>
                 <div class="settings-section">
                     <label class="settings-label" for="settings-startpage">{{ t('startPage') }}</label>
                     <select id="settings-startpage" class="select-input" v-model="startPageId" @change="changeStartPage">
@@ -3388,6 +3499,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "Vanille",
                     "paletteWueste": "Wüste",
                     "paletteDaemmerung": "Dämmerung",
+                    "paletteEigene": "Eigene",
+                    "farbenBearbeiten": "Eigene Farben",
+                    "farbenHinweis": "Wähle eine Basiswelt und passe dann jede Farbe an. Die Änderungen wirken sofort und werden im Wiki gespeichert.",
+                    "farbenQuelle": "Vorlage",
+                    "farbenUebernehmen": "Aus Welt übernehmen",
+                    "farbenHell": "Hell",
+                    "farbenDunkel": "Dunkel",
+                    "farbenZuruecksetzen": "Zurücksetzen",
+                    "farbgruppeFlaechen": "Flächen",
+                    "farbgruppeText": "Text",
+                    "farbgruppeRahmen": "Rahmen und Akzente",
+                    "farbgruppeKaesten": "Kästen",
+                    "farbgruppeTextur": "Transparenz und Textur",
+                    "farbeBgPrimary": "Hintergrund",
+                    "farbeBgSecondary": "Karten und Leisten",
+                    "farbeBgHover": "Hervorhebung",
+                    "farbeBgActive": "Hervorhebung kräftig",
+                    "farbeTextPrimary": "Text",
+                    "farbeTextSecondary": "Text daneben",
+                    "farbeTextMuted": "Leiser Text",
+                    "farbeBorderColor": "Linien",
+                    "farbeAccentColor": "Akzent",
+                    "farbeAccentHover": "Akzent hervorgehoben",
+                    "farbeDangerColor": "Warnung",
+                    "farbeDangerHover": "Warnung hervorgehoben",
+                    "farbeCodeBg": "Code",
+                    "farbeBlockquoteBorder": "Zitat",
+                    "farbeTableHeaderBg": "Tabellenkopf",
+                    "farbeOverlayBg": "Abdunkeln",
+                    "farbeShadowColor": "Schatten",
+                    "farbeTexturKopf": "Struktur Kopf",
+                    "farbeTexturInhalt": "Struktur Inhalt",
                     "nurLesen": "An diesem Wiki darf nicht geschrieben werden. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
                     "nurLesenKurz": "Nur lesen",
                     "nichtAngemeldet": "Du bist an diesem Wiki nicht angemeldet. Du kannst alles lesen, aber nichts anlegen, ändern oder löschen.",
@@ -3498,6 +3641,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "Vanilla",
                     "paletteWueste": "Desert",
                     "paletteDaemmerung": "Twilight",
+                    "paletteEigene": "Custom",
+                    "farbenBearbeiten": "Custom colours",
+                    "farbenHinweis": "Pick a base world, then adjust any colour. Changes apply at once and are saved in the wiki.",
+                    "farbenQuelle": "Template",
+                    "farbenUebernehmen": "Copy from a world",
+                    "farbenHell": "Light",
+                    "farbenDunkel": "Dark",
+                    "farbenZuruecksetzen": "Reset",
+                    "farbgruppeFlaechen": "Surfaces",
+                    "farbgruppeText": "Text",
+                    "farbgruppeRahmen": "Lines and accents",
+                    "farbgruppeKaesten": "Boxes",
+                    "farbgruppeTextur": "Transparency and texture",
+                    "farbeBgPrimary": "Background",
+                    "farbeBgSecondary": "Cards and bars",
+                    "farbeBgHover": "Highlight",
+                    "farbeBgActive": "Strong highlight",
+                    "farbeTextPrimary": "Text",
+                    "farbeTextSecondary": "Secondary text",
+                    "farbeTextMuted": "Muted text",
+                    "farbeBorderColor": "Lines",
+                    "farbeAccentColor": "Accent",
+                    "farbeAccentHover": "Accent highlight",
+                    "farbeDangerColor": "Warning",
+                    "farbeDangerHover": "Warning highlight",
+                    "farbeCodeBg": "Code",
+                    "farbeBlockquoteBorder": "Quote",
+                    "farbeTableHeaderBg": "Table header",
+                    "farbeOverlayBg": "Dimming",
+                    "farbeShadowColor": "Shadow",
+                    "farbeTexturKopf": "Texture header",
+                    "farbeTexturInhalt": "Texture content",
                     "newPage": "+ New Page",
                     "edit": "✏️ Edit",
                     "save": "💾 Save",
@@ -3650,6 +3825,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "Ваниль",
                     "paletteWueste": "Пустыня",
                     "paletteDaemmerung": "Сумерки",
+                    "paletteEigene": "Своя",
+                    "farbenBearbeiten": "Свои цвета",
+                    "farbenHinweis": "Выберите основу и настройте любой цвет. Изменения видны сразу и сохраняются в вики.",
+                    "farbenQuelle": "Образец",
+                    "farbenUebernehmen": "Взять из мира",
+                    "farbenHell": "Светлая",
+                    "farbenDunkel": "Тёмная",
+                    "farbenZuruecksetzen": "Сбросить",
+                    "farbgruppeFlaechen": "Фоны",
+                    "farbgruppeText": "Текст",
+                    "farbgruppeRahmen": "Линии и акценты",
+                    "farbgruppeKaesten": "Блоки",
+                    "farbgruppeTextur": "Прозрачность и текстура",
+                    "farbeBgPrimary": "Фон",
+                    "farbeBgSecondary": "Карточки и панели",
+                    "farbeBgHover": "Подсветка",
+                    "farbeBgActive": "Сильная подсветка",
+                    "farbeTextPrimary": "Текст",
+                    "farbeTextSecondary": "Второй текст",
+                    "farbeTextMuted": "Тихий текст",
+                    "farbeBorderColor": "Линии",
+                    "farbeAccentColor": "Акцент",
+                    "farbeAccentHover": "Акцент при наведении",
+                    "farbeDangerColor": "Предупреждение",
+                    "farbeDangerHover": "Предупреждение при наведении",
+                    "farbeCodeBg": "Код",
+                    "farbeBlockquoteBorder": "Цитата",
+                    "farbeTableHeaderBg": "Заголовок таблицы",
+                    "farbeOverlayBg": "Затемнение",
+                    "farbeShadowColor": "Тень",
+                    "farbeTexturKopf": "Текстура заголовка",
+                    "farbeTexturInhalt": "Текстура содержимого",
                     "nurLesen": "В эту вики нельзя писать. Вы можете всё читать, но не можете ничего создавать, изменять или удалять.",
                     "nurLesenKurz": "Только чтение",
                     "nichtAngemeldet": "Вы не вошли в эту вики. Вы можете всё читать, но не можете ничего создавать, изменять или удалять.",
@@ -3780,6 +3987,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "Vainilla",
                     "paletteWueste": "Desierto",
                     "paletteDaemmerung": "Crepúsculo",
+                    "paletteEigene": "Propia",
+                    "farbenBearbeiten": "Colores propios",
+                    "farbenHinweis": "Elige un tema base y ajusta cualquier color. Los cambios se aplican al instante y se guardan en el wiki.",
+                    "farbenQuelle": "Plantilla",
+                    "farbenUebernehmen": "Copiar de un mundo",
+                    "farbenHell": "Clara",
+                    "farbenDunkel": "Oscura",
+                    "farbenZuruecksetzen": "Restablecer",
+                    "farbgruppeFlaechen": "Superficies",
+                    "farbgruppeText": "Texto",
+                    "farbgruppeRahmen": "Líneas y acentos",
+                    "farbgruppeKaesten": "Cajas",
+                    "farbgruppeTextur": "Transparencia y textura",
+                    "farbeBgPrimary": "Fondo",
+                    "farbeBgSecondary": "Tarjetas y barras",
+                    "farbeBgHover": "Resaltado",
+                    "farbeBgActive": "Resaltado fuerte",
+                    "farbeTextPrimary": "Texto",
+                    "farbeTextSecondary": "Texto secundario",
+                    "farbeTextMuted": "Texto tenue",
+                    "farbeBorderColor": "Líneas",
+                    "farbeAccentColor": "Acento",
+                    "farbeAccentHover": "Acento resaltado",
+                    "farbeDangerColor": "Aviso",
+                    "farbeDangerHover": "Aviso resaltado",
+                    "farbeCodeBg": "Código",
+                    "farbeBlockquoteBorder": "Cita",
+                    "farbeTableHeaderBg": "Encabezado de tabla",
+                    "farbeOverlayBg": "Oscurecer",
+                    "farbeShadowColor": "Sombra",
+                    "farbeTexturKopf": "Textura de cabecera",
+                    "farbeTexturInhalt": "Textura de contenido",
                     "nurLesen": "No se puede escribir en este wiki. Puedes leerlo todo, pero no crear, cambiar ni eliminar nada.",
                     "nurLesenKurz": "Solo lectura",
                     "nichtAngemeldet": "No has iniciado sesión en este wiki. Puedes leerlo todo, pero no crear, cambiar ni eliminar nada.",
@@ -3910,6 +4149,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "Vanille",
                     "paletteWueste": "Désert",
                     "paletteDaemmerung": "Crépuscule",
+                    "paletteEigene": "Personnalisée",
+                    "farbenBearbeiten": "Couleurs personnalisées",
+                    "farbenHinweis": "Choisissez un thème de base, puis réglez chaque couleur. Les changements s'appliquent aussitôt et sont enregistrés dans le wiki.",
+                    "farbenQuelle": "Modèle",
+                    "farbenUebernehmen": "Copier d'un thème",
+                    "farbenHell": "Claire",
+                    "farbenDunkel": "Sombre",
+                    "farbenZuruecksetzen": "Réinitialiser",
+                    "farbgruppeFlaechen": "Fonds",
+                    "farbgruppeText": "Texte",
+                    "farbgruppeRahmen": "Lignes et accents",
+                    "farbgruppeKaesten": "Blocs",
+                    "farbgruppeTextur": "Transparence et texture",
+                    "farbeBgPrimary": "Fond",
+                    "farbeBgSecondary": "Cartes et barres",
+                    "farbeBgHover": "Survol",
+                    "farbeBgActive": "Survol appuyé",
+                    "farbeTextPrimary": "Texte",
+                    "farbeTextSecondary": "Texte secondaire",
+                    "farbeTextMuted": "Texte discret",
+                    "farbeBorderColor": "Lignes",
+                    "farbeAccentColor": "Accent",
+                    "farbeAccentHover": "Accent survolé",
+                    "farbeDangerColor": "Alerte",
+                    "farbeDangerHover": "Alerte survolée",
+                    "farbeCodeBg": "Code",
+                    "farbeBlockquoteBorder": "Citation",
+                    "farbeTableHeaderBg": "En-tête de tableau",
+                    "farbeOverlayBg": "Assombrir",
+                    "farbeShadowColor": "Ombre",
+                    "farbeTexturKopf": "Texture d'en-tête",
+                    "farbeTexturInhalt": "Texture de contenu",
                     "nurLesen": "Ce wiki n'est pas modifiable. Vous pouvez tout lire, mais rien créer, modifier ni supprimer.",
                     "nurLesenKurz": "Lecture seule",
                     "nichtAngemeldet": "Vous n'êtes pas connecté à ce wiki. Vous pouvez tout lire, mais rien créer, modifier ni supprimer.",
@@ -4040,6 +4311,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "バニラ",
                     "paletteWueste": "砂漠",
                     "paletteDaemmerung": "黄昏",
+                    "paletteEigene": "カスタム",
+                    "farbenBearbeiten": "カスタムカラー",
+                    "farbenHinweis": "ベースの配色を選び、好きな色を調整できます。変更はすぐに反映され、Wiki に保存されます。",
+                    "farbenQuelle": "ひな形",
+                    "farbenUebernehmen": "配色から取り込む",
+                    "farbenHell": "ライト",
+                    "farbenDunkel": "ダーク",
+                    "farbenZuruecksetzen": "リセット",
+                    "farbgruppeFlaechen": "背景",
+                    "farbgruppeText": "テキスト",
+                    "farbgruppeRahmen": "線とアクセント",
+                    "farbgruppeKaesten": "枠",
+                    "farbgruppeTextur": "透過とテクスチャ",
+                    "farbeBgPrimary": "背景",
+                    "farbeBgSecondary": "カードとバー",
+                    "farbeBgHover": "ハイライト",
+                    "farbeBgActive": "強いハイライト",
+                    "farbeTextPrimary": "テキスト",
+                    "farbeTextSecondary": "補助テキスト",
+                    "farbeTextMuted": "控えめなテキスト",
+                    "farbeBorderColor": "線",
+                    "farbeAccentColor": "アクセント",
+                    "farbeAccentHover": "アクセント強調",
+                    "farbeDangerColor": "警告",
+                    "farbeDangerHover": "警告強調",
+                    "farbeCodeBg": "コード",
+                    "farbeBlockquoteBorder": "引用",
+                    "farbeTableHeaderBg": "表ヘッダー",
+                    "farbeOverlayBg": "暗転",
+                    "farbeShadowColor": "影",
+                    "farbeTexturKopf": "ヘッダー柄",
+                    "farbeTexturInhalt": "本文柄",
                     "nurLesen": "この Wiki には書き込めません。すべて読めますが、作成・変更・削除はできません。",
                     "nurLesenKurz": "閲覧のみ",
                     "nichtAngemeldet": "この Wiki にログインしていません。すべて読めますが、作成・変更・削除はできません。",
@@ -4170,6 +4473,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "바닐라",
                     "paletteWueste": "사막",
                     "paletteDaemmerung": "황혼",
+                    "paletteEigene": "사용자 지정",
+                    "farbenBearbeiten": "사용자 색",
+                    "farbenHinweis": "기준 색을 고른 뒤 원하는 색을 조정하세요. 변경은 즉시 적용되고 위키에 저장됩니다.",
+                    "farbenQuelle": "기준",
+                    "farbenUebernehmen": "세계에서 가져오기",
+                    "farbenHell": "밝게",
+                    "farbenDunkel": "어둡게",
+                    "farbenZuruecksetzen": "초기화",
+                    "farbgruppeFlaechen": "배경",
+                    "farbgruppeText": "텍스트",
+                    "farbgruppeRahmen": "선과 강조",
+                    "farbgruppeKaesten": "상자",
+                    "farbgruppeTextur": "투명도와 질감",
+                    "farbeBgPrimary": "배경",
+                    "farbeBgSecondary": "카드와 막대",
+                    "farbeBgHover": "강조",
+                    "farbeBgActive": "강한 강조",
+                    "farbeTextPrimary": "텍스트",
+                    "farbeTextSecondary": "보조 텍스트",
+                    "farbeTextMuted": "흐린 텍스트",
+                    "farbeBorderColor": "선",
+                    "farbeAccentColor": "강조색",
+                    "farbeAccentHover": "강조 강조",
+                    "farbeDangerColor": "경고",
+                    "farbeDangerHover": "경고 강조",
+                    "farbeCodeBg": "코드",
+                    "farbeBlockquoteBorder": "인용",
+                    "farbeTableHeaderBg": "표 머리글",
+                    "farbeOverlayBg": "어둡게",
+                    "farbeShadowColor": "그림자",
+                    "farbeTexturKopf": "머리글 질감",
+                    "farbeTexturInhalt": "본문 질감",
                     "nurLesen": "이 위키에는 쓸 수 없습니다. 모두 읽을 수 있지만 만들거나 바꾸거나 삭제할 수는 없습니다.",
                     "nurLesenKurz": "읽기 전용",
                     "nichtAngemeldet": "이 위키에 로그인하지 않았습니다. 모두 읽을 수 있지만 만들거나 바꾸거나 삭제할 수는 없습니다.",
@@ -4300,6 +4635,38 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "paletteVanille": "香草",
                     "paletteWueste": "沙漠",
                     "paletteDaemmerung": "黄昏",
+                    "paletteEigene": "自定义",
+                    "farbenBearbeiten": "自定义颜色",
+                    "farbenHinweis": "选择基础配色，然后调整任意颜色。更改立即生效并保存在 Wiki 中。",
+                    "farbenQuelle": "模板",
+                    "farbenUebernehmen": "从配色复制",
+                    "farbenHell": "浅色",
+                    "farbenDunkel": "深色",
+                    "farbenZuruecksetzen": "重置",
+                    "farbgruppeFlaechen": "表面",
+                    "farbgruppeText": "文本",
+                    "farbgruppeRahmen": "线条和强调",
+                    "farbgruppeKaesten": "框",
+                    "farbgruppeTextur": "透明度和纹理",
+                    "farbeBgPrimary": "背景",
+                    "farbeBgSecondary": "卡片和栏",
+                    "farbeBgHover": "高亮",
+                    "farbeBgActive": "强高亮",
+                    "farbeTextPrimary": "文本",
+                    "farbeTextSecondary": "次要文本",
+                    "farbeTextMuted": "柔和文本",
+                    "farbeBorderColor": "线条",
+                    "farbeAccentColor": "强调色",
+                    "farbeAccentHover": "强调高亮",
+                    "farbeDangerColor": "警告",
+                    "farbeDangerHover": "警告高亮",
+                    "farbeCodeBg": "代码",
+                    "farbeBlockquoteBorder": "引用",
+                    "farbeTableHeaderBg": "表格表头",
+                    "farbeOverlayBg": "变暗",
+                    "farbeShadowColor": "阴影",
+                    "farbeTexturKopf": "页眉纹理",
+                    "farbeTexturInhalt": "正文纹理",
                     "nurLesen": "此 Wiki 不可写入。你可以阅读全部内容，但不能创建、更改或删除任何内容。",
                     "nurLesenKurz": "只读",
                     "nichtAngemeldet": "你尚未登录此 Wiki。你可以阅读全部内容，但不能创建、更改或删除任何内容。",
@@ -4335,9 +4702,112 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            eine der Welten ist immer aktiv, im Zweifel Pergament. Wer eine
            Welt ergaenzen will, braucht eine CSS-Regel body.pal-<name> (und
            body.dark-mode.pal-<name> fuer den dunklen Zweig) plus die
-           Uebersetzungen palette<Name>. */
+           Uebersetzungen palette<Name>. Die letzte Welt, "eigene", ist
+           keine feste Regel: ihre Werte stehen als eigene Farben am
+           Startseiten-Feld und werden als Inline-Variablen an den body
+           gehaengt (siehe applyPalette). */
         const SIMPLEWIKI_PALETTEN = ['pergament', 'nord', 'wacholder', 'sol',
-            'flexoki', 'vanille', 'wueste', 'daemmerung'];
+            'flexoki', 'vanille', 'wueste', 'daemmerung', 'eigene'];
+
+        /* Die Farbvariablen einer Welt, in der Reihenfolge des Editors.
+           Der Name ist der CSS-Name ohne fuehrendes --; jede Welt
+           ueberschreibt genau diese. */
+        const SIMPLEWIKI_FARBEN = ['bg-primary', 'bg-secondary', 'bg-hover', 'bg-active',
+            'text-primary', 'text-secondary', 'text-muted', 'border-color',
+            'accent-color', 'accent-hover', 'danger-color', 'danger-hover',
+            'code-bg', 'blockquote-border', 'table-header-bg', 'overlay-bg',
+            'shadow-color', 'textur-kopf', 'textur-inhalt'];
+
+        /* Dieselben Variablen, in Gruppen mit einer Ueberschrift fuer den
+           Farb-Editor. Rein zur Anzeige - die Reihenfolge in
+           SIMPLEWIKI_FARBEN bleibt die des Vertrags. */
+        const SIMPLEWIKI_FARBGRUPPEN = [
+            { schluessel: 'farbgruppeFlaechen',
+              farben: ['bg-primary', 'bg-secondary', 'bg-hover', 'bg-active'] },
+            { schluessel: 'farbgruppeText',
+              farben: ['text-primary', 'text-secondary', 'text-muted'] },
+            { schluessel: 'farbgruppeRahmen',
+              farben: ['border-color', 'accent-color', 'accent-hover',
+                       'danger-color', 'danger-hover'] },
+            { schluessel: 'farbgruppeKaesten',
+              farben: ['code-bg', 'blockquote-border', 'table-header-bg'] },
+            { schluessel: 'farbgruppeTextur',
+              farben: ['overlay-bg', 'shadow-color', 'textur-kopf', 'textur-inhalt'] }
+        ];
+
+        /* Die Farbvariablen, deren Wert Transparenz traegt (rgba). Sie
+           bekommen im Editor ein Textfeld statt eines Farbwaehlers, weil
+           <input type="color"> kein Alpha kennt. */
+        const SIMPLEWIKI_FARBEN_ALPHA = ['overlay-bg', 'shadow-color',
+            'textur-kopf', 'textur-inhalt'];
+
+        /* Der Uebersetzungs-Schluessel zu einer Farbvariablen: aus
+           'bg-primary' wird 'farbeBgPrimary'. */
+        function farbSchluessel(name) {
+            return 'farbe' + name.split('-').map(function (t) {
+                return t.charAt(0).toUpperCase() + t.slice(1);
+            }).join('');
+        }
+
+        /* Eigene Farben lesen: ein Objekt { hell: {name: wert}, dunkel: {...} }.
+           Ungueltiges oder Fremdes faellt weg - lieber keine eigenen Farben
+           als eine kaputte Oberflaeche. */
+        function eigeneFarbenLesen(roh) {
+            let d = roh;
+            if (typeof d === 'string') {
+                try { d = JSON.parse(d); } catch (e) { return null; }
+            }
+            if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+            const raus = { hell: {}, dunkel: {} };
+            let hat = false;
+            ['hell', 'dunkel'].forEach(function (modus) {
+                const quelle = d[modus];
+                if (!quelle || typeof quelle !== 'object') return;
+                SIMPLEWIKI_FARBEN.forEach(function (name) {
+                    const wert = quelle[name];
+                    if (typeof wert === 'string' && farbWertGeprueft(wert, name)) {
+                        raus[modus][name] = wert;
+                        hat = true;
+                    }
+                });
+            });
+            if (d.basis && SIMPLEWIKI_PALETTEN.indexOf(d.basis) >= 0 &&
+                    d.basis !== 'eigene') {
+                raus.basis = d.basis;
+            }
+            return hat ? raus : null;
+        }
+
+        /* Nur echte CSS-Farben annehmen, damit ein Tippfehler die
+           Oberflaeche nicht unlesbar macht. Erlaubt sind #rgb, #rrggbb,
+           #rrggbbaa und rgba(...)/rgb(...) mit Zahlen oder Prozenten. */
+        function farbWertGeprueft(wert, name) {
+            const w = String(wert).trim();
+            if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3}([0-9a-fA-F]{2})?)?$/.test(w)) return true;
+            if (/^rgba?\(\s*[\d.]+%?\s*,\s*[\d.]+%?\s*,\s*[\d.]+%?\s*(,\s*[\d.]+%?\s*)?\)$/.test(w)) return true;
+            return false;
+        }
+
+        /* Aus jedem gueltigen Farbwert eine #rrggbb-Farbe machen - das
+           einzige, was <input type="color"> annimmt. Alpha faellt dabei
+           weg; die Transparenz-Farben bekommen deshalb ein Textfeld. */
+        function hexAusWert(wert) {
+            const w = String(wert || '').trim();
+            let m = w.match(/^#([0-9a-fA-F]{3})$/);
+            if (m) {
+                return '#' + m[1].split('').map(c => c + c).join('').toLowerCase();
+            }
+            m = w.match(/^#([0-9a-fA-F]{6})/);
+            if (m) return '#' + m[1].toLowerCase();
+            m = w.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+            if (m) {
+                return '#' + [m[1], m[2], m[3]].map(function (n) {
+                    const v = Math.max(0, Math.min(255, Math.round(parseFloat(n))));
+                    return ('0' + v.toString(16)).slice(-2);
+                }).join('');
+            }
+            return '#000000';
+        }
 
         /* Sicherer Zugriff auf den Browserspeicher: funktioniert auch dann,
            wenn localStorage gesperrt ist (privater Modus, blockierte Cookies). */
@@ -4535,7 +5005,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
              laden()
                -> { seiten, vorhanden, verweise, startseite, sprache,
-                    thema, nurLesen, wikiTitel, art }
+                    thema, palette, eigeneFarben, nurLesen, wikiTitel, art }
                   seiten      die Seitenliste, die der Speicher verwaltet
                   vorhanden   true, wenn es etwas zu laden gab. Wichtig
                               für den Unterschied zwischen einem leeren
@@ -4565,6 +5035,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
              startseiteSetzen(id)   id zur Startseite machen
              themaSetzen(thema)     'light' oder 'dark'
              paletteSetzen(palette) eine Palette aus SIMPLEWIKI_PALETTEN
+             eigeneFarbenSetzen(werte)  die eigenen Farben (Objekt, s. u.)
              spracheSetzen(sprache) ein Code aus SIMPLEWIKI_LANGS
 
            Dazu zwei Aufrufe, die nur der Serverspeicher hat: list holt
@@ -4575,7 +5046,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         */
 
         const SPEICHER_METHODEN = ['laden', 'uebernehmen', 'seiteSichern',
-            'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'];
+            'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen',
+            'eigeneFarbenSetzen', 'spracheSetzen'];
 
         function pruefeSpeicher(speicher, name) {
             const fehlt = SPEICHER_METHODEN.filter(m => typeof speicher[m] !== 'function');
@@ -4623,6 +5095,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     sprache: SimpleWikiStore.get('simplewiki_lang') || '',
                     thema: SimpleWikiStore.get('simplewiki_theme') || '',
                     palette: SimpleWikiStore.get('simplewiki_palette') || '',
+                    eigeneFarben: eigeneFarbenLesen(SimpleWikiStore.get('simplewiki_eigene_farben')),
                     nurLesen: false,
                     wikiTitel: ''
                 };
@@ -4668,6 +5141,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             paletteSetzen: function (palette) {
                 this.einstellungen.palette = palette;
                 SimpleWikiStore.set('simplewiki_palette', palette);
+                return true;
+            },
+
+            eigeneFarbenSetzen: function (werte) {
+                this.einstellungen.eigeneFarben = werte || null;
+                SimpleWikiStore.set('simplewiki_eigene_farben',
+                    werte ? JSON.stringify(werte) : '');
                 return true;
             },
 
@@ -4890,6 +5370,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             if (!titel || !felder) return Promise.resolve(null);
             if (this.einstellungen.thema) felder.thema = this.einstellungen.thema;
             if (this.einstellungen.palette) felder.palette = this.einstellungen.palette;
+            if (this.einstellungen.eigeneFarben) {
+                felder.eigeneFarben = JSON.stringify(this.einstellungen.eigeneFarben);
+            } else {
+                delete felder.eigeneFarben;
+            }
             if (this.einstellungen.sprache) felder.sprache = this.einstellungen.sprache;
             return this.ruf('save', { tiddlers: [felder] });
         };
@@ -4947,6 +5432,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             this.einstellungen = {
                 thema: traeger.thema === 'dark' ? 'dark' : (traeger.thema === 'light' ? 'light' : ''),
                 palette: traeger.palette ? String(traeger.palette) : '',
+                eigeneFarben: eigeneFarbenLesen(traeger.eigeneFarben),
                 sprache: traeger.sprache ? String(traeger.sprache) : ''
             };
 
@@ -4965,6 +5451,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 sprache: this.einstellungen.sprache,
                 thema: this.einstellungen.thema,
                 palette: this.einstellungen.palette,
+                eigeneFarben: this.einstellungen.eigeneFarben,
                 nurLesen: this.nurLesen,
                 wikiTitel: this.wikiTitel
             };
@@ -4987,6 +5474,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             if (String(seite.id) === String(this.startId)) {
                 if (this.einstellungen.thema) t.thema = this.einstellungen.thema;
                 if (this.einstellungen.palette) t.palette = this.einstellungen.palette;
+                if (this.einstellungen.eigeneFarben) {
+                    t.eigeneFarben = JSON.stringify(this.einstellungen.eigeneFarben);
+                }
                 if (this.einstellungen.sprache) t.sprache = this.einstellungen.sprache;
             }
             /* Die Stelle im Inhaltsverzeichnis mitgeben. */
@@ -5036,6 +5526,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         MwsStore.prototype.paletteSetzen = function (palette) {
             this.einstellungen.palette = palette == null ? '' : String(palette);
+            return this.einstellungenSchreiben();
+        };
+
+        MwsStore.prototype.eigeneFarbenSetzen = function (werte) {
+            this.einstellungen.eigeneFarben = werte || null;
             return this.einstellungenSchreiben();
         };
 
@@ -5284,6 +5779,14 @@ showSettings: false,
                        die Basis :root, die ein eigenes Feld niemals
                        voraussetzt. */
                     palette: 'pergament',
+                    /* Die eigenen Farben (nur fuer die Welt "eigene"):
+                       { basis, hell: {name: wert}, dunkel: {...} }. null,
+                       solange niemand eine eigene Welt angelegt hat. */
+                    eigeneFarben: null,
+                    /* Welcher Zweig im Farb-Editor gerade bearbeitet wird
+                       und aus welcher Welt geklont wird. */
+                    farbModus: 'hell',
+                    farbQuelle: 'pergament',
                     startPageId: '',
                     mdEditor: null,
                     editorReady: false,
@@ -5332,6 +5835,30 @@ showSettings: false,
                         id: id,
                         name: this.t('palette' + id.charAt(0).toUpperCase() + id.slice(1))
                     }));
+                },
+
+                /* Die Welten, aus denen sich klonen laesst - alle ausser
+                   der eigenen. */
+                farbQuellen() {
+                    return this.paletten.filter(p => p.id !== 'eigene');
+                },
+
+                /* Die Farbvariablen in Gruppen, jede mit uebersetztem
+                   Namen - so zeichnet der Editor sie. */
+                farbgruppen() {
+                    return SIMPLEWIKI_FARBGRUPPEN.map(g => ({
+                        titel: this.t(g.schluessel),
+                        farben: g.farben.map(name => ({
+                            name: name,
+                            label: this.t(farbSchluessel(name))
+                        }))
+                    }));
+                },
+
+                /* Der bearbeitete Farbzweig (hell/dunkel). */
+                farbSatz() {
+                    const eigen = this.eigeneFarben || {};
+                    return eigen[this.farbModus] || {};
                 },
 
                 langDict() {
@@ -6658,6 +7185,11 @@ showSettings: false,
                         this.startPageId = daten.startseite;
                         SPEICHER.startseiteSetzen(this.startPageId);
                     }
+                    /* Erst die eigenen Farben, dann die Welt: die Welt
+                       "eigene" zeichnet sich aus ihnen. */
+                    const eigen = eigeneFarbenLesen(daten.eigeneFarben);
+                    this.eigeneFarben = eigen;
+                    SPEICHER.eigeneFarbenSetzen(eigen);
                     if (daten.sprache && SIMPLEWIKI_LANGS[daten.sprache]) {
                         this.currentLang = daten.sprache;
                         this.applyLanguage();
@@ -6696,6 +7228,7 @@ showSettings: false,
                     daten.sprache = this.currentLang;
                     daten.thema = this.isDarkMode ? 'dark' : 'light';
                     daten.palette = this.palette;
+                    daten.eigeneFarben = this.eigeneFarben;
                     return daten;
                 },
 
@@ -6707,7 +7240,7 @@ showSettings: false,
                         this.fremdeDaten = {};
                         return;
                     }
-                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette'];
+                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette', 'eigeneFarben'];
                     const raus = {};
                     Object.keys(daten).forEach(k => {
                         if (bekannt.indexOf(k) < 0) raus[k] = daten[k];
@@ -6799,7 +7332,8 @@ showSettings: false,
                             startseite: '',
                             sprache: this.currentLang,
                             thema: this.isDarkMode ? 'dark' : 'light',
-                            palette: this.palette
+                            palette: this.palette,
+                            eigeneFarben: this.eigeneFarben
                         };
                         this.dateiHerunterladen(this.bauExport(leer), 'simplewiki-leer.html', 'text/html');
                         this.hinweis(this.t('noticeLeerSaved'));
@@ -6978,6 +7512,7 @@ showSettings: false,
                     if (geladen.thema === 'dark' || geladen.thema === 'light') {
                         this.isDarkMode = geladen.thema === 'dark';
                     }
+                    this.eigeneFarben = geladen.eigeneFarben || null;
                     if (SIMPLEWIKI_PALETTEN.indexOf(geladen.palette) >= 0) {
                         this.palette = geladen.palette;
                     }
@@ -7755,18 +8290,140 @@ createNewPage() {
                    ohne eigene Regel (es sind :root und body.dark-mode
                    darueber) und wird trotzdem als Klasse mitgegeben,
                    damit die Nachfrage "welche Welt ist es" nur eine
-                   Stelle kennt. */
+                   Stelle kennt.
+
+                   Die Welt "eigene" hat keine CSS-Regel: ihre Werte
+                   stehen als Inline-Variablen am body und ueberschreiben
+                   damit die Klasse der Basiswelt. Fehlt eine Variable in
+                   den eigenen Farben, bleibt der Wert der Basiswelt
+                   stehen - so muss niemand alle neunzehn fuellen. */
                 applyPalette() {
                     document.body.classList.forEach(function (k) {
                         if (k.indexOf('pal-') === 0) document.body.classList.remove(k);
                     });
+                    SIMPLEWIKI_FARBEN.forEach(function (name) {
+                        document.body.style.removeProperty('--' + name);
+                    });
+                    if (this.palette === 'eigene') {
+                        const eigen = this.eigeneFarben || {};
+                        document.body.classList.add('pal-' + (eigen.basis || 'pergament'));
+                        const satz = eigen[this.isDarkMode ? 'dunkel' : 'hell'] || {};
+                        SIMPLEWIKI_FARBEN.forEach(function (name) {
+                            if (satz[name]) document.body.style.setProperty('--' + name, satz[name]);
+                        });
+                        return;
+                    }
                     document.body.classList.add('pal-' + this.palette);
                 },
 
                 /* Im Einstellungen-Dialog: eine andere Farbwelt. */
                 changePalette() {
+                    if (this.palette === 'eigene') {
+                        /* Der Editor folgt dem gerade sichtbaren Modus. */
+                        this.farbModus = this.isDarkMode ? 'dunkel' : 'hell';
+                    }
                     this.applyPalette();
                     SPEICHER.paletteSetzen(this.palette);
+                },
+
+                /* Der angezeigte Wert einer Farbe: der eigene, wenn es
+                   einen gibt, sonst der, der gerade wirkt. */
+                farbWert(name) {
+                    const satz = this.farbSatz;
+                    if (satz && satz[name]) return satz[name];
+                    return getComputedStyle(document.body)
+                        .getPropertyValue('--' + name).trim();
+                },
+
+                farbWertHex(name) {
+                    return hexAusWert(this.farbWert(name));
+                },
+
+                istAlphaFarbe(name) {
+                    return SIMPLEWIKI_FARBEN_ALPHA.indexOf(name) >= 0;
+                },
+
+                /* Beim Anlegen der eigenen Welt aus einer vorhandenen
+                   klonen: die berechneten Werte der Quellwelt in beiden
+                   Modi ablesen und als eigene Farben merken. Das Anlegen
+                   selbst geschieht an einem Element, das die Quellklasse
+                   nur kurz traegt; danach wird der eigene Stand wieder
+                   an den body gelegt. */
+                farbeKlonen() {
+                    const quelle = this.farbQuelle;
+                    const eigen = { basis: quelle, hell: {}, dunkel: {} };
+                    ['hell', 'dunkel'].forEach(function (modus) {
+                        Array.from(document.body.classList).forEach(function (k) {
+                            if (k.indexOf('pal-') === 0) document.body.classList.remove(k);
+                        });
+                        SIMPLEWIKI_FARBEN.forEach(function (n) {
+                            document.body.style.removeProperty('--' + n);
+                        });
+                        document.body.classList.add('pal-' + quelle);
+                        if (modus === 'dunkel') {
+                            document.body.classList.add('dark-mode');
+                        } else {
+                            document.body.classList.remove('dark-mode');
+                        }
+                        SIMPLEWIKI_FARBEN.forEach(function (name) {
+                            const wert = getComputedStyle(document.body)
+                                .getPropertyValue('--' + name).trim();
+                            if (wert) eigen[modus][name] = wert;
+                        });
+                    });
+                    /* Zurueck auf den aktuellen Stand: der Klonlauf endet
+                       im dunklen Zweig, also die Helligkeit wieder
+                       herstellen, dann den eigenen Stand anlegen. */
+                    if (this.isDarkMode) {
+                        document.body.classList.add('dark-mode');
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                    }
+                    this.eigeneFarben = eigen;
+                    this.applyPalette();
+                    this.eigeneFarbenSichern();
+                    this.farbModus = this.isDarkMode ? 'dunkel' : 'hell';
+                },
+
+                /* Eine einzelne Farbe im Editor aendern. Ungueltige
+                   Eingaben (etwa ein halb getippter rgba-Wert) werden
+                   nicht uebernommen - sonst waere die Oberflaeche kaputt. */
+                farbeAendern(name, wert) {
+                    if (!farbWertGeprueft(wert, name)) return;
+                    const eigen = this.eigeneFarben || { basis: this.palette === 'eigene'
+                        ? 'pergament' : this.palette, hell: {}, dunkel: {} };
+                    if (!eigen.hell) eigen.hell = {};
+                    if (!eigen.dunkel) eigen.dunkel = {};
+                    eigen[this.farbModus][name] = String(wert).trim();
+                    this.eigeneFarben = eigen;
+                    this.applyPalette();
+                    this.eigeneFarbenSichern();
+                },
+
+                /* Den bearbeiteten Zweig wechseln und den dazu passenden
+                   Hell-/Dunkel-Zustand zeigen, damit die Aenderung sofort
+                   sichtbar ist. */
+                farbModusSetzen(modus) {
+                    this.farbModus = modus;
+                    const dunkel = modus === 'dunkel';
+                    if (this.isDarkMode !== dunkel) {
+                        this.isDarkMode = dunkel;
+                        this.updateTheme();
+                        SPEICHER.themaSetzen(dunkel ? 'dark' : 'light');
+                    }
+                },
+
+                /* Die eigenen Farben verwerfen. */
+                eigeneZuruecksetzen() {
+                    this.eigeneFarben = null;
+                    this.applyPalette();
+                    this.eigeneFarbenSichern();
+                },
+
+                /* Die eigenen Farben dem Speicher geben (Browser oder
+                   Server). Ohne eigene Farben wird der Eintrag geleert. */
+                eigeneFarbenSichern() {
+                    SPEICHER.eigeneFarbenSetzen(this.eigeneFarben);
                 },
 
                 updateTheme() {
@@ -7783,6 +8440,10 @@ createNewPage() {
                     if (darkSheet) {
                         darkSheet.media = this.isDarkMode ? 'all' : 'not all';
                     }
+                    /* In der eigenen Welt haengen die Farben am Modus:
+                       nach dem Umschalten muss der andere Zweig an den
+                       body. */
+                    if (this.palette === 'eigene') this.applyPalette();
                     this.applyEditorTheme();
                 }
             }

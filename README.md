@@ -44,7 +44,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Suche** | im Kopf; sie sucht Titel, Inhalt **und Schlagworte**, die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
 | **Hell / Dunkel** | auch im Editor; die 🌙/☀️-Achse bleibt in jeder Farbwelt |
-| **Farbwelten** | acht Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar |
+| **Farbwelten** | neun Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung und die **Eigene**; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar. Die Eigene entsteht aus einer geklonten Welt und lässt sich Farbe für Farbe einstellen |
 | **Sprache** | acht Sprachen (Deutsch, Englisch, Russisch, Spanisch, Französisch, Japanisch, Koreanisch, Chinesisch), fest eingebaut |
 | **Austausch** | Wiki als Datei sichern und laden, JSON exportieren, leere Vorlage exportieren |
 
@@ -53,21 +53,21 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 7791 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 8452 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
-    1–220    zwei Kommentare im <head>: der Austauschvertrag und der
+    1–219    zwei Kommentare im <head>: der Austauschvertrag und der
              MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier
              steht, warum das Format so aussieht und was der Server
              liefern muss.
       222    <script id="simplewiki-daten">  die Dateninsel
     226–360  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
              DOMPurify)
-   361–2728  das Stylesheet
-     2738    der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-   2741–3269  die Oberfläche (Vue-Template)
-   3270–7791  das Programm
+   361–2816  das Stylesheet
+     2826    der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+   2829–3380  die Oberfläche (Vue-Template)
+   3381–8452  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die

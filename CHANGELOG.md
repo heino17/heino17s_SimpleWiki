@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.19">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.20">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,43 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.20 — die eigene Farbwelt zum Bearbeiten — 1012 Prüfungen
+
+Die Farbwelten waren bisher fertig: Man wählte eine aus, und in hell wie dunkel
+sah sie so aus, wie sie gebaut war. Jetzt kommt eine neunte Welt dazu, die
+**Eigene**, und sie lässt sich einstellen. Im Einstellungen-Dialog erscheint bei
+ihr ein Editor: Oben steht ein Feld mit allen vorhandenen Welten und daneben
+**Übernehmen** — damit wird die gewählte Welt geklont, heller und dunkler Zweig
+zugleich. Darunter stehen die neunzehn Farbvariablen, nach Flächen, Text,
+Rahmen, Kästen und Textur gruppiert. Ein Klick auf Hell oder Dunkel schaltet
+nicht nur die angezeigten Werte um, sondern gleich das Erscheinungsbild, sodass
+jede Änderung sofort dort zu sehen ist, wo sie hingehört. Ein **Zurücksetzen**
+verwirft die eigene Welt wieder.
+
+Die meisten Werte haben einen Farbwähler. Die vier durchsichtigen Farben
+(`--overlay-bg`, `--shadow-color`, `--textur-kopf`, `--textur-inhalt`) bekommen
+stattdessen ein Textfeld, weil ein Farbwähler keine Transparenz kennt. Fehlt ein
+eigener Wert, bleibt der der geklonten Welt stehen — niemand muss alle neunzehn
+füllen. Ungültige Eingaben werden nicht übernommen, damit ein halb getipptes
+`rgba(...)` die Oberfläche nicht unlesbar macht.
+
+Gespeichert wird die eigene Welt als Objekt aus `basis`, `hell` und `dunkel`:
+im Browser unter `simplewiki_eigene_farben`, am Server als Feld `eigeneFarben`
+am Startseiten-Tiddler (als JSON-Zeichenkette), und in der gesicherten Datei in
+der Dateninsel. Wer eine Datei weitergibt, nimmt seine Farben mit; das
+Austauschformat bekommt dafür ein Feld mehr. Beim Setzen half ein Fehler, den
+erst der Test zeigte: `MwsStore.laden` gab die eigenen Farben nicht mit zurück,
+sodass die eigene Welt am Server leer ankam. Das Zurücksetzen löscht das Feld
+am Tiddler wieder, statt den alten Wert stehen zu lassen.
+
+Der neue `t_farbwelt.py` prüft in achtundzwanzig Schritten das Klonen, das
+Ändern einer Farbe, den dunklen Zweig, den Export und das Behalten im Browser
+wie am Server (Feld gelesen und im Speicherbefehl wiedererkannt). Dazu wachsen
+die bestehenden Tests mit: `t_palette.py` erwartet die neunte Welt,
+`t_speicher.py` den Vertragspunkt `eigeneFarbenSetzen`, `t_leerwiki.py` sieben
+statt sechs Felder in der Dateninsel. Version v0.1.19 → v0.1.20. Die Suite (1012
+Prüfungen, 33 Testdateien) ist grün.
 
 ### v0.1.19 — vier Farbwelten aus TiddlyWiki — 984 Prüfungen
 

@@ -25,7 +25,7 @@ teil1 = r"""
     (function () {
       var log = [], fails = 0;
       var VERTRAG = ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen',
-                     'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'];
+                     'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'eigeneFarbenSetzen', 'spracheSetzen'];
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
@@ -91,7 +91,7 @@ teil1 = r"""
 
         log.push('--- Und das laeuft im laufenden Betrieb wirklich ueber den Vertrag');
         var benutzt = [];
-        ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'].forEach(function (m) {
+        ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'eigeneFarbenSetzen', 'spracheSetzen'].forEach(function (m) {
           var original = sp.SPEICHER[m];
           sp.SPEICHER[m] = function () { benutzt.push(m); return original.apply(this, arguments); };
         });
@@ -149,7 +149,7 @@ teil2 = r"""
     (function () {
       var log = [], fails = 0;
       var VERTRAG = ['laden', 'uebernehmen', 'seiteSichern', 'seiteLoeschen',
-                     'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'spracheSetzen'];
+                     'startseiteSetzen', 'themaSetzen', 'paletteSetzen', 'eigeneFarbenSetzen', 'spracheSetzen'];
       function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
       function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });

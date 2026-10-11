@@ -95,10 +95,10 @@ teil1 = r"""
           var pal = document.getElementById('settings-palette');
           ok(!!pal, 'das Dropdown ist da');
           var ids = all('#settings-palette option').map(function (o) { return o.value; });
-          ok(ids.join('|') === 'pergament|nord|wacholder|sol|flexoki|vanille|wueste|daemmerung',
-             'alle acht Welten: ' + ids.join('|'));
+          ok(ids.join('|') === 'pergament|nord|wacholder|sol|flexoki|vanille|wueste|daemmerung|eigene',
+             'alle neun Welten: ' + ids.join('|'));
           var namen = all('#settings-palette option').map(function (o) { return o.textContent.trim(); });
-          ok(namen.join('|') === 'Pergament|Nord|Wacholder|Sol|Flexoki|Vanille|Wüste|Dämmerung',
+          ok(namen.join('|') === 'Pergament|Nord|Wacholder|Sol|Flexoki|Vanille|Wüste|Dämmerung|Eigene',
              'mit Namen: ' + namen.join('|'));
           ok(pal.value === 'pergament', 'gewaehlt ist Pergament: ' + pal.value);
 

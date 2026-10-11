@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.17">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.18">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,33 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.18 — ein Bild bleibt ein Bild, auch nach leeren Absätzen — 964 Prüfungen
+
+Im WYSIWYG-Editor schreibt Toast UI jeden leeren Absatz als eigene
+`<br>`-Zeile ins Markdown. Standen mehrere solcher Zeilen zwischen zwei
+Absätzen und folgte darauf ein Bild, zeigte die Seite statt des Bildes den
+rohen Markdown-Text: `1. Zeile...` und darunter `2\. Zeile
+![](data:image/jpeg;base64,...)`. Der Grund sitzt bei `marked`: Eine Zeile,
+die nur aus einem Tag besteht (wie `<br>`), beginnt einen rohen HTML-Block,
+der erst an der nächsten Leerzeile endet. Die Zeile danach gehörte damit zum
+HTML und wurde nicht mehr als Markdown gelesen — das Bild blieb Text, und die
+Escapes `1\.` und `2\.` blieben stehen.
+
+Die Lösung ist eine Vorbereitung vor dem Rendern: `brAbsaetzeTrennen` setzt
+hinter eine Folge allein stehender `<br>`-Zeilen eine Leerzeile, wenn Inhalt
+folgt. Damit endet der HTML-Block, und der nächste Absatz wird wieder als
+Markdown gelesen. Der Schritt läuft in `ersetzeWikiSyntax` auf dem Text, in
+dem Codeblöcke schon ausgeblendet sind, und rührt eine `<br>`-Folge nur an,
+wenn sie am Blockanfang steht — innerhalb eines eigenen HTML-Blocks bleibt
+alles, wie es ist. Gespeichert wird nichts anders; die Anzeige bessert sich,
+das Austauschformat bleibt unberührt.
+
+Der Test `t_bild.py` hält beide Wege fest: die gerenderte Seite mit genau
+diesem Editor-Markdown und die Runde durch den echten Editor (öffnen,
+speichern, wieder lesen). Ohne die Vorbereitung schlägt er mit genau dem
+geschilderten Text fehl. Version v0.1.17 → v0.1.18. Die Suite (964 Prüfungen,
+32 Testdateien) ist grün.
 
 ### v0.1.17 — ein zweiter Klick klappt die Ebene wieder zu — 954 Prüfungen
 

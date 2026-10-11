@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.17">
+    <meta name="mws-shell-version" content="v0.1.18">
     <title>SimpleWiki</title>
 
     <!--
@@ -5620,7 +5620,42 @@ showSettings: false,
                             '](wiki:' + encodeURIComponent(ziel) + ')';
                     });
 
-                    return code.wiederherstellen(s2);
+                    /* Zuletzt die <br>-Blöcke aus dem Editor abgrenzen.
+                       Der Code ist hier noch ausgeblendet, eine <br>-Zeile
+                       in einem Codeblock bleibt darum unberuehrt. */
+                    return code.wiederherstellen(this.brAbsaetzeTrennen(s2));
+                },
+
+                /* Toast UI schreibt leere Absaetze im WYSIWYG-Modus als
+                   eigene "<br>"-Zeile. marked liest so eine Zeile als
+                   rohen HTML-Block und laesst ihn erst an einer Leerzeile
+                   enden - die naechste Zeile bliebe dann ungeparst stehen,
+                   ein Bild darin also als Text sichtbar. Darum wird nach
+                   einer Folge solcher <br>-Zeilen eine Leerzeile gesetzt,
+                   wenn Inhalt folgt. Nur wenn die Folge am Blockanfang
+                   steht: innerhalb eines HTML-Blocks bleibt alles, wie es
+                   ist. */
+                brAbsaetzeTrennen(text) {
+                    const zeilen = String(text == null ? '' : text).split('\n');
+                    const aus = [];
+                    const istBr = z => /^<br\s*\/?>$/i.test(z.trim())
+                        && z === z.trim();
+                    for (let i = 0; i < zeilen.length; i++) {
+                        const amAnfang = i === 0 || zeilen[i - 1].trim() === '';
+                        if (istBr(zeilen[i]) && amAnfang) {
+                            aus.push(zeilen[i]);
+                            while (i + 1 < zeilen.length && istBr(zeilen[i + 1])) {
+                                i++;
+                                aus.push(zeilen[i]);
+                            }
+                            if (i + 1 < zeilen.length && zeilen[i + 1].trim() !== '') {
+                                aus.push('');
+                            }
+                            continue;
+                        }
+                        aus.push(zeilen[i]);
+                    }
+                    return aus.join('\n');
                 },
 
                 /* Sonderzeichen im Linktext escaped Markdown, damit aus

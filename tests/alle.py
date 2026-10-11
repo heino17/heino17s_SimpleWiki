@@ -48,6 +48,7 @@ REIHENFOLGE = [
     't_textur.py',     # Die Textur kommt in beiden Modi an
     't_palette.py',    # Farbwelten: Auswahl, Hell/Dunkel darin, Austausch
     't_sprachen.py',   # Sprachauswahl: alle Sprachen, jede uebersetzt
+    't_bild.py',       # Bild nach leeren Absaetzen aus dem Editor
 ]
 
 BESCHRIEBUNG = {
@@ -82,6 +83,7 @@ BESCHRIEBUNG = {
     't_textur.py': 'Textur im Kopf, im Text und im Verzeichnis - hell und dunkel',
     't_palette.py': 'Farbwelten: Auswahl, Hell und Dunkel darin, Austausch',
     't_sprachen.py': 'Sprachauswahl: alle Sprachen im Dropdown, jede uebersetzt die Oberflaeche',
+    't_bild.py': 'Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen',
 }
 
 

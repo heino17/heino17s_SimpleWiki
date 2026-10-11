@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.16">
+    <meta name="mws-shell-version" content="v0.1.17">
     <title>SimpleWiki</title>
 
     <!--
@@ -2692,7 +2692,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                                 'einfuegen-oben': dropIndex === i &amp;&amp; dropArt === 'oben',
                                 'einfuegen-unten': dropIndex === i &amp;&amp; dropArt === 'unten',
                                 'einfuegen-kind': dropIndex === i &amp;&amp; dropArt === 'kind'
-                            }" :style="{ '--ebene': hierarchie.ebene[page.id] || 0 }" tabindex="0" @click="selectPage(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
+                            }" :style="{ '--ebene': hierarchie.ebene[page.id] || 0 }" tabindex="0" @click="tocZeileKlick(page)" @keydown="onZeileKeydown($event, page)" @dragover.prevent="onDragOver(i, $event)" @drop.prevent="onDrop">
                             <span class="toc-grip" :class="{ 'ist-ruhig': searchQuery.trim() }" :draggable="!searchQuery.trim()" :title="searchQuery.trim() ? t('reorderBlocked') : t('reorderHint')" @dragstart.stop="onDragStart(i, $event)" @dragend="onDragEnd" @click.stop="">⠿</span>
                             <button v-if="hatKinder(page)" class="toc-klappen" :class="{ 'ist-zugeklappt': istZugeklappt(page) }"
                                     :title="istZugeklappt(page) ? t('tocAufklappen') : t('tocZuklappen')"
@@ -7121,6 +7121,18 @@ createNewPage() {
                     this.startEditing();
                 },
 
+                /* Klick auf eine Zeile im Verzeichnis: die Seite oeffnen
+                   und - wenn sie Kinder hat - das Auf- und Zuklappen
+                   umschalten. Wer zweimal auf denselben Elternteil klickt,
+                   schliesst die Ebene damit wieder, ohne den Zaehler oder
+                   den Pfeil links zu treffen. Ohne Kinder bleibt es beim
+                   blossen Oeffnen. */
+                tocZeileKlick(seite) {
+                    const warOffen = this.hatKinder(seite) && !this.istZugeklappt(seite);
+                    this.selectPage(seite);
+                    if (warOffen) this.klappenUmschalten(seite);
+                },
+
                 selectPage(page) {
                     /* Wer die gerade angelegte Huellseite verlaesst, ohne
                        zu sichern, hat sie nicht gewollt: sie verschwindet
@@ -7139,7 +7151,8 @@ createNewPage() {
                     /* Eine zugeklappte Elternseite klappt beim Oeffnen
                        auf: wer sie anklickt, will ihre Unter-Seiten und
                        nicht den Vorhang dahinter. Wieder zuklappen geht
-                       ueber den Zaehler oder Pfeil links. */
+                       ueber den Zaehler, den Pfeil links oder einen
+                       zweiten Klick auf die Zeile (tocZeileKlick). */
                     if (page && this.istZugeklappt(page)) {
                         this.klappenUmschalten(page);
                     }

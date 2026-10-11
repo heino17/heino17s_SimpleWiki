@@ -4,11 +4,36 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.16">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.17">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
+
+---
+
+## 2026-10-11
+
+### v0.1.17 — ein zweiter Klick klappt die Ebene wieder zu — 954 Prüfungen
+
+Im Verzeichnis öffnete ein Klick auf eine Elternseite deren nächste Ebene,
+aber ein zweiter Klick auf dieselbe Zeile tat nichts: Wer die Ebene wieder
+schließen wollte, musste den Zähler oder den Pfeil links treffen. Jetzt
+schaltet ein Klick auf die Zeile das Auf- und Zuklappen um. Klickt man
+„1. Hauptseite" an, öffnet sie sich und zeigt ihre Unter-Seiten; klickt man
+sie noch einmal an, verschwinden sie wieder. Es gilt für jede Seite, die
+einen Zähler trägt — also für jede mit Kindern; ohne Kinder bleibt es beim
+bloßen Öffnen.
+
+Die Zeile bekommt dafür einen eigenen Handler `tocZeileKlick`, der zuerst
+die Seite öffnet und dann, wenn die Ebene schon offen war, wieder zuklappt.
+`selectPage` bleibt unverändert: Ein Verweis im Text oder ein Klick im Fluss
+öffnet eine zugeklappte Elternseite weiterhin, ohne eine offene zuzumachen.
+Der Pfeil und der Zähler klappen wie bisher, und `@click.stop` hält sie
+davon ab, zusätzlich die Zeile auszulösen. `t_klapp.py` prüft in Teil 1 den
+zweiten Klick: Nach dem Öffnen von „Haupt" und „Unter1" schließt ein erneuter
+Klick auf „Haupt" beide Unterebenen, während die Seite geöffnet bleibt.
+Version v0.1.16 → v0.1.17. Die Suite (954 Prüfungen, 31 Testdateien) ist grün.
 
 ---
 

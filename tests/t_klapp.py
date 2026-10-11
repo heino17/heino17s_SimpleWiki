@@ -77,10 +77,19 @@ teil1 = """
                  'auch Unter2 ist da');
               ok(q('.content-title') && q('.content-title').textContent.trim() === 'Unter1',
                  'geoeffnet ist jetzt Unter1: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
-              ok(nichtsGemerkt(), 'offen bleiben ist die Sache dieser Anzeige');
-              head('Ende Teil 1');
-              log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
-              out();
+
+              head('Nochmal auf eine offene Ebene klicken schliesst sie wieder');
+              zeile(0).click();
+              setTimeout(function () {
+                ok(sichtbar(zeile(0)) && !sichtbar(zeile(1)) && !sichtbar(zeile(2)),
+                   'Haupt ist wieder zu: ' + all('.toc-menu .toc-item').map(function (_, i) { return sichtbar(zeile(i)) ? titel()[i] : '(' + titel()[i] + ')'; }).join('|'));
+                ok(q('.content-title') && q('.content-title').textContent.trim() === 'Haupt',
+                   'trotzdem ist Haupt geoeffnet: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+                ok(nichtsGemerkt(), 'offen bleiben ist die Sache dieser Anzeige');
+                head('Ende Teil 1');
+                log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+                out();
+              }, 600);
             }, 600);
           }, 600);
         }, 600);

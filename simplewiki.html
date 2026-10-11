@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.20">
+    <meta name="mws-shell-version" content="v0.1.21">
     <title>SimpleWiki</title>
 
     <!--
@@ -3311,7 +3311,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             </div>
         </div>
 
-        <div v-if="showLinkDialog" class="modal-overlay" @click.self="showLinkDialog = false">
+        <div v-if="showLinkDialog" class="modal-overlay">
             <div class="modal modal-link">
                 <h3>{{ t('linkDialogTitle') }}</h3>
                 <input ref="linkSearchInput" type="text" class="link-new-input" v-model="linkSearch" :placeholder="t('linkSearchPlaceholder')">
@@ -6140,9 +6140,11 @@ showSettings: false,
                         this.currentPage.links.push(titel);
                     }
                     /* Verknüpfungen sind Eigenschaften der Seite, kein Text –
-                       deshalb sofort sichern, unabhängig vom Textbearbeiten. */
+                       deshalb sofort sichern, unabhängig vom Textbearbeiten.
+                       Das Fenster bleibt offen, damit sich mehrere Seiten in
+                       einem Zug verknüpfen lassen; geschlossen wird es nur
+                       über die Knöpfe unten. */
                     this.seiteSichern(this.currentPage);
-                    this.showLinkDialog = false;
                 },
 
                 /* Verlinken und – falls nötig – die Seite gleich anlegen. */
@@ -8082,6 +8084,9 @@ createNewPage() {
                 },
 
                 cancelEditing() {
+                    /* Das Verlinken-Fenster gehoert zum Bearbeiten; wer das
+                       Bearbeiten abbricht, schliesst es mit. */
+                    this.showLinkDialog = false;
                     /* Man hat es sich anders ueberlegt: die eben angelegte
                        Huellseite verschwindet wieder, inkl. Server. */
                     if (this.fluechtigeSeiteId && this.currentPage

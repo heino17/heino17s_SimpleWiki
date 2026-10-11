@@ -55,7 +55,7 @@ script = r"""
           head('Verknüpfung loesen');
           all('.link-item')[0].click();
           setTimeout(function () {
-            ok(!q('.modal-link'), 'Dialog schließt sich');
+            ok(!!q('.modal-link'), 'Dialog bleibt beim Auswählen offen');
             ok(speicher()[0].links.indexOf('Beta') < 0, 'Beta gelöst: ' + JSON.stringify(speicher()[0].links));
             ok(JSON.stringify(speicher()[1].links) === '["Alpha"]', 'Beta verweist weiter auf Alpha');
 
@@ -85,6 +85,7 @@ script = r"""
                           var vonAlpha = sp.filter(function (p) { return p.title === 'Alpha'; })[0];
                           ok(sp.some(function (p) { return p.title === 'Gamma'; }), 'neue Seite angelegt: ' + sp.map(function (p) { return p.title; }).join('|'));
                           ok(vonAlpha && vonAlpha.links.indexOf('Gamma') >= 0, 'und mit Alpha verlinkt: ' + JSON.stringify(vonAlpha ? vonAlpha.links : []));
+                          ok(!q('.modal-link'), 'Dialog schließt über den Knopf');
 
                           head('Speichern im Editor');
                           btn(/Speichern|Save/).click();

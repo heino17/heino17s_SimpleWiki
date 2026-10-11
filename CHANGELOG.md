@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.20">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.21">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,20 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.21 — das Verlinken-Fenster bleibt offen — 1013 Prüfungen
+
+Bisher schloss sich das Fenster „Seite verlinken", sobald man eine Seite
+anklickte. Wer drei Seiten verknüpfen wollte, öffnete es dreimal. Jetzt bleibt
+es stehen, während man Seiten an- und abwählt, und die Häkchen zeigen den
+Stand. Geschlossen wird es erst über die Knöpfe unten — „Schließen" und
+„Anlegen und verlinken". Auch ein Klick auf den Hintergrund lässt es offen;
+das ist die Entscheidung, denn das Fenster gehört zum Verknüpfen, das man
+meist mehrfach tut. Bricht man das Bearbeiten ab, schließt es sich mit.
+
+Der Test `t_link4.py` hält beides fest: Nach dem Anklicken einer Seite ist das
+Fenster noch da, und über den Knopf geht es wieder zu. Version v0.1.20 →
+v0.1.21.
 
 ### v0.1.20 — die eigene Farbwelt zum Bearbeiten — 1012 Prüfungen
 

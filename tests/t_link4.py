@@ -51,6 +51,7 @@ script = r"""
           ok(zeilen.length === 1, 'nur die andere Seite wird angeboten: ' + zeilen.map(function (b) { return b.textContent.trim(); }).join('|'));
           ok(!!all('.link-item-aktiv').length, 'verlinkte Seite ist markiert');
           ok(all('.modal-link input').length === 2, 'Suchfeld und Eingabefeld vorhanden');
+          ok(all('.modal-actions .btn').filter(function (b) { return b.textContent.trim() === 'Speichern'; }).length === 1, 'Knopf heißt Speichern');
 
           head('Verknüpfung loesen');
           all('.link-item')[0].click();

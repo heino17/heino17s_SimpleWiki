@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.21">
+    <meta name="mws-shell-version" content="v0.1.22">
     <title>SimpleWiki</title>
 
     <!--
@@ -3326,7 +3326,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 <p v-else="" class="link-leer">{{ t('linkNoPages') }}</p>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" @click="showLinkDialog = false">
-                        {{ t('close') }}
+                        {{ t('linkSave') }}
                     </button>
                     <button class="btn btn-primary" :disabled="!linkNewTitle.trim()" @click="linkAndCreate(linkNewTitle.trim())">{{ t('linkCreateAndLink') }}</button>
                 </div>
@@ -3406,6 +3406,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "Neue Seite: Namen eingeben …",
                     "linkSearchPlaceholder": "Vorhandene Seite suchen …",
                     "linkCreateAndLink": "Anlegen und verlinken",
+                    "linkSave": "Speichern",
                     "linkHint": "Haken setzen zum Verlinken, erneut klicken zum Lösen.",
                     "linkNoPages": "Keine passende Seite gefunden – oben einen Namen eingeben.",
                                                                                 "dataSectionHint": "Eine JSON-Datei eines anderen Werkzeugs laden und mit „Als Datei sichern“ als Wiki-Datei weitergeben. Der Weg zurück ist derselbe: Eine Wiki-Datei bringt ihre Daten in der Dateninsel mit.",
@@ -3569,6 +3570,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "New page: type a name …",
                     "linkSearchPlaceholder": "Search existing pages …",
                     "linkCreateAndLink": "Create and link",
+                    "linkSave": "Save",
                     "linkHint": "Click to link a page, click again to remove the link.",
                     "linkNoPages": "No matching page found – enter a name above.",
                                                                                 "dataSectionHint": "Load a JSON file from another tool and pass it on as a wiki file with \u201eSave as file\u201c. The way back is the same: a wiki file carries its data along in the data island.",
@@ -3732,6 +3734,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "Новая страница: введите имя …",
                     "linkSearchPlaceholder": "Поиск существующих страниц …",
                     "linkCreateAndLink": "Создать и связать",
+                    "linkSave": "Сохранить",
                     "linkHint": "Нажмите, чтобы связать страницу; нажмите снова, чтобы снять связь.",
                     "linkNoPages": "Подходящая страница не найдена — введите имя выше.",
                     "dataSectionHint": "Загрузите JSON-файл другого инструмента и передайте его дальше как файл вики с помощью «Сохранить как файл». Обратный путь тот же: файл вики несёт свои данные в островке данных.",
@@ -3894,6 +3897,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "Nueva página: escribe un nombre…",
                     "linkSearchPlaceholder": "Buscar páginas existentes…",
                     "linkCreateAndLink": "Crear y enlazar",
+                    "linkSave": "Guardar",
                     "linkHint": "Haz clic para enlazar una página; vuelve a hacer clic para quitar el enlace.",
                     "linkNoPages": "No se encontró ninguna página coincidente; escribe un nombre arriba.",
                     "dataSectionHint": "Carga un archivo JSON de otra herramienta y pásalo como archivo wiki con «Guardar como archivo». El camino de vuelta es el mismo: un archivo wiki lleva sus datos consigo en la isla de datos.",
@@ -4056,6 +4060,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "Nouvelle page : saisir un nom …",
                     "linkSearchPlaceholder": "Rechercher des pages existantes …",
                     "linkCreateAndLink": "Créer et lier",
+                    "linkSave": "Enregistrer",
                     "linkHint": "Cliquez pour lier une page, cliquez à nouveau pour retirer le lien.",
                     "linkNoPages": "Aucune page correspondante trouvée — saisissez un nom ci-dessus.",
                     "dataSectionHint": "Chargez un fichier JSON d'un autre outil et transmettez-le comme fichier wiki avec « Enregistrer comme fichier ». Le chemin inverse est le même : un fichier wiki transporte ses données dans l'îlot de données.",
@@ -4218,6 +4223,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "新しいページ: 名前を入力 …",
                     "linkSearchPlaceholder": "既存のページを検索 …",
                     "linkCreateAndLink": "作成してリンク",
+                    "linkSave": "保存",
                     "linkHint": "クリックでページをリンク、もう一度クリックでリンクを解除します。",
                     "linkNoPages": "一致するページが見つかりません。上に名前を入力してください。",
                     "dataSectionHint": "別のツールの JSON ファイルを読み込み、「ファイルとして保存」で Wiki ファイルとして渡します。戻り道も同じです。Wiki ファイルはデータ島に自分のデータを持ち運びます。",
@@ -4380,6 +4386,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "새 페이지: 이름 입력 …",
                     "linkSearchPlaceholder": "기존 페이지 검색 …",
                     "linkCreateAndLink": "만들고 연결",
+                    "linkSave": "저장",
                     "linkHint": "클릭하여 페이지를 연결하고, 다시 클릭하면 연결을 해제합니다.",
                     "linkNoPages": "일치하는 페이지가 없습니다. 위에 이름을 입력하세요.",
                     "dataSectionHint": "다른 도구의 JSON 파일을 불러와 「파일로 저장」으로 위키 파일로 전달합니다. 되돌아가는 길도 같습니다. 위키 파일은 데이터 섬에 자신의 데이터를 담아 갑니다.",
@@ -4542,6 +4549,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "linkNewPlaceholder": "新页面：输入名称……",
                     "linkSearchPlaceholder": "搜索已有页面……",
                     "linkCreateAndLink": "创建并链接",
+                    "linkSave": "保存",
                     "linkHint": "点击以链接页面，再次点击则取消链接。",
                     "linkNoPages": "未找到匹配的页面——请在上方输入名称。",
                     "dataSectionHint": "加载其他工具的 JSON 文件，并用「另存为文件」将其作为 Wiki 文件继续传递。回程也一样：Wiki 文件在数据岛中携带自己的数据。",

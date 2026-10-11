@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.21">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.22">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,17 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.22 — der Knopf heißt jetzt Speichern — 1014 Prüfungen
+
+Im Verlinken-Fenster hieß der linke Knopf „Schließen". Das stimmte zwar — ein
+Klick nimmt die Auswahl mit und schließt —, aber es las sich, als müsse man
+noch woanders bestätigen; der „Anlegen und verlinken"-Knopf daneben ist
+absichtlich so lange aus, bis ein neuer Name im Feld steht, und so sah es aus,
+als sei gar kein Abschluss möglich. Der Knopf heißt jetzt „Speichern". Geändert
+hat sich nur die Beschriftung, in allen acht Sprachen (`linkSave`); das
+Verhalten bleibt, wie es in v0.1.21 beschrieben steht. Der Test `t_link4.py`
+prüft die Beschriftung mit.
 
 ### v0.1.21 — das Verlinken-Fenster bleibt offen — 1013 Prüfungen
 

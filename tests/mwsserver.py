@@ -60,6 +60,7 @@ class Wiki:
     """Der Inhalt eines Wikis: Titel -> Felder."""
 
     def __init__(self, slug, tiddler, nurLesen=False, titel='Testwiki',
+                 untertitel='',
                  skript='', vorab='', store_leer=False, ersetzungen=None,
                  fehler=None, status=None, ablauf=False, status_aus=False):
         self.slug = slug
@@ -96,6 +97,8 @@ class Wiki:
         for t in tiddler:
             self.tiddler[t['title']] = dict(t)
         self.tiddler.setdefault('$:/SiteTitle', {'title': '$:/SiteTitle', 'text': titel})
+        if untertitel:
+            self.tiddler.setdefault('$:/SiteSubtitle', {'title': '$:/SiteSubtitle', 'text': untertitel})
 
     def alle(self):
         return [self.tiddler[k] for k in self.tiddler]

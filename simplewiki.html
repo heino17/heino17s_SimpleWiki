@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.23">
+    <meta name="mws-shell-version" content="v0.1.24">
     <title>SimpleWiki</title>
 
     <!--
@@ -792,6 +792,25 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             font-size: 1.3rem;
             color: var(--text-primary);
             white-space: nowrap;
+        }
+
+        /* Der Titelblock: der Name oben, darunter der Untertitel aus
+           $:/SiteSubtitle. Zusammen sind sie ein Gegenstand im Kopf, damit
+           der Untertitel nicht neben dem Namen in der Zeile landet. */
+        .header .kopf-titel {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            line-height: 1.15;
+        }
+
+        .header .kopf-untertitel {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60vw;
         }
 
         /* Der Rahmen um das Suchfeld. Er traegt die Trefferliste und
@@ -2829,7 +2848,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
     <div id="app">
         <div class="app">
             <header class="header">
-                <h1>📚 {{ wikiTitel || t('appName') }}</h1>
+                <div class="kopf-titel">
+                    <h1>📚 {{ wikiTitel || t('appName') }}</h1>
+                    <p v-if="wikiUntertitel" class="kopf-untertitel">{{ wikiUntertitel }}</p>
+                </div>
                 <!-- Suche. Das Feld steht im Kopf, und die Treffer kommen
                      direkt darunter.
 
@@ -5013,7 +5035,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
              laden()
                -> { seiten, vorhanden, verweise, startseite, sprache,
-                    thema, palette, eigeneFarben, nurLesen, wikiTitel, art }
+                    thema, palette, eigeneFarben, nurLesen, wikiTitel,
+                    wikiUntertitel, art }
                   seiten      die Seitenliste, die der Speicher verwaltet
                   vorhanden   true, wenn es etwas zu laden gab. Wichtig
                               für den Unterschied zwischen einem leeren
@@ -5024,6 +5047,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                               beiden Ausprägungen im Browser
                   nurLesen    true, wenn geschrieben verboten ist
                   wikiTitel   Name des Wikis, '' wenn keiner da ist
+                  wikiUntertitel  Untertitel des Wikis, '' wenn keiner da ist
                   art         'browser' oder 'mws'
 
              status()
@@ -5105,7 +5129,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     palette: SimpleWikiStore.get('simplewiki_palette') || '',
                     eigeneFarben: eigeneFarbenLesen(SimpleWikiStore.get('simplewiki_eigene_farben')),
                     nurLesen: false,
-                    wikiTitel: ''
+                    wikiTitel: '',
+                    wikiUntertitel: ''
                 };
             },
 
@@ -5190,6 +5215,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             this.startId = '';
             this.einstellungen = {};
             this.wikiTitel = '';
+            this.wikiUntertitel = '';
             this.nurLesen = false;
         }
 
@@ -5399,6 +5425,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     startseite = zwAusListe(t.text);
                 } else if (titel === '$:/SiteTitle') {
                     this.wikiTitel = String(t.text == null ? '' : t.text).trim();
+                } else if (titel === '$:/SiteSubtitle') {
+                    this.wikiUntertitel = String(t.text == null ? '' : t.text).trim();
                 } else if (titel.slice(0, 2) === '$:') {
                     /* $:/bag-info, $:/recipe-info und jeder andere
                        Systemtiddler: keine Seite. */
@@ -5461,7 +5489,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 palette: this.einstellungen.palette,
                 eigeneFarben: this.einstellungen.eigeneFarben,
                 nurLesen: this.nurLesen,
-                wikiTitel: this.wikiTitel
+                wikiTitel: this.wikiTitel,
+                wikiUntertitel: this.wikiUntertitel
             };
         };
 
@@ -5727,6 +5756,9 @@ showSettings: false,
                    Verwaltung dem Wiki gibt. Im Browser leer; dann steht oben
                    der feste Name. */
                 wikiTitel: '',
+                /* Der Untertitel aus $:/SiteSubtitle, eine Zeile unter dem
+                   Namen. Im Browser leer; dann fehlt die Zeile. */
+                wikiUntertitel: '',
                 /* Wer hier gerade arbeitet. Der Name ist das einzige,
                    was der Server freiwillig nennt, und er steht nur da,
                    wenn der Server ihn genannt hat. */
@@ -7468,6 +7500,7 @@ showSettings: false,
                     this.mwsModus = SPEICHER.art === 'mws';
                     this.nurLesen = !!geladen.nurLesen;
                     this.wikiTitel = geladen.wikiTitel || '';
+                    this.wikiUntertitel = geladen.wikiUntertitel || '';
                     this.showRefs = !!geladen.verweise;
 
                     const ausDatei = this.readDatenAusDatei();

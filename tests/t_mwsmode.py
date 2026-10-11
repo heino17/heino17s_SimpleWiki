@@ -69,7 +69,8 @@ KRAUS = [
 ]
 
 wikis = {
-    'alpha': Wiki('alpha', [BETA, ALPHA, OHNE_KENNUNG, STANDARD], titel='Alpha-Wiki'),
+    'alpha': Wiki('alpha', [BETA, ALPHA, OHNE_KENNUNG, STANDARD], titel='Alpha-Wiki',
+                  untertitel='Klein und fein'),
     'nurlesen': Wiki('nurlesen', [ALPHA, BETA, STANDARD, NURLEBEN], nurLesen=True,
                      titel='Fremdes Wiki'),
     'leer': Wiki('leer', []),          # Marker mit Inhalt, aber ohne Seiten
@@ -132,6 +133,9 @@ teil1 = r"""
         ok(q('.header h1') && q('.header h1').textContent.indexOf('Alpha-Wiki') >= 0,
            'Kopf zeigt $:/SiteTitle statt des festen Namens: ' +
            (q('.header h1') ? q('.header h1').textContent.trim() : '-'));
+        ok(q('.kopf-untertitel') && q('.kopf-untertitel').textContent.trim() === 'Klein und fein',
+           'Untertitel aus $:/SiteSubtitle: ' +
+           (q('.kopf-untertitel') ? q('.kopf-untertitel').textContent.trim() : '-'));
 
         log.push('--- Inhalt genaue');
         ok(q('.preview').innerHTML.indexOf('data-wiki-link="Beta"') > 0,

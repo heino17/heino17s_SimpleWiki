@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.24">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.25">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,15 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.25 — der Untertitel rückt unter den Namen — 1016 Prüfungen
+
+Der Untertitel aus `$:/SiteSubtitle` stand bündig links im Kopf, also unter dem
+Buch-Emoji 📚 statt unter dem Wiki-Namen. Jetzt trägt `.header .kopf-untertitel`
+`padding-left: 30px` und steht damit unter dem Namen. Bewusst ein fester Wert
+statt `2vw`: Die Einrückung bleibt so auf jedem Fenster gleich groß. Geändert
+hat sich nur das SimpleWiki — der Austausch mit MWS bleibt unberührt. Version
+v0.1.24 → v0.1.25.
 
 ### v0.1.24 — der Kopf zeigt auch den Untertitel — 1016 Prüfungen
 

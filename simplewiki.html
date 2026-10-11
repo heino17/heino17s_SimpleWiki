@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.24">
+    <meta name="mws-shell-version" content="v0.1.25">
     <title>SimpleWiki</title>
 
     <!--
@@ -807,6 +807,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .header .kopf-untertitel {
             font-size: 0.78rem;
             color: var(--text-secondary);
+            /* Etwas eingerückt, damit der Untertitel unter dem Namen steht
+               und nicht unter dem Buch-Emoji. */
+            padding-left: 30px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;

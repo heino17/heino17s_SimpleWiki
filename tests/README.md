@@ -63,6 +63,11 @@ letzten Lauf hilft `--pruefungen N`. Ein gefilterter Lauf schreibt keinen
 Bericht. Die Zeilenspannen liest das Skript aus `simplewiki.html` selbst — es
 zählt nichts von Hand.
 
+`t_buchhaltung.py` liest dieselben Quellen und meldet, was nicht mehr
+zusammenpasst. Er braucht keinen Browser und keinen letzten Lauf, steht aber
+in `alle.py` und ist damit Teil jeder Suite. Die Prüfungszahl selbst prüft er
+nicht: sie steht erst nach einem vollen Durchgang fest.
+
 Ein Test steht nicht in `alle.py`, weil er einen **echten** Server startet:
 `live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur
 aus `mwsserver.py`. Sechs weitere Tests starten zwar auch einen Server — aber den
@@ -148,6 +153,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_tags.py` | **Schlagworte stehen an der Seite, nicht im Text** — der Verweisgraph bleibt davon unberührt |
 | `t_palette.py` | **die Farbwelten**: Auswahl im Einstellungen-Dialog, Hell und Dunkel darin, Austausch über `localStorage` bzw. Startseiten-Tiddler |
 | `t_finger.py` | **der Fingerabdruck der Datei** entscheidet beim erneuten Öffnen, welche von zwei gestapelten Dateien gilt — ohne den Browserspeicher zu leeren |
+| `t_buchhaltung.py` | **ohne Browser**: die Strukturtafel der README gegen `simplewiki.html`, die Fassung an allen drei `<meta>`-Stellen, die Zahl der Testdateien in README und AGENTS gegen `REIHENFOLGE` |
 
 ### Headless nimmt kein Fenster unter 500 Pixeln
 

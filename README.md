@@ -215,8 +215,8 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **34 Testdateien**, 1030 Prüfungen, rund 78 Browserläufe pro Suite-Lauf
-  (die beiden Drucktests starten Chromium ein zweites Mal für das PDF).
+- **35 Testdateien**, 1040 Prüfungen pro Suite-Lauf; die beiden Drucktests
+  starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die
   Testfigur aus `mwsserver.py`. Siehe `tests/README.md`.

@@ -14,6 +14,20 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-11
 
+### Die Buchhaltung prüft sich selbst — 1040 Prüfungen
+
+`tests/t_buchhaltung.py` ist neu: eine Prüfung ohne Browser, die die
+Buchhaltung nachliest, statt sie herzustellen. Sie vergleicht die
+Strukturtafel der README mit `simplewiki.html`, die Fassung im
+`<meta>`-Kopf und im README-Beispiel mit der obersten `### vX.Y.Z`-Überschrift
+des CHANGELOG und die Zahl der Testdateien in README und AGENTS mit
+`REIHENFOLGE` in `alle.py`. Die Prüfungszahl selbst wird dabei nicht erzwungen
+— sie steht erst nach einem vollen Durchgang fest, und ein Test soll nicht
+scheitern, solange `buchhaltung.py` noch nicht nachgetragen hat. Die README
+nennt dafür keine Zahl mehr, die sich nicht zählen lässt: aus „rund 78
+Browserläufe pro Suite-Lauf" ist der Hinweis auf die beiden Drucktests
+geblieben, die Chromium ein zweites Mal starten.
+
 ### Die Buchhaltung der Zahlen an einer Stelle — 1030 Prüfungen
 
 Dieselben Zahlen stehen an mehreren Orten und mussten bisher von Hand

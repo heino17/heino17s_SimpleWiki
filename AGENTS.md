@@ -51,12 +51,14 @@ python3 tests/t_kopf.py          # einen einzelnen Test
 ```
 
 Zwei Abhängigkeiten: **python3** und **chromium** im Pfad. Für die
-Drucktests zusätzlich **`pdfinfo`** und **`pdftotext`**. Stand: 34
-Testdateien, 1030 Prüfungen.
+Drucktests zusätzlich **`pdfinfo`** und **`pdftotext`**. Stand: 35
+Testdateien, 1040 Prüfungen.
 
 Die wiederkehrenden Zahlen — Fassung, Prüfungszahl, Testdateien und die
 Strukturtafel — stellt `python3 tests/buchhaltung.py` her, nachdem die Suite
-grün war; `--check` meldet nur und ist der schnelle Blick vor dem Commit.
+grün war; `--check` meldet nur und ist der schnelle Blick vor dem Commit. Ob
+die Buchhaltung noch stimmt, prüft `tests/t_buchhaltung.py` ohne Browser —
+Teil der Suite, damit sie nicht unbemerkt veraltet.
 
 **Nach jeder Änderung an `simplewiki.html` die Suite laufen lassen.** Sie
 prüft im echten Browser und hat schon Dinge gefunden, die kein Blick auf den

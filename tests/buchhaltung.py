@@ -142,6 +142,35 @@ def mit_zahl(chronik, pruefungen):
     return chronik[:m.start(1)] + neu + chronik[m.end(1):], neu
 
 
+def tafel_indexe(readme):
+    """Die Zeilen der README und die Zeilennummern ihrer Tafelzeilen.
+
+    Die Tafel steht zwischen zwei Zaeunen; ihre Zeilen beginnen mit
+    einer Spanne. Findet das Skript die Tafel nicht, ist die Liste
+    `None`.
+    """
+    zeilen = readme.split('\n')
+    start = next((i for i, z in enumerate(zeilen)
+                  if 'und hat diese Teile, immer in derselben' in z), None)
+    if start is None:
+        return zeilen, None
+    auf = next((i for i in range(start, len(zeilen)) if zeilen[i].strip() == '```'), None)
+    if auf is None:
+        return zeilen, None
+    zu = next((i for i in range(auf + 1, len(zeilen)) if zeilen[i].strip() == '```'), None)
+    if zu is None:
+        return zeilen, None
+    return zeilen, [i for i in range(auf + 1, zu) if tafel_zeile(zeilen[i])]
+
+
+def readme_spannen(readme):
+    """Die Spannen, die in der README-Tafel stehen - oder None."""
+    zeilen, stellen = tafel_indexe(readme)
+    if stellen is None:
+        return None
+    return [tafel_zeile(zeilen[i]).group(2) for i in stellen]
+
+
 def struktur_tauschen(readme, s):
     """Nur die Zahlen der README-Strukturtafel austauschen.
 
@@ -150,19 +179,8 @@ def struktur_tauschen(readme, s):
     Findet das Skript nicht genau so viele Zeilen, wie Teile bekannt
     sind, laesst es die Finger davon.
     """
-    zeilen = readme.split('\n')
-    start = next((i for i, z in enumerate(zeilen)
-                  if 'und hat diese Teile, immer in derselben' in z), None)
-    if start is None:
-        return readme, None
-    auf = next((i for i in range(start, len(zeilen)) if zeilen[i].strip() == '```'), None)
-    if auf is None:
-        return readme, None
-    zu = next((i for i in range(auf + 1, len(zeilen)) if zeilen[i].strip() == '```'), None)
-    if zu is None:
-        return readme, None
-    stellen = [i for i in range(auf + 1, zu) if tafel_zeile(zeilen[i])]
-    if len(stellen) != len(s['spannen']):
+    zeilen, stellen = tafel_indexe(readme)
+    if stellen is None or len(stellen) != len(s['spannen']):
         return readme, None
     for i, nummer in zip(stellen, s['spannen']):
         alt = tafel_zeile(zeilen[i])

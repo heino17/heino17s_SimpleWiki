@@ -13,6 +13,11 @@ wiki — with the content its author put in.
 
 That is the whole idea. Everything else is shape given to it.
 
+**SimpleWiki is developed first of all for use in MWS-wikiwise
+(MultiWikiServer-wikiwise), not as a standalone, independent file.** It can be
+used on its own — but then every change has to be written back into the file by
+hand. In MWS-wikiwise all of that runs automatically.
+
 ## 🚀 Getting started
 
 ```bash
@@ -93,8 +98,9 @@ At **exactly one** place in the program it says where the pages come from
 
 - **Browser** — the normal case. Pages live in `localStorage`. A file opened
   by double-click remembers in exactly the same way.
-- **MWS** (MultiWikiServer) — a server that serves SimpleWiki writes calls to
-  `$tw.preloadTiddler` behind the point in the header, one per tiddler. When
+- **MWS-wikiwise** (MultiWikiServer-wikiwise) — a server that serves SimpleWiki
+  writes calls to `$tw.preloadTiddler` behind the point in the header, one per
+  tiddler. When
   tiddlers arrive, they are read from there and written back there. One line
   above the content says where the pages come from; the **×** at its edge
   hides it for the rest of the session (its state survives a reload, not
@@ -119,7 +125,7 @@ point is not there or no tiddlers arrive, everything stays in the browser.
 | `/login?redirect=/wiki/<name>` | login — a link, because it is the server's business |
 
 All calls carry the header `X-Requested-With: fetch`. Batch calls are
-**PUT, not POST**; that is fixed in the MWS `RecipeRoutes.ts`.
+**PUT, not POST**; that is fixed in `RecipeRoutes.ts` of MWS-wikiwise.
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
@@ -191,7 +197,7 @@ change to `simplewiki.html`, without this command everything is exactly as
 before — even after a restart of the server:
 
 ```bash
-cd <MWS source tree>
+cd <MWS-wikiwise source tree>
 npm start provision-simplewiki <path>/simplewiki.html
 ```
 
@@ -214,8 +220,8 @@ python3 tests/t_fluss.py         # a single test
 - **35 test files**, 1040 checks per suite run; the two print tests start
   Chromium a second time for the PDF.
 - One test is **not** in `alle.py`, because it starts a real server:
-  `tests/live_mws.py` checks the wiki against a **real** MWS instead of
-  against the test fixture from `mwsserver.py`. See `tests/README.md`.
+  `tests/live_mws.py` checks the wiki against a **real** MWS-wikiwise
+  instead of the test fixture from `mwsserver.py`. See `tests/README.md`.
 
 Dependencies: **python3**, **chromium** on the path, and for the two print
 tests additionally **`pdfinfo`** and **`pdftotext`** (poppler-utils).
@@ -251,15 +257,15 @@ The full license texts and copyright notices are in
 ## 🚧 Limits that are on purpose
 
 - **One file, one user.** There is no server administration, no simultaneous
-  editors, no rights management in the wiki itself — that comes from MWS when
-  it is there.
+  editors, no rights management in the wiki itself — that comes from
+  MWS-wikiwise when it is there.
 - **No images.** See above.
 - **No syncing with other views.** The endpoint
   `/recipe/<name>/updates?since=<seq>` is not called, because its response
   format is not fixed. Every change goes out immediately, a reload shows the
   server's state.
-- **No login in the wiki.** MWS checks the password with OPAQUE, and for that
-  this wiki deliberately loads no plugins: it fetches its pages via
+- **No login in the wiki.** MWS-wikiwise checks the password with OPAQUE, and
+  for that this wiki deliberately loads no plugins: it fetches its pages via
   `/recipe`. Rebuilding it would mean putting a second megabyte of WebAssembly
   into every wiki page. Logging out works from here, because there is nothing
   to prove.
@@ -296,6 +302,12 @@ Installation. Wer die Datei doppelklickt, hat ein Wiki; wer sie weiterreicht,
 gibt ein Wiki weiter — mit dem Inhalt, den sein Ersteller darin abgelegt hat.
 
 Das ist der ganze Gedanke. Alles Weitere ist Ausgestaltung davon.
+
+**SimpleWiki wird zuerst für den Einsatz in MWS-wikiwise
+(MultiWikiServer-wikiwise) entwickelt, nicht als eigenständige, unabhängige
+Datei.** Einzeln lässt sie sich verwenden — dann muss jede Änderung von Hand
+zurück in die Datei geschrieben werden. In MWS-wikiwise läuft das alles
+automatisch.
 
 ## 🚀 Loslegen
 
@@ -377,8 +389,9 @@ An **genau einer** Stelle im Programm steht, woher die Seiten kommen
 
 - **Browser** — der Normalfall. Seiten liegen in `localStorage`. Eine per
   Doppelklick geöffnete Datei merkt sich genau so.
-- **MWS** (MultiWikiServer) — ein Server, der SimpleWiki ausliefert, schreibt
-  hinter den Punkt im Kopf Aufrufe von `$tw.preloadTiddler`, eines je Tiddler.
+- **MWS-wikiwise** (MultiWikiServer-wikiwise) — ein Server, der SimpleWiki
+  ausliefert, schreibt hinter den Punkt im Kopf Aufrufe von
+  `$tw.preloadTiddler`, eines je Tiddler.
   Kommen Tiddler an, wird von dort gelesen und dorthin geschrieben. Eine Zeile
   über dem Inhalt sagt, woher die Seiten kommen; das **×** an ihrem Rand
   blendet sie für den Rest der Session aus (ihr Zustand überlebt das
@@ -404,7 +417,8 @@ bleibt alles im Browser.
 | `/login?redirect=/wiki/<name>` | Anmeldung — ein Link, weil sie Sache des Servers ist |
 
 Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
-**PUT, nicht POST**; so ist es in `RecipeRoutes.ts` des MWS festgeschrieben.
+**PUT, nicht POST**; so ist es in `RecipeRoutes.ts` von MWS-wikiwise
+festgeschrieben.
 
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
@@ -481,7 +495,7 @@ einer Änderung an `simplewiki.html` ist deshalb ohne diesen Befehl alles
 genau wie vorher — auch nach einem Neustart des Servers:
 
 ```bash
-cd <MWS-Quellbaum>
+cd <MWS-wikiwise-Quellbaum>
 npm start provision-simplewiki <pfad>/simplewiki.html
 ```
 
@@ -504,8 +518,8 @@ python3 tests/t_fluss.py         # einen einzelnen Test
 - **35 Testdateien**, 1040 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
-  `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die
-  Testfigur aus `mwsserver.py`. Siehe `tests/README.md`.
+  `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt
+  gegen die Testfigur aus `mwsserver.py`. Siehe `tests/README.md`.
 
 Abhängigkeiten: **python3**, **chromium** im Pfad, und für die beiden
 Drucktests zusätzlich **`pdfinfo`** und **`pdftotext`** (poppler-utils).
@@ -543,14 +557,15 @@ Die vollständigen Lizenztexte und Copyright-Hinweise stehen in
 
 - **Eine Datei, ein Nutzer.** Es gibt keine Serververwaltung, keine
   gleichzeitigen Bearbeiter, keine Rechteverwaltung im Wiki selbst — das
-  kommt vom MWS, wenn es da ist.
+  kommt vom MWS-wikiwise, wenn es da ist.
 - **Keine Bilder.** Siehe oben.
 - **Kein Abgleich mit anderen Ansichten.** Der Endpunkt
   `/recipe/<name>/updates?since=<seq>` wird nicht aufgerufen, weil sein
   Antwortformat nicht festgelegt ist. Jede Änderung geht sofort raus, ein
   Neuladen zeigt den Stand des Servers.
-- **Kein Login im Wiki.** MWS prüft das Passwort mit OPAQUE, und dafür lädt
-  diese Wiki bewusst keine Plugins: sie holt ihre Seiten über `/recipe`. Es
+- **Kein Login im Wiki.** MWS-wikiwise prüft das Passwort mit OPAQUE, und
+  dafür lädt diese Wiki bewusst keine Plugins: sie holt ihre Seiten über
+  `/recipe`. Es
   nachzubauen hieße, ein zweites Megabyte WebAssembly in jede Wiki-Seite zu
   legen. Abmelden geht von hier aus, weil es nichts zu beweisen gibt.
 

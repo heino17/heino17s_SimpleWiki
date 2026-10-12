@@ -241,7 +241,12 @@ allows only `self`, and a wiki should run without a network, too.
 |---|---|---|
 | Vue 3 | 3.5.43 | MIT |
 | marked | 15.0.12 | MIT |
-| TOAST UI Editor (incl. DOMPurify 2.3.3) | 3.2.2 | MIT |
+| TOAST UI Editor | 3.2.2 | MIT |
+| DOMPurify (bundled in TOAST UI Editor) | 2.3.3 | Apache-2.0 or MPL-2.0 |
+| tslib (bundled in TOAST UI Editor) | – | 0BSD |
+
+The full license texts and copyright notices are in
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 ## 🚧 Limits that are on purpose
 
@@ -272,7 +277,8 @@ tests/_kopien/       copies, PDFs and images of the test runs – not committed
 
 This project is licensed under the [BSD 3-Clause License](LICENSE) – free to
 use, modify and redistribute, including commercially. Copyright (c) 2026,
-heino17.
+heino17. The licenses of the bundled third-party libraries are listed in
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 ---
 
@@ -526,7 +532,12 @@ laufen.
 |---|---|---|
 | Vue 3 | 3.5.43 | MIT |
 | marked | 15.0.12 | MIT |
-| TOAST UI Editor (inkl. DOMPurify 2.3.3) | 3.2.2 | MIT |
+| TOAST UI Editor | 3.2.2 | MIT |
+| DOMPurify (in TOAST UI Editor enthalten) | 2.3.3 | Apache-2.0 oder MPL-2.0 |
+| tslib (in TOAST UI Editor enthalten) | – | 0BSD |
+
+Die vollständigen Lizenztexte und Copyright-Hinweise stehen in
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).
 
 ## 🚧 Grenzen, die Absicht sind
 
@@ -556,4 +567,5 @@ tests/_kopien/       Kopien, PDFs und Bilder der Testläufe – nicht committet
 
 Dieses Projekt steht unter der [BSD-3-Clause-Lizenz](LICENSE) – frei
 nutzbar, veränderbar und weitergebbar, auch kommerziell. Copyright (c) 2026,
-heino17.
+heino17. Die Lizenzen der mitgelieferten Fremdbibliotheken stehen in
+[THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md).

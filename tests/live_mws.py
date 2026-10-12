@@ -51,9 +51,9 @@ import _hilfe
 HIN = os.path.dirname(os.path.abspath(__file__))
 KOPIEN = os.path.join(HIN, '_kopien', 'live')
 
-# Wo der MWS-Quellbaum liegt. Ueberschreiben mit MWS=..., falls er
-# woanders liegt.
-MWS = os.environ.get('MWS', '')
+# Wo der MWS-Quellbaum liegt. Ueber die Umgebungsvariable MWS angeben,
+# z. B.: MWS=/pfad/zum/mws python3 tests/live_mws.py
+MWS = os.environ.get('MWS', '').rstrip('/')
 QUELLE = os.path.join(os.path.dirname(HIN), 'simplewiki.html')
 
 log = []
@@ -162,6 +162,10 @@ const kopf = { "Content-Type": "application/json", "X-Requested-With": "fetch" }
 
 def main():
     wiki = sys.argv[1] if len(sys.argv) > 1 else 'wikiwise-booklet'
+    if not MWS:
+        print('Bitte den Quellbaum des MWS ueber MWS=... angeben:')
+        print('  MWS=/pfad/zum/mws python3 tests/live_mws.py')
+        return 1
     mwsjs = os.path.join(MWS, 'dist', 'mws.js')
     if not os.path.exists(mwsjs):
         print('Kein dist/mws.js unter %s.' % MWS)

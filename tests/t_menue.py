@@ -270,6 +270,15 @@ merde('und schneidet das Faehnchen an ihrer Kante nicht ab',
       bool(re.search(r'\.toc-menu\s*{[^}]*overflow:\s*visible', menue, re.S)), True)
 merde('das Faehnchen haengt an der Spalte selbst',
       bool(re.search(r'\.toc-menu\s*{[^}]*position:\s*relative', menue, re.S)), True)
+# Zugeklappt hat die Spalte Breite 0; ihre Kinder sind aber so breit wie
+# sie plus ihre Polsterung. Bliebe die stehen, schauten die ersten
+# Buchstaben der Ueberschrift bei geschlossenem Menue heraus. Deshalb
+# legt der Zustand die seitliche Polsterung ab - und nur sie.
+schmal = re.search(r'\.toc-menu:not\(\.offen\)[^{]*\{[^}]*\}', ohne_kommentare)
+merde('zugeklappt legt die Kopfzeile ihre seitliche Polsterung ab',
+      bool(schmal) and 'toc-menu-kopf' in schmal.group(0)
+      and 'toc-list' in schmal.group(0)
+      and bool(re.search(r'padding-left:\s*0', schmal.group(0))), True)
 merde('der Koerper ist eine Zeile',
       bool(re.search(r'\.app-koerper\s*{[^}]*display:\s*flex', koerper, re.S)), True)
 merde('und gibt die uebrige Hoehe weiter',

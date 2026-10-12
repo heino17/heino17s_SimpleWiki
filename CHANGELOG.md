@@ -4,13 +4,26 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.30">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.31">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
+
+## 2026-10-12
+
+### v0.1.31 — zugeklappt bleibt nichts vom Inhaltsverzeichnis stehen — 1040 Prüfungen
+
+Beim Einklappen des Verzeichnisses blieben die ersten Buchstaben der
+Überschrift „Inhaltsverzeichnis" am linken Rand stehen. Die Spalte fährt auf
+Breite 0, aber die Kopfzeile darin ist ein Flex-Kind und bleibt so breit wie
+die Spalte **plus ihre seitliche Polsterung** — bei `padding: 14px 20px` also
+40px, und darin standen die ersten drei Buchstaben. Zugeklappt legt die
+Kopfzeile ihre seitliche Polsterung jetzt ab (und die Liste ebenso); der
+`overflow` kappt dann wirklich bei 0. Offen ist alles unverändert. Die CSS-Regel
+prüft `t_menue.py`.
 
 ## 2026-10-11
 

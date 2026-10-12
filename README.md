@@ -53,7 +53,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 8664 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 8675 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -64,10 +64,10 @@ Reihenfolge:
          222  <script id="simplewiki-daten">  die Dateninsel
      226–360  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
               DOMPurify)
-    361–2909  das Stylesheet
-        2919  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    2922–3487  die Oberfläche (Vue-Template)
-    3489–8664  das Programm
+    361–2920  das Stylesheet
+        2930  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+    2933–3498  die Oberfläche (Vue-Template)
+    3500–8675  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -123,7 +123,7 @@ Alle Aufrufe mit dem Kopf `X-Requested-With: fetch`. Stapelaufrufe sind
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.30">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.31">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit

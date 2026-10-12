@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.30">
+    <meta name="mws-shell-version" content="v0.1.31">
     <title>SimpleWiki</title>
 
     <!--
@@ -1521,6 +1521,17 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .toc-menu-kopf h2 {
             font-size: 1rem;
             color: var(--text-secondary);
+        }
+
+        /* Zugeklappt legt die Kopfzeile auch ihre seitliche Polsterung ab.
+           Sie ist ein Flex-Kind und damit so breit wie das Menue; bliebe
+           die Polsterung stehen, waere ihr Kasten bei Breite 0 trotzdem
+           40px breit und die ersten Buchstaben der Ueberschrift schauten
+           heraus. Die Liste ebenso - ihr `overflow` kappt dann bei 0. */
+        .toc-menu:not(.offen) .toc-menu-kopf,
+        .toc-menu:not(.offen) .toc-list {
+            padding-left: 0;
+            padding-right: 0;
         }
 
         /* Das Faehnchen haengt an der Innenkante des Menues, links:100%

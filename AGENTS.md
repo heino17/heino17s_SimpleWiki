@@ -78,7 +78,7 @@ Bildschirm findet. Ein Test, der nicht läuft, ist schlimmer als keiner.
 
 ## Git
 
-- **Nicht pushen.** Push bleibt eine ausdrueckliche Entscheidung.
+- **Nicht pushen.** Push bleibt eine ausdrückliche Entscheidung.
 - Committen ja, sobald ein Vorgang abgeschlossen ist — das ist eine
   ausdrückliche Erlaubnis.
 - Nachrichten auf **ASCII** (ä → ae, ö → oe, ü → ue, ß → ss), wie es alle

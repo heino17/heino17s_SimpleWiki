@@ -1,4 +1,286 @@
-# SimpleWiki
+# 🇺🇸 SimpleWiki
+
+[![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
+
+---
+
+A wiki that is **a single file**.
+
+`simplewiki.html` is the whole program: interface, editor, Markdown, storage
+and every library live inside it. No server, no build, no installation.
+Whoever double-clicks the file has a wiki; whoever passes it on hands over a
+wiki — with the content its author put in.
+
+That is the whole idea. Everything else is shape given to it.
+
+## 🚀 Getting started
+
+```bash
+xdg-open simplewiki.html          # or double-click it in your file manager
+```
+
+A fresh wiki brings a start page. From there: ☰ opens the table of contents,
+"+ New page" creates one, the button at the bottom right switches the editor
+on.
+
+For the tests:
+
+```bash
+python3 tests/alle.py             # everything
+python3 tests/alle.py fluss       # only the tests with "fluss" in the name
+python3 tests/t_order.py          # a single test
+```
+
+## ✨ What's inside
+
+| | |
+|---|---|
+| **Writing** | Markdown, in the WYSIWYG editor (TOAST UI) or in the plain text field; a page just created disappears again if you then click "Cancel" |
+| **New page** | a button in the header, left of the contents — gone for anyone who may not write; the new page is appended to the contents |
+| **Contents** | as a left column, pushes the content aside and keeps the header clear; foldable at the little flag, starts folded below a 640px window width |
+| **Linking** | `[[Page]]` and `[[Label\|Page]]` in the text, plus a dialog while editing |
+| **Backlinks** | incoming and outgoing links in their own panel, with a counter in the header |
+| **Outline** | sub-pages under a parent page, arbitrarily deep; built by dragging (three zones per row: before, as a child, after) or with Alt + arrow: ↑/↓ on the same level, → indent, ← outdent |
+| **Folding** | after a reload only the top level shows: parent pages with sub-pages carry a ▼ counter and come folded (the arrow on the left does the same); unfold at the counter, with the right arrow or by clicking — none of it lands in the file |
+| **Duplicate** | creates a copy with its own name, with no link to the original |
+| **Search** | in the header; it searches title, content **and tags**, with the hits right below — and it is the only way to find something while the contents are folded |
+| **Flow** | read all pages one after another and print them as a PDF |
+| **Light / dark** | also in the editor; the 🌙/☀️ switch stays in every colour world |
+| **Colour worlds** | nine moods — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung and the **Own** one; each with a light and a dark branch, selectable in the settings dialog. The Own one grows from a cloned world and can be set colour by colour |
+| **Language** | eight languages (German, English, Russian, Spanish, French, Japanese, Korean, Chinese), built in |
+| **Exchange** | save and load the wiki as a file, export JSON, export an empty template |
+
+A wiki consists of **text pages**. There are no images: whoever hands over
+content with images loses them, and should say so beforehand.
+
+## 🗂️ How the file is built
+
+`simplewiki.html` is 8675 lines long and has these parts, always in the same
+order:
+
+```
+       1–221  two comments in the <head>: the exchange contract and the
+              MWS operation. They are the real documentation — this is
+              where it says why the format looks as it does and what the
+              server must deliver.
+         222  <script id="simplewiki-daten">  the data island
+     226–360  the embedded libraries (marked, Vue, TOAST UI incl.
+              DOMPurify)
+    361–2920  the stylesheet
+        2930  the store point behind which the server inserts its tiddlers
+    2933–3498  the interface (Vue template)
+    3500–8675  the program
+```
+
+The two comments in the header are **ordinary HTML and no ballast**: whoever
+reads the file reads the contract there first. Two things there need special
+care when changing:
+
+- The exchange contract describes the structure of the data island and what
+  happens on reading (unknown fields stay, files that are too new are
+  rejected outright, a file without pages is not taken over).
+- The MWS section names the point in the document behind which the server
+  inserts its tiddlers — **without quoting the point as a string**. MWS
+  searches for it literally and takes the first hit in the document, even one
+  inside a comment. A comment quoting it would swallow the tiddlers into
+  itself: the wiki would stand there beautifully empty. The rule holds
+  without exception — the text appears exactly once in the raw file.
+
+## 🔀 The two modes
+
+At **exactly one** place in the program it says where the pages come from
+(`simplewiki.html:3391`, "Where the pages live: browser or MWS"):
+
+- **Browser** — the normal case. Pages live in `localStorage`. A file opened
+  by double-click remembers in exactly the same way.
+- **MWS** (MultiWikiServer) — a server that serves SimpleWiki writes calls to
+  `$tw.preloadTiddler` behind the point in the header, one per tiddler. When
+  tiddlers arrive, they are read from there and written back there. One line
+  above the content says where the pages come from; the **×** at its edge
+  hides it for the rest of the session (its state survives a reload, not
+  closing the wiki).
+
+Both stores speak the same methods (`laden`, `uebernehmen`, `seiteSichern`,
+`seiteLoeschen`, `startseiteSetzen`, `themaSetzen`, `spracheSetzen`, `status`,
+`abmelden`). The rest of the program does not know the difference. If the
+point is not there or no tiddlers arrive, everything stays in the browser.
+
+## 🔌 What SimpleWiki says to the server
+
+| Call | What for |
+|---|---|
+| `GET /recipe/<name>/status` | who is logged in and whether this tab may write |
+| `PUT /recipe/<name>/batch/list` | fetch all tiddlers |
+| `PUT /recipe/<name>/batch/read` | fetch specific tiddlers |
+| `PUT /recipe/<name>/batch/save` | write |
+| `PUT /recipe/<name>/batch/delete` | delete |
+| `PUT /recipe/<name>/shell/update` | adopt the interface to the newest template version (only the owner and administrators) |
+| `POST /logout` | delete the session (response 204) |
+| `/login?redirect=/wiki/<name>` | login — a link, because it is the server's business |
+
+All calls carry the header `X-Requested-With: fetch`. Batch calls are
+**PUT, not POST**; that is fixed in the MWS `RecipeRoutes.ts`.
+
+For the interface, the server says which template version this wiki is on
+(the response of `/status` carries it under `shell`). The interface names its
+own version via `<meta name="mws-shell-version" content="v0.1.31">` in the
+head of `simplewiki.html` — this name appears in the admin app and in the
+update hint instead of the counting release number and is raised with every
+interface change. A wiki with the policy **notify** for which a newer version
+is ready shows a sign only to the **owner** and the **administrators**: a dot
+on the gear (⚙️) and, in the **Settings** dialog, a hint with a button
+"Adopt" — which calls `PUT /recipe/<name>/shell/update`, the server moves the
+pin to the newest version, and the wiki reloads. The button carries a tip:
+**The contents of your wiki are not changed by this update!** The hint is
+dismissed per offered version — either until a new offer or for a month.
+Whoever may only write does not see the hint: adopting an interface is an
+ownership decision.
+
+Four operating states, all recognized at the server and not guessed:
+
+- **nobody logged in** → "Not logged in" as a **link** to `/login` (with the
+  way one came from — whoever clicks "Log in" in a wiki wants to be back in
+  that wiki afterwards)
+- **logged in, but no write permission** → a read-only hint, and the write
+  buttons are **gone**, not just grey
+- **session expires mid-way** → the app notices it on the next write attempt
+  and switches without a reload
+- **the server does not answer at all** → nothing is invented: no read-only
+  state, no lost write buttons. An outage is not a permission problem.
+
+## 🔄 The exchange format
+
+Lives in the data island and can be written and read as its own `.json` file:
+
+```json
+{
+  "version": 1,
+  "seiten": [
+    {"id": "…", "title": "…", "content": "Markdown with [[links]]",
+     "links": ["page name"], "tags": [], "created": "ISO-8601 with Z",
+     "updated": "ISO-8601 with Z",
+     "eltern": "title of the parent page (only for sub-pages)"}
+  ],
+  "startseite": "id of the start page",
+  "sprache": "de",
+  "thema": "light"
+}
+```
+
+Three promises:
+
+1. **JSON and HTML are equivalent.** On reading, JSON is tried and only
+   accepted if it contains a `seiten` array; otherwise the data block of the
+   HTML file applies.
+2. **Foreign fields stay.** `normiereSeiten` normalizes the known fields and
+   carries everything else along unchanged — a round trip through a tool
+   loses nothing. This holds on the page level as on the top level (`autor`,
+   `herkunft`, `exportdatum` …).
+3. **Files that are too new are rejected outright.** If `version` is missing
+   or larger than one's own, nothing is taken over and the reason is named.
+
+Linking is done via `title`, not via `id` — that is why no two pages may have
+the same name. When creating, a name already taken is quietly made unique
+("New page 2"); when renaming, it is rejected and the name is named: silent
+renaming on save would be surprising.
+
+## 🛠️ Provision after every change
+
+**The wiki reads its shell from the store, not from this file.** So after a
+change to `simplewiki.html`, without this command everything is exactly as
+before — even after a restart of the server:
+
+```bash
+cd <MWS source tree>
+npm start provision-simplewiki <path>/simplewiki.html
+```
+
+The command reports `Template "SimpleWiki" updated`; after that the browser
+only needs a hard reload (Ctrl+Shift+R). Whoever wonders why their own change
+does not arrive has almost always forgotten this step.
+
+## ✅ Tests
+
+The tests check `simplewiki.html` in a **real browser**: each test builds an
+instrumented copy of the wiki, opens it in Chromium and then reads the report
+that the test script deposited in the page itself.
+
+```bash
+python3 tests/alle.py            # everything, exit code 0 = all passed
+python3 tests/alle.py mws        # only the tests with "mws" in the name
+python3 tests/t_fluss.py         # a single test
+```
+
+- **35 test files**, 1040 checks per suite run; the two print tests start
+  Chromium a second time for the PDF.
+- One test is **not** in `alle.py`, because it starts a real server:
+  `tests/live_mws.py` checks the wiki against a **real** MWS instead of
+  against the test fixture from `mwsserver.py`. See `tests/README.md`.
+
+Dependencies: **python3**, **chromium** on the path, and for the two print
+tests additionally **`pdfinfo`** and **`pdftotext`** (poppler-utils).
+
+It is worth reading `tests/README.md` — it lists the test files, what the
+test mechanism does exactly, and two lessons from the tests that shaped the
+program:
+
+> **Test the task, not the implementation.** When saving, a test once said
+> "interface empty in the result" — which checked that the file is broken.
+> The test was green and the function broken.
+>
+> **Test with the window it is used in.** The flow could not be scrolled and
+> printing lost everything after screen height. Both only surfaced because
+> the test checks with a window of 900×420 pixels.
+
+## 📦 Bundled libraries
+
+All embedded rather than loaded from a CDN — a strict Content-Security-Policy
+allows only `self`, and a wiki should run without a network, too.
+
+| Library | Version | License |
+|---|---|---|
+| Vue 3 | 3.5.43 | MIT |
+| marked | 15.0.12 | MIT |
+| TOAST UI Editor (incl. DOMPurify 2.3.3) | 3.2.2 | MIT |
+
+## 🚧 Limits that are on purpose
+
+- **One file, one user.** There is no server administration, no simultaneous
+  editors, no rights management in the wiki itself — that comes from MWS when
+  it is there.
+- **No images.** See above.
+- **No syncing with other views.** The endpoint
+  `/recipe/<name>/updates?since=<seq>` is not called, because its response
+  format is not fixed. Every change goes out immediately, a reload shows the
+  server's state.
+- **No login in the wiki.** MWS checks the password with OPAQUE, and for that
+  this wiki deliberately loads no plugins: it fetches its pages via
+  `/recipe`. Rebuilding it would mean putting a second megabyte of WebAssembly
+  into every wiki page. Logging out works from here, because there is nothing
+  to prove.
+
+## 📁 Folder
+
+```
+simplewiki.html      the whole wiki
+tests/               tests, test helpers, test fixtures (see tests/README.md)
+tests/_kopien/       copies, PDFs and images of the test runs – not committed
+.gitignore
+```
+
+## 📄 License
+
+This project is licensed under the [BSD 3-Clause License](LICENSE) – free to
+use, modify and redistribute, including commercially. Copyright (c) 2026,
+heino17.
+
+---
+
+# 🇩🇪 SimpleWiki
+
+[![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
+
+---
 
 Ein Wiki, das **eine einzige Datei** ist.
 
@@ -9,9 +291,7 @@ gibt ein Wiki weiter — mit dem Inhalt, den sein Ersteller darin abgelegt hat.
 
 Das ist der ganze Gedanke. Alles Weitere ist Ausgestaltung davon.
 
----
-
-## Loslegen
+## 🚀 Loslegen
 
 ```bash
 xdg-open simplewiki.html          # oder: im Dateimanager doppelklicken
@@ -29,7 +309,7 @@ python3 tests/alle.py fluss       # nur die Tests mit "fluss" im Namen
 python3 tests/t_order.py          # einen einzelnen Test
 ```
 
-## Was drin ist
+## ✨ Was drin ist
 
 | | |
 |---|---|
@@ -51,7 +331,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 Eine Wiki besteht aus **Textseiten**. Es gibt keine Bilder: wer Inhalte mit
 Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
-## Wie die Datei aufgebaut ist
+## 🗂️ Wie die Datei aufgebaut ist
 
 `simplewiki.html` ist 8675 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
@@ -84,7 +364,7 @@ besonders zu beachten:
   verschlucken: die Wiki stünde schön und leer da. Die Regel gilt ohne
   Ausnahme — der Text steht genau einmal in der Roh-Datei.
 
-## Die zwei Betriebsarten
+## 🔀 Die zwei Betriebsarten
 
 An **genau einer** Stelle im Programm steht, woher die Seiten kommen
 (`simplewiki.html:3391`, „Wo die Seiten liegen: Browser oder MWS“):
@@ -104,7 +384,7 @@ Beide Speicher sprechen dieselben Methoden an (`laden`, `uebernehmen`,
 Unterschied nicht. Steht der Punkt nicht da oder kommen keine Tiddler an,
 bleibt alles im Browser.
 
-Was SimpleWiki mit dem Server spricht:
+## 🔌 Was SimpleWiki mit dem Server spricht
 
 | Aufruf | Wofür |
 |---|---|
@@ -151,7 +431,7 @@ Vier Betriebszustände, alle am Server erkannt und nicht geraten:
   Nur-Lesen-Zustand, keine verlorenen Schreibknöpfe. Ein Ausfall ist kein
   Rechteproblem.
 
-## Das Austauschformat
+## 🔄 Das Austauschformat
 
 Steckt in der Dateninsel und lässt sich als eigene `.json`-Datei schreiben und
 lesen:
@@ -188,9 +468,9 @@ Seiten denselben Namen haben. Beim Anlegen wird ein vergebener Name still
 eindeutig gemacht („Neue Seite 2“), beim Umbenennen wird abgelehnt und der
 Name genannt: stilles Umbenennen beim Speichern wäre überraschend.
 
-## Nach jeder Änderung provisionieren
+## 🛠️ Nach jeder Änderung provisionieren
 
-**Die Wiki liest ihre Schelle aus dem Store, nicht aus dieser Datei.** Nach
+**Die Wiki liest ihre Schale aus dem Store, nicht aus dieser Datei.** Nach
 einer Änderung an `simplewiki.html` ist deshalb ohne diesen Befehl alles
 genau wie vorher — auch nach einem Neustart des Servers:
 
@@ -203,7 +483,7 @@ Der Befehl meldet `Template "SimpleWiki" updated`; danach muss der Browser
 nur noch hart neu laden (Strg+Umschalt+R). Wer sich wundert, warum die eigene
 Änderung nicht ankommt, hat fast immer diesen Schritt vergessen.
 
-## Tests
+## ✅ Tests
 
 Die Tests prüfen `simplewiki.html` im **echten Browser**: Jeder Test baut eine
 instrumentierte Kopie der Wiki, öffnet sie in Chromium und liest danach den
@@ -236,7 +516,7 @@ Programm geprägt haben:
 > scrollen und der Druck verlor alles nach Bildschirmhöhe. Beides fiel nur auf,
 > weil der Test mit einem Fenster von 900×420 Pixeln prüft.
 
-## Mitgebrachte Bibliotheken
+## 📦 Mitgebrachte Bibliotheken
 
 Alle fest eingebettet statt vom CDN geladen — eine strikte
 Content-Security-Policy erlaubt nur `self`, und eine Wiki soll auch ohne Netz
@@ -248,7 +528,7 @@ laufen.
 | marked | 15.0.12 | MIT |
 | TOAST UI Editor (inkl. DOMPurify 2.3.3) | 3.2.2 | MIT |
 
-## Grenzen, die Absicht sind
+## 🚧 Grenzen, die Absicht sind
 
 - **Eine Datei, ein Nutzer.** Es gibt keine Serververwaltung, keine
   gleichzeitigen Bearbeiter, keine Rechteverwaltung im Wiki selbst — das
@@ -263,7 +543,7 @@ laufen.
   nachzubauen hieße, ein zweites Megabyte WebAssembly in jede Wiki-Seite zu
   legen. Abmelden geht von hier aus, weil es nichts zu beweisen gibt.
 
-## Ordner
+## 📁 Ordner
 
 ```
 simplewiki.html      das ganze Wiki
@@ -271,3 +551,9 @@ tests/               Tests, Testhilfen, Testfiguren (siehe tests/README.md)
 tests/_kopien/       Kopien, PDFs und Bilder der Testläufe – nicht committet
 .gitignore
 ```
+
+## 📄 Lizenz
+
+Dieses Projekt steht unter der [BSD-3-Clause-Lizenz](LICENSE) – frei
+nutzbar, veränderbar und weitergebbar, auch kommerziell. Copyright (c) 2026,
+heino17.

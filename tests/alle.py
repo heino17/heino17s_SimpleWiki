@@ -1,17 +1,28 @@
-"""Alle Tests nacheinander ausfuehren.
+"""Alle Tests ausfuehren - mehrere gleichzeitig.
 
     python3 tests/alle.py            # alles
     python3 tests/alle.py fluss      # nur die Tests mit "fluss" im Namen
+    python3 tests/alle.py -j 1       # nacheinander, wie frueher
+    python3 tests/alle.py -j 8       # acht gleichzeitig
 
 Endcode 0 heisst: alles bestanden. Endcode 1 heisst: mindestens
 eine Pruefung ist fehlgeschlagen - dann lohnt der Blick in die
 Ausgabe, die den Namen der Pruefung nennt.
+
+Jeder Test ist ein eigener Prozess: er baut seine eigene Kopie der
+Wiki und oeffnet sein eigenes Browserfenster. Deshalb koennen sie
+gleichzeitig laufen. Die Voreinstellung ist die Zahl der Prozessoren
+(hoechstens acht); -j stellt sie ein. Der Bericht steht trotzdem in
+der Reihenfolge von REIHENFOLGE da, damit zwei Laeufe vergleichbar
+bleiben - oben laufen nur die Fortschrittszeilen.
 """
 
+import concurrent.futures
 import os
 import re
 import subprocess
 import sys
+import time
 
 HIN = os.path.dirname(os.path.abspath(__file__))
 
@@ -91,8 +102,79 @@ BESCHRIEBUNG = {
 }
 
 
+def _stellen():
+    """Wie viele Tests gleichzeitig? Voreinstellung: die Zahl der Prozessoren.
+
+    Oben gedeckelt: jeder Test startet ein Chromium, und mehr als acht
+    Browser gleichzeitig bringen keinen Gewinn mehr, sondern nur noch
+    Gedraenge um Speicher und Prozessorzeit.
+    """
+    return max(1, min(os.cpu_count() or 4, 8))
+
+
+def _arg(argv):
+    """Filtertext und Stellenzahl aus der Kommandozeile lesen.
+
+    Erlaubt sind 'flug' (Filter, wie bisher), '-j N' und '--jobs=N'.
+    Ohne Angabe gilt _stellen().
+    """
+    jobs = _stellen()
+    filtertext = ''
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ('-j', '--jobs') and i + 1 < len(argv):
+            try:
+                jobs = int(argv[i + 1])
+            except ValueError:
+                pass
+            i += 2
+            continue
+        if a.startswith('--jobs='):
+            try:
+                jobs = int(a.split('=', 1)[1])
+            except ValueError:
+                pass
+        elif a.startswith('-j') and len(a) > 2:
+            try:
+                jobs = int(a[2:])
+            except ValueError:
+                pass
+        elif not a.startswith('-'):
+            filtertext = a
+        i += 1
+    return filtertext, max(1, jobs)
+
+
+def _einer(name):
+    """Einen Test als eigenen Prozess laufen lassen.
+
+    Rueckgabe ist ein kleiner Bericht: Name, was auf stdout und stderr
+    stand, der Fehlercode und die Dauer. Fehlt die Datei, wird das so
+    gemeldet wie im sequentiellen Lauf.
+    """
+    pfad = os.path.join(HIN, name)
+    if not os.path.exists(pfad):
+        return {'name': name, 'fehlt': True, 'ausgabe': '', 'stderr': '',
+                'code': 1, 'dauer': 0.0}
+    start = time.time()
+    try:
+        lauf = subprocess.run([sys.executable, pfad],
+                              capture_output=True, text=True,
+                              timeout=1800)   # der MWS-Test startet einen Server
+    except subprocess.TimeoutExpired:
+        # Ein haengender Test soll nicht den ganzen Lauf mitreissen -
+        # er zaehlt als fehlgeschlagen, die anderen laufen weiter.
+        return {'name': name, 'fehlt': False, 'ausgabe': '',
+                'stderr': 'Zeitueberschreitung nach 1800s', 'code': 1,
+                'dauer': time.time() - start}
+    return {'name': name, 'fehlt': False, 'ausgabe': lauf.stdout,
+            'stderr': lauf.stderr, 'code': lauf.returncode,
+            'dauer': time.time() - start}
+
+
 def main():
-    filtertext = sys.argv[1] if len(sys.argv) > 1 else ''
+    filtertext, jobs = _arg(sys.argv[1:])
     dateien = [d for d in REIHENFOLGE if filtertext in d]
 
     if not dateien:
@@ -103,23 +185,47 @@ def main():
     print('SimpleWiki – Tests')
     print('=================')
     print()
+    print('%d Dateien, %d gleichzeitig.' % (len(dateien), min(jobs, len(dateien))))
+    print()
+
+    # Erst laufen lassen, dann der Reihe nach ausgeben. Die
+    # Fortschrittszeile erscheint, sobald eine Datei fertig ist -
+    # welcher Test wie lange braucht, steht also da, bevor der
+    # Bericht beginnt.
+    laeufe = {}
+    fertig = 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+        auftraege = {pool.submit(_einer, n): n for n in dateien}
+        for auftrag in concurrent.futures.as_completed(auftraege):
+            ergebnis = auftrag.result()
+            laeufe[ergebnis['name']] = ergebnis
+            fertig += 1
+            if ergebnis['fehlt']:
+                stand = 'FEHLT'
+            elif ergebnis['code'] == 0:
+                stand = 'ok'
+            else:
+                stand = 'FEHLGESCHLAGEN'
+            print('  [%2d/%2d] %-16s %-14s %5.1fs'
+                  % (fertig, len(dateien), ergebnis['name'], stand,
+                     ergebnis['dauer']))
+    print()
+
     gesamt_ok = 0
     gesamt_fehler = 0
     ergebnisse = []
 
     for name in dateien:
-        pfad = os.path.join(HIN, name)
-        if not os.path.exists(pfad):
+        ergebnis = laeufe[name]
+        if ergebnis['fehlt']:
             print('FEHLT: ' + name)
             gesamt_fehler += 1
+            ergebnisse.append((name, False))
+            print()
             continue
         print('--- ' + name + '  (' + BESCHRIEBUNG.get(name, '') + ')')
-        lauf = subprocess.run([sys.executable, pfad],
-                              capture_output=True, text=True,
-                              timeout=1800)   # der MWS-Test startet einen Server
-        ausgabe = lauf.stdout
         # Die Reports der Tests sind ausfuehrlich; hier nur die Fazits.
-        for zeile in ausgabe.split('\n'):
+        for zeile in ergebnis['ausgabe'].split('\n'):
             # Auch die Zeilen zeigen, die kein Pruefergebnis sind, sondern
             # eine Auswertung: "KEIN REPORT" und "UNVOLLSTAENDIG" sagen,
             # dass der Browser zu langsam war - genau das, was man sonst
@@ -129,14 +235,16 @@ def main():
                 print(zeile)
         # Jeder Test meldet am Ende "GESAMT: N bestanden, M fehlgeschlagen";
         # das ist die Zahl, die zaehlt - nicht die Zeilen im Bericht.
-        for m2 in re.finditer(r'GESAMT: (\d+) bestanden, (\d+) fehlgeschlagen', ausgabe):
+        for m2 in re.finditer(r'GESAMT: (\d+) bestanden, (\d+) fehlgeschlagen',
+                              ergebnis['ausgabe']):
             gesamt_ok += int(m2.group(1))
             gesamt_fehler += int(m2.group(2))
-        if lauf.returncode and not gesamt_fehler:
+        if ergebnis['code'] and not gesamt_fehler:
             gesamt_fehler += 1
-        ergebnisse.append((name, lauf.returncode == 0))
-        if lauf.stderr.strip():
-            print('  (Ausgabe auf stderr: ' + lauf.stderr.strip().split('\n')[0][:80] + ')')
+        ergebnisse.append((name, ergebnis['code'] == 0))
+        if ergebnis['stderr'].strip():
+            print('  (Ausgabe auf stderr: '
+                  + ergebnis['stderr'].strip().split('\n')[0][:80] + ')')
         print()
 
     print('=================')

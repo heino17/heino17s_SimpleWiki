@@ -7,13 +7,21 @@ den Bericht aus, den das Testskript in der Seite selbst ablegt.
 ## Ausführen
 
 ```bash
-python3 tests/alle.py            # alles
+python3 tests/alle.py            # alles, mehrere Tests gleichzeitig
 python3 tests/alle.py fluss      # nur die Tests mit "fluss" im Namen
+python3 tests/alle.py -j 1       # nacheinander
 python3 tests/t_order.py         # einen einzelnen Test
 ```
 
 Endcode 0 heißt: alles bestanden. Endcode 1 heißt: mindestens eine Prüfung
 ist fehlgeschlagen – dann nennt die Ausgabe den Namen der Prüfung.
+
+`alle.py` lässt die Dateien **gleichzeitig** laufen. Jeder Test ist ein eigener
+Prozess mit eigener Kopie der Wiki und eigenem Browserfenster, sie stören sich
+also nicht. Die Voreinstellung ist die Zahl der Prozessoren (höchstens acht);
+`-j N` stellt sie ein, `-j 1` ist der alte Lauf nacheinander. Der Bericht steht
+trotzdem in fester Reihenfolge da, damit zwei Läufe vergleichbar bleiben – oben
+stehen nur die Fortschrittszeilen mit der Dauer je Datei.
 
 Grundabhängigkeiten: **python3** und **chromium** im Pfad. Für die beiden
 Drucktests kommen **`pdfinfo`** und **`pdftotext`** dazu (poppler-utils) — sie

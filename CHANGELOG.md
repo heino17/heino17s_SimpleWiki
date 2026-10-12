@@ -14,6 +14,18 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-11
 
+### Die Testsuite läuft jetzt gleichzeitig
+
+`tests/alle.py` hat die 35 Dateien bisher nacheinander gestartet; ein Lauf
+dauerte gut zehn Minuten. Jetzt laufen sie gleichzeitig: die Zahl der
+Prozessoren gibt die Voreinstellung, `-j N` stellt sie ein, `-j 1` ist der alte
+Lauf. Ein Test ist ein eigener Prozess mit eigener Kopie und eigenem
+Browserfenster, deshalb stören sie sich nicht; der Bericht steht weiter in
+fester Reihenfolge da, oben nur die Fortschrittszeilen mit der Dauer je Datei.
+Auf vier Prozessoren fällt ein Lauf damit von gut zehn Minuten auf etwa
+zweieinhalb. Geändert hat sich nur das Testwerkzeug; `simplewiki.html` bleibt
+unberührt, die Shell-Version steigt nicht.
+
 ### v0.1.30 — das Inhaltsverzeichnis ist nur so breit wie nötig — 1030 Prüfungen
 
 Die Spalte links nahm feste `--toc-breite` (360px, in schmalen Fenstern 300px)

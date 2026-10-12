@@ -77,6 +77,19 @@ var panels = ['.refs-panel', '.settings-panel'];
              Stylesheet und wird weiter unten nachgelesen - dort ist
              nichts in Bewegung. */
           ok(q('.side-overlay').classList.contains('open'), 'der Bildschirm ist abgedunkelt');
+          /* Der Fuss ganz unten: der Titelblock des Kopfes und die
+             Version der Oberflaeche. Die Nummer wird nicht im Test
+             festgeschrieben - sie steht einmal in <meta>, und der Fuss
+             muss genau die zeigen. */
+          var fuss = q('.settings-panel .settings-fuss');
+          ok(!!fuss, 'das Panel hat einen Fuss');
+          ok(!!(fuss && fuss.querySelector('.kopf-titel')), 'der Fuss traegt den Titelblock des Kopfes');
+          var ver = fuss && fuss.querySelector('.fuss-version');
+          var kopfVers = document.querySelector('meta[name="mws-shell-version"]');
+          ok(!!(ver && kopfVers && ver.textContent.trim() === kopfVers.getAttribute('content')),
+             'der Fuss nennt die Version aus dem Kopf');
+          ok(!!(ver && ver.getAttribute('href') === 'https://github.com/heino17/'),
+             'die Version fuehrt zur Seite des Autors');
 
           head('Und wieder zu');
           q('.settings-panel .side-close').click();

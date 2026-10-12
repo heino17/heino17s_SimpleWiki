@@ -53,7 +53,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 8565 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 8640 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -64,10 +64,10 @@ Reihenfolge:
       222    <script id="simplewiki-daten">  die Dateninsel
     226–360  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
              DOMPurify)
-    361–2843 das Stylesheet
-      2853   der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-   2856–3409 die Oberfläche (Vue-Template)
-   3411–8565 das Programm
+    361–2894 das Stylesheet
+      2904   der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+   2907–3470 die Oberfläche (Vue-Template)
+   3472–8640 das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die

@@ -16,7 +16,8 @@ That is the whole idea. Everything else is shape given to it.
 **SimpleWiki is developed first of all for use in MWS-wikiwise
 (MultiWikiServer-wikiwise), not as a standalone, independent file.** It can be
 used on its own — but then every change has to be written back into the file by
-hand. In MWS-wikiwise all of that runs automatically.
+hand. In MWS-wikiwise all of that runs automatically. The file in this
+repository is the empty template; an MWS wiki starts empty, too.
 
 ## 🚀 Getting started
 
@@ -24,9 +25,10 @@ hand. In MWS-wikiwise all of that runs automatically.
 xdg-open simplewiki.html          # or double-click it in your file manager
 ```
 
-A fresh wiki brings a start page. From there: ☰ opens the table of contents,
-"+ New page" creates one, the button at the bottom right switches the editor
-on.
+A fresh wiki starts empty: the start screen names the first step and, for
+whoever may write, offers a button for the first page. From there: ☰ opens the
+table of contents, "+ New page" creates one, the button at the bottom right
+switches the editor on.
 
 For the tests:
 
@@ -307,7 +309,8 @@ Das ist der ganze Gedanke. Alles Weitere ist Ausgestaltung davon.
 (MultiWikiServer-wikiwise) entwickelt, nicht als eigenständige, unabhängige
 Datei.** Einzeln lässt sie sich verwenden — dann muss jede Änderung von Hand
 zurück in die Datei geschrieben werden. In MWS-wikiwise läuft das alles
-automatisch.
+automatisch. Die Datei in diesem Repository ist die leere Vorlage; eine
+MWS-Wiki startet ebenfalls leer.
 
 ## 🚀 Loslegen
 
@@ -315,9 +318,10 @@ automatisch.
 xdg-open simplewiki.html          # oder: im Dateimanager doppelklicken
 ```
 
-Die erste Wiki bringt eine Startseite mit. Von dort aus: ☰ öffnet das
-Inhaltsverzeichnis, „+ Neue Seite“ legt eine an, der Knopf unten rechts
-schaltet den Editor ein.
+Eine frische Wiki startet leer: die Startfläche nennt den ersten Schritt und
+bietet, wer schreiben darf, einen Knopf für die erste Seite. Von dort aus: ☰
+öffnet das Inhaltsverzeichnis, „+ Neue Seite“ legt eine an, der Knopf unten
+rechts schaltet den Editor ein.
 
 Für die Tests:
 

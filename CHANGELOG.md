@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.27">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.28">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,17 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-11
+
+### v0.1.28 — einfache Zeilenumbrüche bleiben erhalten — 1029 Prüfungen
+
+Im Text einer Seite machte marked aus einem einzelnen Zeilenumbruch bisher ein
+Leerzeichen, deshalb liefen Zeilen wie "Name: Test" und "Anschrift: Test" nach
+dem Speichern zu "Name: Test Anschrift: Test" zusammen. Jetzt wird mit
+`{ breaks: true }` beim Rendern aus jedem einfachen Zeilenumbruch ein `<br>`,
+zwei aufeinanderfolgende Umbrüche bleiben zwei Absätze. Der Editor liefert
+nach wie vor die normale Markdown-Struktur, und die Umwandlung gilt nur bei
+der Anzeige. Geändert hat sich nur das SimpleWiki; der Austausch mit MWS bleibt
+unberührt. Version v0.1.27 → v0.1.28.
 
 ### v0.1.27 — der Fuss in den Einstellungen nennt Name und Version — 1025 Prüfungen
 

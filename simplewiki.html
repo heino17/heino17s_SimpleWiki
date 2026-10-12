@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.27">
+    <meta name="mws-shell-version" content="v0.1.28">
     <title>SimpleWiki</title>
 
     <!--
@@ -6661,10 +6661,17 @@ showSettings: false,
                    garantiert gleich aussehen.
                    Heisst absichtlich nicht "markdown": eine der
                    eingebundenen Bibliotheken bringt ein globales Objekt
-                   namens markdown mit, das diese Methode sonst trifft. */
+                   namens markdown mit, das diese Methode sonst trifft.
+
+                   breaks: true - ein einzelner Zeilenumbruch im Text
+                   wird zu <br>. Ohne das machte marked daraus ein
+                   Leerzeichen, und Zeilen wie "Name: x" / "Telefon: y"
+                   liefen zu einer einzigen Zeile zusammen. Zwei
+                   Umbrueche bleiben zwei Absaetze, das ist davon
+                   unberuehrt. */
                 alsHtml(text) {
                     const roh = this.ersetzeWikiSyntax(text || '');
-                    return this.decorateWikiLinks(marked.parse(roh));
+                    return this.decorateWikiLinks(marked.parse(roh, { breaks: true }));
                 },
 
                 /* Verweise einer beliebigen Seite: einmal fuer den Fluss,

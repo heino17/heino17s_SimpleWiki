@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.29">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.30">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -14,12 +14,19 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-11
 
-### v0.1.29 — der Zeilenabstand in der Seitenansicht kleiner — 1029 Prüfungen
+### v0.1.30 — das Inhaltsverzeichnis ist nur so breit wie nötig — 1030 Prüfungen
 
-Der Zeilenabstand in `.preview` war `1.8`; er ist auf `1.5` gesenkt. Das
-macht die Seiten lesbarer, ohne dass die Abstände zwischen Absätzen zu eng
-werden. Geändert hat sich nur das SimpleWiki; der Austausch mit MWS bleibt
-unberührt. Version v0.1.28 → v0.1.29.
+Die Spalte links nahm feste `--toc-breite` (360px, in schmalen Fenstern 300px)
+und ließ kurze Verzeichnisse mit viel leerem Raum stehen. Jetzt gilt
+`width: fit-content`: das Menü ist so breit wie sein längster Eintrag, sehr
+lange Titel werden weiterhin bei `--toc-breite` gekappt. Damit das Fähnchen
+mitwandert, sitzt es jetzt im Menü selbst an der Innenkante (`left: 100%`)
+statt an einer festen Zahl am Textkörper; `overflow: hidden` wandert von der
+Spalte in ihre beiden Kinder, damit beim Auf- und Zuklappen nichts quillt.
+Nebenbei sind die Menüzeilen etwas enger gerückt (Polsterung am Eintrag
+entfernt, die leere Stern-Spalte nachgezogen) - eine Handkorrektur, die so
+bleiben soll. Geändert hat sich nur das SimpleWiki; der Austausch mit MWS
+bleibt unberührt. Version v0.1.29 → v0.1.30.
 
 ### v0.1.29 — der Zeilenabstand in der Seitenansicht kleiner — 1029 Prüfungen
 

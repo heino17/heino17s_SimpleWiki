@@ -98,6 +98,9 @@ script1 = r"""
         ok(Math.abs(fr.left - r.right) <= 2,
            'es sitzt an der Innenkante des Menues: ' + Math.round(fr.left) + ' von ' + Math.round(r.right));
         ok(fr.top >= kopf.bottom - 1, 'und nicht in der Kopfzeile: ' + Math.round(fr.top));
+        ok(r.width > 0 && r.width < 360,
+           'die Spalte ist nur so breit wie noetig und nicht auf der Hoechstbreite: ' +
+           Math.round(r.width) + 'px');
 
         head('Zuklappen');
         f.click();
@@ -257,21 +260,23 @@ faehn = quelle[quelle.index('.toc-faehnchen {'):quelle.index('@media (max-width:
 
 merde('zu ist die Spalte schmal und drueckt nichts beiseite',
       bool(re.search(r'\.toc-menu\s*{[^}]*width:\s*0', menue, re.S)), True)
-merde('offen nimmt sie die Breite an',
-      bool(re.search(r'\.toc-menu\.offen\s*{[^}]*width:\s*var\(\-\-toc-breite\)', menue)), True)
+merde('offen ist sie nur so breit wie ihr laengster Eintrag',
+      bool(re.search(r'\.toc-menu\.offen\s*{[^}]*width:\s*fit-content', menue)), True)
+merde('und kappt sehr lange Titel an der Hoechstbreite',
+      bool(re.search(r'\.toc-menu\.offen\s*{[^}]*max-width:\s*min\(var\(\-\-toc-breite\), 85%\)', menue)), True)
 merde('sie schrumpft nie unter den Inhalt',
       bool(re.search(r'\.toc-menu\s*{[^}]*max-width:\s*85%', menue, re.S)), True)
+merde('und schneidet das Faehnchen an ihrer Kante nicht ab',
+      bool(re.search(r'\.toc-menu\s*{[^}]*overflow:\s*visible', menue, re.S)), True)
+merde('das Faehnchen haengt an der Spalte selbst',
+      bool(re.search(r'\.toc-menu\s*{[^}]*position:\s*relative', menue, re.S)), True)
 merde('der Koerper ist eine Zeile',
       bool(re.search(r'\.app-koerper\s*{[^}]*display:\s*flex', koerper, re.S)), True)
 merde('und gibt die uebrige Hoehe weiter',
       bool(re.search(r'\.app-koerper\s*{[^}]*min-height:\s*0', koerper, re.S)), True)
-merde('das Faehnchen haengt an dieser Zeile',
-      bool(re.search(r'\.app-koerper\s*{[^}]*position:\s*relative', koerper, re.S)), True)
-merde('das Faehnchen sitzt an der Innenkante',
-      bool(re.search(r'\.toc-faehnchen\.offen\s*{[^}]*left:\s*min\(var\(\-\-toc-breite\), 85%\)', faehn)), True)
-merde('und sitzt zu am Fensterrand',
-      bool(re.search(r'\.toc-faehnchen\s*{[^}]*left:\s*0', faehn, re.S)), True)
-merde('in einem schmalen Fenster wird die Spalte 300 Pixel breit',
+merde('das Faehnchen sitzt an der Innenkante des Menues',
+      bool(re.search(r'\.toc-faehnchen\s*{[^}]*left:\s*100%', faehn, re.S)), True)
+merde('in einem schmalen Fenster wird die Spalte hoechstens 300 Pixel breit',
       bool(re.search(r'@media \(max-width: 768px\)[\s\S]*?--toc-breite:\s*300px', ohne_kommentare)), True)
 
 # Der Startzustand. Er haengt an einer Fenstermasse, nicht an einer

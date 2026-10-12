@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.29">
+    <meta name="mws-shell-version" content="v0.1.30">
     <title>SimpleWiki</title>
 
     <!--
@@ -386,9 +386,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             /* Breite der Textspalte. Einmal hier, damit Seitenansicht
                und Fluss nicht auseinanderlaufen koennen. */
             --spaltenbreite: 860px;
-            /* Breite des Inhaltsverzeichnisses links. Auch das Faehnchen
-               rechnet damit - es sitzt an der Innenkante des Menues und
-               muss mitwandern, wenn das Fenster schmaler wird. */
+            /* Hoechstbreite des Inhaltsverzeichnisses links. Das Menue
+               ist nur so breit wie sein laengster Eintrag und waechst
+               bis hierhin. Das Faehnchen haengt an der Innenkante des
+               Menues und wandert von selbst mit; in einem schmalen
+               Fenster wird diese Grenze kleiner. */
             --toc-breite: 360px;
             /* Die Textur.
 
@@ -1466,7 +1468,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             flex: none;
             width: 0;
             max-width: 85%;
-            overflow: hidden;
+            /* Die Spalte selbst schneidet nicht ab: das Faehnchen sitzt
+               als ihr Kind an der Innenkante (left: 100%) und muss mit
+               der Breite wandern. Abgeschnitten wird in den beiden
+               Kindern - die Kopfzeile und die Liste klemmen ihren
+               Inhalt selbst, damit beim Zu- und Aufklappen nichts
+               ueber den Rand quillt. */
+            overflow: visible;
+            position: relative;
             display: flex;
             flex-direction: column;
             transition: width 0.25s ease;
@@ -1488,8 +1497,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             background-position: 0 0;
         }
 
+        /* Offen ist das Menue so breit wie sein laengster Eintrag -
+           fit-content nimmt, was der Inhalt braucht, und die Grenze
+           kappt sehr lange Titel bei --toc-breite. */
         .toc-menu.offen {
-            width: var(--toc-breite);
+            width: fit-content;
+            max-width: min(var(--toc-breite), 85%);
         }
 
         /* Die Kopfzeile des Menues ist eine Zeile und sonst nichts -
@@ -1499,6 +1512,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .toc-menu-kopf {
             padding: 14px 20px;
             flex: none;
+            /* Klemmt seinen Inhalt, damit beim Auf- und Zuklappen
+               nichts aus der schmalen Spalte quillt - das Menue
+               selbst schneidet nicht mehr ab. */
+            overflow: hidden;
         }
 
         .toc-menu-kopf h2 {
@@ -1506,13 +1523,15 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             color: var(--text-secondary);
         }
 
-        /* Das Faehnchen haengt an der Kante zwischen Menue und Inhalt.
-           Steht es am Rand, wenn das Menue zu ist, und auf der Kante,
-           wenn es offen ist. */
+        /* Das Faehnchen haengt an der Innenkante des Menues, links:100%
+           heisst "an seinem rechten Rand". Damit wandert es von selbst
+           mit, wenn das Menue nur so breit ist wie sein laengster
+           Eintrag - und sitzt am Fensterrand, sobald die Spalte zu ist
+           und keine Breite mehr hat. */
         .toc-faehnchen {
             position: absolute;
             top: 50%;
-            left: 0;
+            left: 100%;
             transform: translateY(-50%);
             width: 20px;
             min-height: 84px;
@@ -1531,10 +1550,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         .toc-faehnchen:hover {
             background: var(--accent-hover);
-        }
-
-        .toc-faehnchen.offen {
-            left: min(var(--toc-breite), 85%);
         }
 
         .toc-faehnchen:focus-visible {
@@ -1575,7 +1590,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         }
 
         .toc-item {
-            padding: 10px 12px;
             margin-bottom: 4px;
             border-radius: 6px;
             cursor: pointer;
@@ -1683,6 +1697,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         .toc-item-start.is-empty {
             visibility: hidden;
+            margin-left: -20px;
         }
 
         .toc-item-title {
@@ -3053,17 +3068,19 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                             {{ t('tocEmpty') }}
                         </div>
                     </div>
-                </div>
 
-                <!-- Das Fähnchen. Ist das Menü zu, klebt es am linken Rand
-                     und lädt zum Aufklappen ein; ist es offen, sitzt es an der
-                     Innenkante des Menüs und klappt es zu. -->
-                <button class="toc-faehnchen" :class="{ offen: tocMenuOffen }" @click="tocMenuUmschalten"
-                        :title="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
-                        :aria-label="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
-                        :aria-expanded="tocMenuOffen ? 'true' : 'false'">
-                    <span aria-hidden="true">{{ tocMenuOffen ? '‹' : '›' }}</span>
-                </button>
+                    <!-- Das Fähnchen sitzt im Menü selbst und hängt an
+                         dessen Innenkante: so wandert es von allein mit,
+                         wenn die Spalte nur so breit ist wie ihr längster
+                         Eintrag. Ist das Menü zu, steht es am Fensterrand
+                         und lädt zum Aufklappen ein. -->
+                    <button class="toc-faehnchen" @click="tocMenuUmschalten"
+                            :title="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
+                            :aria-label="tocMenuOffen ? t('tocMenuHide') : t('tocMenuShow')"
+                            :aria-expanded="tocMenuOffen ? 'true' : 'false'">
+                        <span aria-hidden="true">{{ tocMenuOffen ? '‹' : '›' }}</span>
+                    </button>
+                </div>
 
                 <div class="app-spalte">
                         <main class="main-content">

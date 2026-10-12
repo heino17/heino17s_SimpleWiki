@@ -14,9 +14,36 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-11
 
-### Die Testsuite läuft jetzt gleichzeitig
+### Die Buchhaltung der Zahlen an einer Stelle — 1030 Prüfungen
 
-`tests/alle.py` hat die 35 Dateien bisher nacheinander gestartet; ein Lauf
+Dieselben Zahlen stehen an mehreren Orten und mussten bisher von Hand
+mitgezogen werden: die Fassung in der `<meta>`-Zeile von `simplewiki.html`, in
+`README.md` und im Kopf des CHANGELOG, die Prüfungszahl in der obersten
+CHANGELOG-Überschrift, Testdateien und Prüfungen in `README.md` und `AGENTS.md`
+und die Strukturtafel mit Länge und Zeilenspannen. Genau dort hat es zuletzt
+gehakt: die README nannte noch 30 Testdateien und 933 Prüfungen, AGENTS 33.
+
+`tests/buchhaltung.py` stellt sie jetzt an einer Stelle her. Es liest den
+Aufbau aus `simplewiki.html` selbst — die Länge und die Grenzen der Teile an
+ihren Merkmalen, nicht gezählt von Hand —, die Fassung aus der obersten
+`### vX.Y.Z`-Überschrift des CHANGELOG und die Prüfungszahl aus dem letzten
+vollen Durchgang, den `alle.py` in `tests/_kopien/letzter_lauf.json` ablegt:
+
+```bash
+python3 tests/alle.py             # erst grün werden
+python3 tests/buchhaltung.py      # dann buchhalten
+python3 tests/buchhaltung.py --check   # nur melden (Endcode 1 = veraltet)
+```
+
+Ein gefilterter Lauf (`alle.py fluss`) schreibt keinen Bericht — eine halbe
+Suite darf keine ganze Zahl setzen. Stimmt die Zahl der Dateien im Bericht
+nicht mehr mit der Suite überein, warnt das Skript. Die Prüfungszahlen älterer
+Überschriften bleiben stehen: das ist die Geschichte, nicht der Stand. Nur die
+oberste Überschrift bekommt die geltende Zahl.
+
+### Die Testsuite läuft jetzt gleichzeitig — 1030 Prüfungen
+
+`tests/alle.py` hat die 34 Dateien bisher nacheinander gestartet; ein Lauf
 dauerte gut zehn Minuten. Jetzt laufen sie gleichzeitig: die Zahl der
 Prozessoren gibt die Voreinstellung, `-j N` stellt sie ein, `-j 1` ist der alte
 Lauf. Ein Test ist ein eigener Prozess mit eigener Kopie und eigenem

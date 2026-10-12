@@ -41,6 +41,28 @@ warum die eigene Änderung nicht ankommt, hat fast immer diesen Schritt
 vergessen; der Befehl meldet `Template "SimpleWiki" updated`, danach muss
 der Browser nur noch hart neu laden (Strg+Umschalt+R).
 
+## Die Buchhaltung
+
+Dieselben Zahlen stehen an mehreren Orten: die Fassung in der `<meta>`-Zeile
+von `simplewiki.html`, in `README.md` und im Kopf des CHANGELOG, die
+Prüfungszahl in der obersten CHANGELOG-Überschrift, Testdateien und Prüfungen
+in `README.md` und `AGENTS.md`, dazu die Strukturtafel mit Länge und
+Zeilenspannen. `buchhaltung.py` stellt sie an einer Stelle her.
+
+```bash
+python3 tests/alle.py                  # erst grün werden
+python3 tests/buchhaltung.py           # dann buchhalten
+python3 tests/buchhaltung.py --check   # nur melden (Endcode 1 = veraltet)
+```
+
+Die Fassung kommt aus der obersten `### vX.Y.Z`-Überschrift des CHANGELOG: wer
+eine neue will, schreibt sie dort samt Beschreibung hin, das Skript trägt sie
+in die drei `<meta>`-Zeilen. Die Prüfungszahl kommt aus dem letzten **vollen**
+Durchgang, den `alle.py` in `tests/_kopien/letzter_lauf.json` ablegt; ohne
+letzten Lauf hilft `--pruefungen N`. Ein gefilterter Lauf schreibt keinen
+Bericht. Die Zeilenspannen liest das Skript aus `simplewiki.html` selbst — es
+zählt nichts von Hand.
+
 Ein Test steht nicht in `alle.py`, weil er einen **echten** Server startet:
 `live_mws.py` prüft die Wiki gegen ein **echtes** MWS statt gegen die Testfigur
 aus `mwsserver.py`. Sechs weitere Tests starten zwar auch einen Server — aber den
@@ -87,6 +109,7 @@ sondern die Bibliothek — die wird hier geladen und über HTTP gesprochen.
 | `mwsserver.py` | der Testserver: Routen, Rechte, Sitzung, Fehler auf Kommando |
 | `mwsfixture.py` | baut eine **Datei**, die so aussieht, als käme sie vom MWS |
 | `live_mws.py` | **Live-Check gegen ein echtes MWS** (nicht in `alle.py`, siehe oben) |
+| `buchhaltung.py` | stellt die wiederkehrenden Zahlen her (Fassung, Prüfungszahl, Strukturtafel), siehe unten |
 
 Alle Kopien, PDFs und Zwischenstände landen in `tests/_kopien/` und werden
 nicht committet. Der Ordner lässt sich jederzeit löschen.

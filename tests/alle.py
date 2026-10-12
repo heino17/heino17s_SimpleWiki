@@ -18,6 +18,7 @@ bleiben - oben laufen nur die Fortschrittszeilen.
 """
 
 import concurrent.futures
+import json
 import os
 import re
 import subprocess
@@ -25,6 +26,7 @@ import sys
 import time
 
 HIN = os.path.dirname(os.path.abspath(__file__))
+BERICHT = os.path.join(HIN, '_kopien', 'letzter_lauf.json')
 
 # Reihenfolge von innen nach aussen: erst das Kleine, dann das Ganze.
 REIHENFOLGE = [
@@ -252,7 +254,28 @@ def main():
         print('%-16s %s' % (name, 'ok' if ok else 'FEHLGESCHLAGEN'))
     print()
     print('GESAMT: %d Pruefungen bestanden, %d fehlgeschlagen' % (gesamt_ok, gesamt_fehler))
+    # Den vollen Lauf fuer die Buchhaltung merken (tests/buchhaltung.py
+    # liest die Zahl von hier). Ein gefilterter Lauf hat keine volle
+    # Zahl und darf sie deshalb nicht ueberschreiben.
+    if not filtertext:
+        _lauf_merken(gesamt_ok, gesamt_fehler, len(dateien))
     return 1 if gesamt_fehler else 0
+
+
+def _lauf_merken(bestanden, fehlgeschlagen, dateien):
+    """Den Ausgang des vollen Durchgangs in _kopien ablegen.
+
+    _kopien/ ist nicht versioniert und darf jederzeit weg. Fehlt der
+    Ordner, wird er angelegt.
+    """
+    try:
+        os.makedirs(os.path.dirname(BERICHT), exist_ok=True)
+        with open(BERICHT, 'w', encoding='utf-8') as fh:
+            json.dump({'bestanden': bestanden, 'fehlgeschlagen': fehlgeschlagen,
+                       'dateien': dateien, 'zeit': time.strftime('%Y-%m-%dT%H:%M:%S')},
+                      fh)
+    except OSError:
+        pass
 
 
 if __name__ == '__main__':

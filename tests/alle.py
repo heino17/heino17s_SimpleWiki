@@ -65,6 +65,7 @@ REIHENFOLGE = [
     't_werkzeug.py',   # Werkzeugleiste: Wortzahl, Lesezeit, Zen, Druck der Seite
     't_markdown.py',   # Markdown der offenen Seite sichern und .md als Seiten lesen
     't_kaestchen.py',  # Aufgabenlisten: Kaestchen anklicken schreibt den Haken zurueck
+    't_seiteninhalt.py',  # Inhaltsverzeichnis der offenen Seite ueber dem Text
     't_bild.py',       # Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen
     't_umbruch.py',    # Ein einzelner Zeilenumbruch bleibt ein Umbruch
     't_buchhaltung.py',  # Die Buchhaltung selbst: Aufbau, Fassung, Zahlen
@@ -106,6 +107,7 @@ BESCHRIEBUNG = {
     't_werkzeug.py': 'Werkzeugleiste: Wortzahl und Lesezeit, ablenkungsfreier Modus, Druck der offenen Seite',
     't_markdown.py': 'Markdown der offenen Seite sichern und .md-Dateien als Seiten einlesen',
     't_kaestchen.py': 'Aufgabenlisten: Kaestchen anklicken schreibt den Haken zurueck, nur lesen laesst sie stehen',
+    't_seiteninhalt.py': 'Inhaltsverzeichnis der offenen Seite: Schalter, Ueberschriften, Sprungziele, Feld am Tiddler',
     't_bild.py': 'Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen',
     't_umbruch.py': 'Ein einzelner Zeilenumbruch bleibt ein Umbruch',
     't_buchhaltung.py': 'Buchhaltung ohne Browser: Aufbau, Fassung, Zahl der Testdateien',

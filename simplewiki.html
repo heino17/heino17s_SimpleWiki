@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.34">
+    <meta name="mws-shell-version" content="v0.1.35">
     <title>SimpleWiki</title>
 
     <!--
@@ -1068,6 +1068,50 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            der Zeiger sagt das vorher. */
         .aufgabe-kaestchen {
             cursor: pointer;
+        }
+
+        /* Das Inhaltsverzeichnis der offenen Seite: ein Kasten ueber dem
+           Text mit ihren Ueberschriften, nach Ebene eingerueckt. */
+        .seiteninhalt {
+            margin: 0 0 20px;
+            padding: 12px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            font-size: 0.9rem;
+        }
+
+        .seiteninhalt-titel {
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.75rem;
+        }
+
+        .seiteninhalt-liste {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .seiteninhalt-liste li {
+            margin: 2px 0;
+        }
+
+        .seiteninhalt-ebene-1 { padding-left: 0; }
+        .seiteninhalt-ebene-2 { padding-left: 16px; }
+        .seiteninhalt-ebene-3 { padding-left: 32px; }
+
+        .seiteninhalt-liste a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .seiteninhalt-liste a:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
         }
 
         .settings-schalter {
@@ -2881,6 +2925,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .toc-menu,
             .toc-faehnchen,
             .werkzeugleiste,
+            .seiteninhalt,
             .zen-ausgang,
             .hinweis,
             .fluss-kopf,
@@ -3329,6 +3374,20 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </div>
 
                     <div v-if="currentPage" class="content-body">
+                        <!-- Das Inhaltsverzeichnis der offenen Seite:
+                             ihre Ueberschriften, zum Anspringen. Steht
+                             ueber dem Text und nur, wenn es eingeschaltet
+                             ist und wirklich Ueberschriften gibt. -->
+                        <nav v-if="seiteninhaltAn && !isEditing && seitenUeberschriften.length"
+                             class="seiteninhalt" :aria-label="t('pageTocTitle')">
+                            <div class="seiteninhalt-titel">{{ t('pageTocTitle') }}</div>
+                            <ul class="seiteninhalt-liste">
+                                <li v-for="u in seitenUeberschriften" :key="u.id"
+                                    :class="'seiteninhalt-ebene-' + u.ebene">
+                                    <a :href="'#' + u.id" @click.prevent="springeZuUeberschrift(u.id)">{{ u.text }}</a>
+                                </li>
+                            </ul>
+                        </nav>
                         <!-- Ansicht -->
                         <div v-if="!isEditing" class="preview" @click="onPreviewClick" v-html="renderedContent"></div>
 
@@ -3495,6 +3554,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                         <span>{{ t('toolbarLabel') }}</span>
                     </label>
                     <p class="settings-hint">{{ t('toolbarHint') }}</p>
+                </div>
+                <div class="settings-section">
+                    <label class="settings-label">{{ t('pageTocSection') }}</label>
+                    <label class="settings-schalter">
+                        <input id="settings-seiteninhalt" type="checkbox" :checked="seiteninhaltAn" @change="seiteninhaltUmschalten" />
+                        <span>{{ t('pageTocLabel') }}</span>
+                    </label>
+                    <p class="settings-hint">{{ t('pageTocHint') }}</p>
                 </div>
                 <div v-if="palette === 'eigene'" class="settings-section farb-editor">
                     <label class="settings-label">{{ t('farbenBearbeiten') }}</label>
@@ -3751,6 +3818,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "Werkzeugleiste",
                     "toolbarLabel": "Werkzeugleiste anzeigen",
                     "toolbarHint": "Eine Zeile unter dem Kopf mit Wortzahl, Lesezeit, ablenkungsfreiem Modus und Druck der offenen Seite.",
+                    "pageTocTitle": "Inhalt dieser Seite",
+                    "pageTocSection": "Inhaltsverzeichnis der Seite",
+                    "pageTocLabel": "Inhaltsverzeichnis der Seite anzeigen",
+                    "pageTocHint": "Ein Verzeichnis der Überschriften über dem Text, zum Anspringen.",
                     "zenOpen": "Ablenkungsfrei lesen",
                     "zenClose": "Ablenkungsfreien Modus verlassen",
                     "printPage": "Diese Seite drucken",
@@ -3911,6 +3982,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "Toolbar",
                     "toolbarLabel": "Show toolbar",
                     "toolbarHint": "A row below the header with word count, reading time, distraction-free mode and printing the open page.",
+                    "pageTocTitle": "On this page",
+                    "pageTocSection": "Page contents",
+                    "pageTocLabel": "Show page contents",
+                    "pageTocHint": "A list of the headings above the text, to jump to them.",
                     "zenOpen": "Distraction-free reading",
                     "zenClose": "Leave distraction-free mode",
                     "printPage": "Print this page",
@@ -4113,6 +4188,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "Панель инструментов",
                     "toolbarLabel": "Показывать панель инструментов",
                     "toolbarHint": "Строка под заголовком: число слов, время чтения, режим без отвлечений и печать открытой страницы.",
+                    "pageTocTitle": "На этой странице",
+                    "pageTocSection": "Оглавление страницы",
+                    "pageTocLabel": "Показывать оглавление страницы",
+                    "pageTocHint": "Список заголовков над текстом, чтобы переходить к ним.",
                     "zenOpen": "Чтение без отвлечений",
                     "zenClose": "Выйти из режима без отвлечений",
                     "printPage": "Печать этой страницы",
@@ -4293,6 +4372,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "Barra de herramientas",
                     "toolbarLabel": "Mostrar la barra de herramientas",
                     "toolbarHint": "Una fila bajo la cabecera con el recuento de palabras, el tiempo de lectura, el modo sin distracciones y la impresión de la página abierta.",
+                    "pageTocTitle": "En esta página",
+                    "pageTocSection": "Contenido de la página",
+                    "pageTocLabel": "Mostrar el contenido de la página",
+                    "pageTocHint": "Una lista de los encabezados sobre el texto, para saltar a ellos.",
                     "zenOpen": "Lectura sin distracciones",
                     "zenClose": "Salir del modo sin distracciones",
                     "printPage": "Imprimir esta página",
@@ -4473,6 +4556,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "Barre d'outils",
                     "toolbarLabel": "Afficher la barre d'outils",
                     "toolbarHint": "Une ligne sous l'en-tête avec le nombre de mots, le temps de lecture, le mode sans distraction et l'impression de la page ouverte.",
+                    "pageTocTitle": "Sur cette page",
+                    "pageTocSection": "Sommaire de la page",
+                    "pageTocLabel": "Afficher le sommaire de la page",
+                    "pageTocHint": "Une liste des titres au-dessus du texte, pour y sauter.",
                     "zenOpen": "Lecture sans distraction",
                     "zenClose": "Quitter le mode sans distraction",
                     "printPage": "Imprimer cette page",
@@ -4653,6 +4740,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "ツールバー",
                     "toolbarLabel": "ツールバーを表示",
                     "toolbarHint": "見出しの下の行に、語数、読了時間、集中モード、開いているページの印刷を表示します。",
+                    "pageTocTitle": "このページの内容",
+                    "pageTocSection": "ページの目次",
+                    "pageTocLabel": "ページの目次を表示",
+                    "pageTocHint": "本文の上に見出しの一覧を表示し、そこへ移動できます。",
                     "zenOpen": "集中して読む",
                     "zenClose": "集中モードを終了",
                     "printPage": "このページを印刷",
@@ -4833,6 +4924,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "도구 모음",
                     "toolbarLabel": "도구 모음 표시",
                     "toolbarHint": "머리글 아래 줄에 단어 수, 읽는 시간, 집중 모드, 열린 페이지 인쇄를 표시합니다.",
+                    "pageTocTitle": "이 페이지 목차",
+                    "pageTocSection": "페이지 목차",
+                    "pageTocLabel": "페이지 목차 표시",
+                    "pageTocHint": "본문 위에 제목 목록을 표시하여 그리로 이동할 수 있습니다.",
                     "zenOpen": "집중해서 읽기",
                     "zenClose": "집중 모드 나가기",
                     "printPage": "이 페이지 인쇄",
@@ -5013,6 +5108,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "toolbarAria": "工具栏",
                     "toolbarLabel": "显示工具栏",
                     "toolbarHint": "在标题下方的一行显示字数、阅读时间、专注模式和打印当前页面。",
+                    "pageTocTitle": "本页内容",
+                    "pageTocSection": "页面目录",
+                    "pageTocLabel": "显示页面目录",
+                    "pageTocHint": "在正文上方列出标题，点击即可跳转。",
                     "zenOpen": "专注阅读",
                     "zenClose": "退出专注模式",
                     "printPage": "打印此页面",
@@ -5427,10 +5526,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
            Start laut, statt dass später irgendwo still nichts
            gespeichert wird.
 
-             laden()
-               -> { seiten, vorhanden, verweise, startseite, sprache,
-                    thema, palette, toolbar, eigeneFarben, nurLesen,
-                    wikiTitel, wikiUntertitel, art }
+              laden()
+                -> { seiten, vorhanden, verweise, startseite, sprache,
+                     thema, palette, toolbar, seiteninhalt, eigeneFarben,
+                     nurLesen, wikiTitel, wikiUntertitel, art }
                   seiten      die Seitenliste, die der Speicher verwaltet
                   vorhanden   true, wenn es etwas zu laden gab. Wichtig
                               für den Unterschied zwischen einem leeren
@@ -5464,6 +5563,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
              eigeneFarbenSetzen(werte)  die eigenen Farben (Objekt, s. u.)
              spracheSetzen(sprache) ein Code aus SIMPLEWIKI_LANGS
              toolbarSetzen(an)      Werkzeugleiste ein- oder ausschalten
+             seiteninhaltSetzen(an) Inhaltsverzeichnis der Seite ein- oder
+                                    ausschalten
 
            Dazu zwei Aufrufe, die nur der Serverspeicher hat: list holt
            alle Tiddler, read einen bestimmten. Im Browser gibt es nichts
@@ -5474,7 +5575,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         const SPEICHER_METHODEN = ['laden', 'uebernehmen', 'seiteSichern',
             'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen',
-            'eigeneFarbenSetzen', 'spracheSetzen', 'toolbarSetzen'];
+            'eigeneFarbenSetzen', 'spracheSetzen', 'toolbarSetzen',
+            'seiteninhaltSetzen'];
 
         function pruefeSpeicher(speicher, name) {
             const fehlt = SPEICHER_METHODEN.filter(m => typeof speicher[m] !== 'function');
@@ -5523,6 +5625,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     thema: SimpleWikiStore.get('simplewiki_theme') || '',
                     palette: SimpleWikiStore.get('simplewiki_palette') || '',
                     toolbar: SimpleWikiStore.get('simplewiki_toolbar') === '1',
+                    seiteninhalt: SimpleWikiStore.get('simplewiki_seiteninhalt') === '1',
                     eigeneFarben: eigeneFarbenLesen(SimpleWikiStore.get('simplewiki_eigene_farben')),
                     nurLesen: false,
                     wikiTitel: '',
@@ -5589,6 +5692,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             toolbarSetzen: function (an) {
                 this.einstellungen.toolbar = !!an;
                 SimpleWikiStore.set('simplewiki_toolbar', an ? '1' : '');
+                return true;
+            },
+
+            seiteninhaltSetzen: function (an) {
+                this.einstellungen.seiteninhalt = !!an;
+                SimpleWikiStore.set('simplewiki_seiteninhalt', an ? '1' : '');
                 return true;
             },
 
@@ -5813,6 +5922,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             }
             if (this.einstellungen.sprache) felder.sprache = this.einstellungen.sprache;
             felder.toolbar = this.einstellungen.toolbar ? 'true' : 'false';
+            felder.seiteninhalt = this.einstellungen.seiteninhalt ? 'true' : 'false';
             return this.ruf('save', { tiddlers: [felder] });
         };
 
@@ -5873,7 +5983,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 palette: traeger.palette ? String(traeger.palette) : '',
                 eigeneFarben: eigeneFarbenLesen(traeger.eigeneFarben),
                 sprache: traeger.sprache ? String(traeger.sprache) : '',
-                toolbar: wahlWahr(traeger.toolbar)
+                toolbar: wahlWahr(traeger.toolbar),
+                seiteninhalt: wahlWahr(traeger.seiteninhalt)
             };
 
             return {
@@ -5892,6 +6003,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 thema: this.einstellungen.thema,
                 palette: this.einstellungen.palette,
                 toolbar: this.einstellungen.toolbar,
+                seiteninhalt: this.einstellungen.seiteninhalt,
                 eigeneFarben: this.einstellungen.eigeneFarben,
                 nurLesen: this.nurLesen,
                 wikiTitel: this.wikiTitel,
@@ -5923,6 +6035,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 /* Der Schalter der Werkzeugleiste ist ein echtes Ja/Nein:
                    er wird immer mitgeschrieben, nicht nur wenn an. */
                 t.toolbar = this.einstellungen.toolbar ? 'true' : 'false';
+                t.seiteninhalt = this.einstellungen.seiteninhalt ? 'true' : 'false';
             }
             /* Die Stelle im Inhaltsverzeichnis mitgeben. */
             const pos = this.seiten.indexOf(seite);
@@ -5986,6 +6099,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         MwsStore.prototype.toolbarSetzen = function (an) {
             this.einstellungen.toolbar = !!an;
+            return this.einstellungenSchreiben();
+        };
+
+        MwsStore.prototype.seiteninhaltSetzen = function (an) {
+            this.einstellungen.seiteninhalt = !!an;
             return this.einstellungenSchreiben();
         };
 
@@ -6166,6 +6284,13 @@ showSettings: false,
                    und wandert deshalb in die Datei bzw. an den Tiddler der
                    Startseite. */
                 toolbarSichtbar: false,
+                /* Das Inhaltsverzeichnis der offenen Seite ueber dem Text:
+                   ebenfalls eine Einstellung wie die Farbe, standardmaessig
+                   aus. Die Ueberschriften selbst kommen aus der fertigen
+                   Vorschau (seitenUeberschriften) - so stimmen Verzeichnis
+                   und Text immer ueberein, auch bei Codebloecken. */
+                seiteninhaltAn: false,
+                seitenUeberschriften: [],
                 /* Der ablenkungsfreie Modus: Kopfzeile, Werkzeugleiste und
                    Verzeichnis weg, nur der Text. Nichts wird gespeichert -
                    er ist ein Zustand des Augenblicks. */
@@ -6590,7 +6715,10 @@ showSettings: false,
                 window.addEventListener('resize', this.onResize);
                 /* Der erste Aufbau laeuft nicht durch updated() - die
                    Kaestchen brauchen also hier einen Anstoss. */
-                this.$nextTick(() => this.kaestchenVorbereiten());
+                this.$nextTick(() => {
+                    this.kaestchenVorbereiten();
+                    this.seitenInhaltAufbauen();
+                });
             },
 
             /* Nach jedem Neuaufbau der Ansicht: die Kaestchen der
@@ -6599,6 +6727,7 @@ showSettings: false,
                abgeschaltet. */
             updated() {
                 this.kaestchenVorbereiten();
+                this.seitenInhaltAufbauen();
             },
 
             methods: {
@@ -7008,6 +7137,53 @@ showSettings: false,
                 toolbarUmschalten() {
                     this.toolbarSichtbar = !this.toolbarSichtbar;
                     SPEICHER.toolbarSetzen(this.toolbarSichtbar);
+                },
+
+                /* Das Inhaltsverzeichnis der offenen Seite ein- und
+                   ausschalten. Wie die Werkzeugleiste eine Einstellung,
+                   kein Inhalt. */
+                seiteninhaltUmschalten() {
+                    this.seiteninhaltAn = !this.seiteninhaltAn;
+                    SPEICHER.seiteninhaltSetzen(this.seiteninhaltAn);
+                    this.$nextTick(() => this.seitenInhaltAufbauen());
+                },
+
+                /* Die Ueberschriften aus der fertigen Vorschau holen und
+                   mit einer Kennung versehen, damit das Verzeichnis sie
+                   anspringen kann. Aus der Vorschau, nicht aus dem
+                   Quelltext: so faellt ein Codeblock von allein heraus,
+                   und Verzeichnis und Text koennen nicht auseinander
+                   laufen. Sind die Ueberschriften dieselben wie zuvor,
+                   bleibt die Liste stehen - sonst baute sich die Ansicht
+                   ueber updated() immer wieder selbst auf. */
+                seitenInhaltAufbauen() {
+                    const anzeige = document.querySelector('.content-body .preview');
+                    const kopfe = anzeige ? anzeige.querySelectorAll('h1, h2, h3') : [];
+                    const liste = [];
+                    for (let i = 0; i < kopfe.length; i++) {
+                        const k = kopfe[i];
+                        if (!k.id) k.id = 'simplewiki-ueberschrift-' + i;
+                        liste.push({
+                            id: k.id,
+                            text: (k.textContent || '').trim(),
+                            ebene: Number(k.tagName.charAt(1))
+                        });
+                    }
+                    const gleich = liste.length === this.seitenUeberschriften.length
+                        && liste.every((u, i) => {
+                            const a = this.seitenUeberschriften[i];
+                            return u.id === a.id && u.text === a.text && u.ebene === a.ebene;
+                        });
+                    if (!gleich) this.seitenUeberschriften = liste;
+                },
+
+                /* Im Text an die Ueberschrift springen. Nur springen,
+                   nichts oeffnen - die Ueberschrift liegt schon da. */
+                springeZuUeberschrift(id) {
+                    const ziel = document.getElementById(id);
+                    if (ziel && ziel.scrollIntoView) {
+                        ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 },
 
                 /* Ablenkungsfrei lesen: Kopfzeile, Leiste und Verzeichnis
@@ -7846,6 +8022,10 @@ showSettings: false,
                         this.toolbarSichtbar = wahlWahr(daten.toolbar);
                         SPEICHER.toolbarSetzen(this.toolbarSichtbar);
                     }
+                    if (Object.prototype.hasOwnProperty.call(daten, 'seiteninhalt')) {
+                        this.seiteninhaltAn = wahlWahr(daten.seiteninhalt);
+                        SPEICHER.seiteninhaltSetzen(this.seiteninhaltAn);
+                    }
                 },
 
                 /* "1 Seite" oder "3 Seiten" – für Hinweise und den Fluss. */
@@ -7870,6 +8050,7 @@ showSettings: false,
                     daten.thema = this.isDarkMode ? 'dark' : 'light';
                     daten.palette = this.palette;
                     daten.toolbar = !!this.toolbarSichtbar;
+                    daten.seiteninhalt = !!this.seiteninhaltAn;
                     daten.eigeneFarben = this.eigeneFarben;
                     return daten;
                 },
@@ -7882,7 +8063,7 @@ showSettings: false,
                         this.fremdeDaten = {};
                         return;
                     }
-                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette', 'toolbar', 'eigeneFarben'];
+                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette', 'toolbar', 'seiteninhalt', 'eigeneFarben'];
                     const raus = {};
                     Object.keys(daten).forEach(k => {
                         if (bekannt.indexOf(k) < 0) raus[k] = daten[k];
@@ -8241,6 +8422,7 @@ showSettings: false,
                         this.currentLang = geladen.sprache;
                     }
                     this.toolbarSichtbar = !!geladen.toolbar;
+                    this.seiteninhaltAn = !!geladen.seiteninhalt;
                 },
 
                 changeStartPage() {

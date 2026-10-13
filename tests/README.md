@@ -149,6 +149,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_werkzeug.py` | **die Werkzeugleiste unter dem Kopf**: Schalter, Wortzahl und Lesezeit, ablenkungsfreier Modus, Druck der offenen Seite, Austausch in `localStorage`, am Startseiten-Tiddler und im JSON |
 | `t_markdown.py` | **Markdown hin und zurueck**: die offene Seite als `.md` sichern (Dateiname aus dem Titel), `.md`-Dateien als Seiten einlesen (Der Dateiname wird der Titel, Doppelte werden eindeutig, Verweise werden notiert, Anhaengen statt Ersetzen) |
 | `t_kaestchen.py` | **Aufgabenlisten**: ein Kaestchen im Text anklicken aendert nur den Haken der Quellzeile und speichert die Seite, im Codeblock bleiben `[ ]` Text, ohne Schreibrecht bleibt das Kaestchen abgeschaltet |
+| `t_seiteninhalt.py` | **Inhaltsverzeichnis der Seite**: Schalter in den Einstellungen, Liste der Ueberschriften aus der Vorschau (Ebenen, Codeblock aussen vor), Sprungziel vorhanden, Praeferenz im Browserspeicher und als Feld am Tiddler |
 | `t_textur.py` | **die Textur kommt in beiden Modi an — und die CSS-Falle, die sie einmal verschluckt hat** |
 | `t_abbrechen.py` | **Abbrechen bei einer frisch angelegten Seite**: die Hüllseiten leben auf Widerruf, Sichern macht sie dauerhaft |
 | `t_klapp.py` | **Zuklappen im Verzeichnis**: der Zähler ist ein Anzeige-Ding dieser Ansicht, ab dem Neuladen wieder zugeklappt, nichts in `localStorage` |

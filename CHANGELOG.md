@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.34">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.35">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,32 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-13
+
+### v0.1.35 — das Inhaltsverzeichnis der offenen Seite — 1120 Prüfungen
+
+Ein Schalter in den Einstellungen legt über den Text ein Verzeichnis seiner
+Überschriften (H1 bis H3). Ein Klick springt zur Überschrift — sonst nichts,
+die Überschrift steht ja schon da. Die Liste kommt aus der **fertigen
+Vorschau**, nicht aus dem Quelltext: ein Codeblock fällt damit von allein
+heraus, und Verzeichnis und Text können nicht auseinanderlaufen. Die
+Überschriften bekommen dabei eine Kennung als Sprungziel.
+
+Wie die Werkzeugleiste ist der Schalter eine Einstellung, kein Inhalt: im
+Browser steht er in `localStorage` (`simplewiki_seiteninhalt`), am Server als
+Feld `seiteninhalt` am Tiddler der Startseite, und in der Austauschform als
+`seiteninhalt` oben. Ein fehlendes Feld heißt aus. Ältere Fassungen lassen den
+unbekannten Schlüssel unberührt, deshalb bleibt `version` bei 1. Das neue Feld
+am Tiddler und der neue Schlüssel im Austausch sind mit MWS-wikiwise
+abgesprochen; das `.tid`-Feld und die Vorlage dort ziehen nach.
+
+Geprueft in einem Entwicklungsstand: im Browser das Verzeichnis über den
+Schalter eingeschaltet und die Ueberschriften `Titel`, `Erster Abschnitt`,
+`Unterpunkt`, `Zweiter Abschnitt` in Reihenfolge und mit den richtigen Ebenen
+gesehen (der Codeblock `# kein Titel` fehlte), das Sprungziel im Text
+vorhanden, die Praeferenz im Browserspeicher, danach wieder ausgeschaltet; am
+Server stand das Verzeichnis von Anfang an (Feld am Tiddler `true`) und das
+Ausschalten kam als Feld `false` an. `tests/t_seiteninhalt.py` prueft beide
+Wege. Die Vertragslisten in `t_speicher.py` tragen `seiteninhaltSetzen`.
 
 ### v0.1.34 — Aufgabenlisten: das Kästchen im Text wird anklickbar — 1107 Prüfungen
 

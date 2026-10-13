@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.32">
+    <meta name="mws-shell-version" content="v0.1.33">
     <title>SimpleWiki</title>
 
     <!--
@@ -3139,6 +3139,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                         :aria-label="zenModus ? t('zenClose') : t('zenOpen')">⛶</button>
                 <button v-if="currentPage &amp;&amp; !zeigeFluss" type="button" class="werkzeug-btn" @click="seiteDrucken"
                         :title="t('printPage')" :aria-label="t('printPage')">🖨</button>
+                <button v-if="currentPage &amp;&amp; !zeigeFluss" type="button" class="werkzeug-btn" @click="seiteAlsMarkdown"
+                        :title="t('mdSave')" :aria-label="t('mdSave')">📝</button>
                 <span v-if="currentPage &amp;&amp; !zeigeFluss" class="werkzeug-zaehler">
                     {{ t('wordsCount').replace('{n}', wortZahl) }} · {{ t('readingTime').replace('{n}', lesezeit) }}
                 </span>
@@ -3540,6 +3542,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </button>
                     <p class="settings-hint">{{ t('fileSaveLeerHint') }}</p>
                     <input ref="dateiFeld" type="file" accept=".html,.json,text/html,application/json" class="datei-feld" @change="dateiLaden">
+                    <button class="settings-btn" @click="$refs.mdFeld.click()">
+                        📝 {{ t('mdLoad') }}
+                    </button>
+                    <p class="settings-hint">{{ t('mdLoadHint') }}</p>
+                    <input ref="mdFeld" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" class="datei-feld" multiple @change="markdownLaden">
                 </div>
             </div>
             <!-- Der Fuss des Einstellungen-Panels: der Name des Wikis wie
@@ -3743,6 +3750,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "Diese Seite drucken",
                     "wordsCount": "{n} Wörter",
                     "readingTime": "{n} Min. Lesezeit",
+                    "mdSave": "Diese Seite als Markdown-Datei sichern",
+                    "mdLoad": "Markdown-Dateien laden",
+                    "mdLoadHint": "Jede gewählte .md-Datei wird eine neue Seite. Der Dateiname ohne Endung wird der Titel.",
+                    "noticeMdLoaded": "Markdown geladen: {n} Seite(n)",
                     "palettePergament": "Pergament",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Wacholder",
@@ -3898,6 +3909,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "Print this page",
                     "wordsCount": "{n} words",
                     "readingTime": "{n} min read",
+                    "mdSave": "Save this page as a Markdown file",
+                    "mdLoad": "Load Markdown files",
+                    "mdLoadHint": "Each chosen .md file becomes a new page. The file name without its extension becomes the title.",
+                    "noticeMdLoaded": "Markdown loaded: {n} page(s)",
                     "palettePergament": "Parchment",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Juniper",
@@ -4095,6 +4110,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "Печать этой страницы",
                     "wordsCount": "{n} слов",
                     "readingTime": "{n} мин чтения",
+                    "mdSave": "Сохранить эту страницу как файл Markdown",
+                    "mdLoad": "Загрузить файлы Markdown",
+                    "mdLoadHint": "Каждый выбранный файл .md становится новой страницей. Имя файла без расширения становится заголовком.",
+                    "noticeMdLoaded": "Markdown загружен: страниц — {n}",
                     "palettePergament": "Пергамент",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Можжевельник",
@@ -4270,6 +4289,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "Imprimir esta página",
                     "wordsCount": "{n} palabras",
                     "readingTime": "{n} min de lectura",
+                    "mdSave": "Guardar esta página como archivo Markdown",
+                    "mdLoad": "Cargar archivos Markdown",
+                    "mdLoadHint": "Cada archivo .md elegido se convierte en una página nueva. El nombre del archivo sin la extensión pasa a ser el título.",
+                    "noticeMdLoaded": "Markdown cargado: {n} página(s)",
                     "palettePergament": "Pergamino",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Enebro",
@@ -4445,6 +4468,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "Imprimer cette page",
                     "wordsCount": "{n} mots",
                     "readingTime": "{n} min de lecture",
+                    "mdSave": "Enregistrer cette page comme fichier Markdown",
+                    "mdLoad": "Charger des fichiers Markdown",
+                    "mdLoadHint": "Chaque fichier .md choisi devient une nouvelle page. Le nom du fichier sans son extension devient le titre.",
+                    "noticeMdLoaded": "Markdown chargé : {n} page(s)",
                     "palettePergament": "Parchemin",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Genévrier",
@@ -4620,6 +4647,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "このページを印刷",
                     "wordsCount": "{n} 語",
                     "readingTime": "読了時間 {n} 分",
+                    "mdSave": "このページを Markdown ファイルとして保存",
+                    "mdLoad": "Markdown ファイルを読み込む",
+                    "mdLoadHint": "選んだ .md ファイルはそれぞれ新しいページになります。拡張子を除いたファイル名がタイトルになります。",
+                    "noticeMdLoaded": "Markdown を読み込みました: {n} ページ",
                     "palettePergament": "パーチメント",
                     "paletteNord": "Nord",
                     "paletteWacholder": "ジュニパー",
@@ -4795,6 +4826,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "이 페이지 인쇄",
                     "wordsCount": "단어 {n}개",
                     "readingTime": "읽는 시간 {n}분",
+                    "mdSave": "이 페이지를 Markdown 파일로 저장",
+                    "mdLoad": "Markdown 파일 불러오기",
+                    "mdLoadHint": "선택한 .md 파일마다 새 페이지가 됩니다. 확장자를 뺀 파일 이름이 제목이 됩니다.",
+                    "noticeMdLoaded": "Markdown 불러옴: {n}개 페이지",
                     "palettePergament": "퍼거먼트",
                     "paletteNord": "Nord",
                     "paletteWacholder": "주니퍼",
@@ -4970,6 +5005,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "printPage": "打印此页面",
                     "wordsCount": "{n} 个词",
                     "readingTime": "阅读时间 {n} 分钟",
+                    "mdSave": "将此页面保存为 Markdown 文件",
+                    "mdLoad": "载入 Markdown 文件",
+                    "mdLoadHint": "每个选中的 .md 文件都会成为一个新页面。去掉扩展名的文件名就是标题。",
+                    "noticeMdLoaded": "已载入 Markdown:{n} 个页面",
                     "palettePergament": "羊皮纸",
                     "paletteNord": "Nord",
                     "paletteWacholder": "杜松",
@@ -7854,6 +7893,83 @@ showSettings: false,
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
                     }
+                },
+
+                /* Die offene Seite als Markdown-Datei sichern.
+
+                   Der Inhalt der Seite ist bereits Markdown - hier wird
+                   nichts umgewandelt. Der Titel steckt im Dateinamen,
+                   damit beim Wiedereinlesen derselbe Name herauskommt. */
+                markdownDateiname(titel) {
+                    const sauber = String(titel || '')
+                        .replace(/[\\/:*?"<>|]+/g, '-')
+                        .replace(/[\u0000-\u001f]+/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim()
+                        .replace(/^\.+|\.+$/g, '')
+                        .trim();
+                    return (sauber || this.t('untitled')) + '.md';
+                },
+
+                seiteAlsMarkdown() {
+                    const seite = this.currentPage;
+                    if (!seite) return;
+                    try {
+                        this.dateiHerunterladen(seite.content || '', this.markdownDateiname(seite.title), 'text/markdown');
+                        this.hinweis(this.t('noticeSaved'));
+                    } catch (e) {
+                        this.hinweis(this.t('noticeSaveError'));
+                    }
+                },
+
+                /* Markdown-Dateien als Seiten einlesen.
+
+                   Jede Datei wird eine neue Seite, ihr Dateiname ohne
+                   Endung der Titel. Der Text bleibt, wie er ist: Markdown
+                   ist schon das Format der Seite. Anders als beim Laden
+                   einer Wiki-Datei wird hier nichts ersetzt, sondern nur
+                   ergaenzt. */
+                markdownLaden(event) {
+                    const feld = event.target;
+                    const dateien = Array.prototype.slice.call(feld.files || []);
+                    feld.value = '';
+                    if (!dateien.length) return;
+                    if (this.nurLesen) {
+                        this.hinweis(this.t('nurLesen'));
+                        return;
+                    }
+                    Promise.all(dateien.map((datei) =>
+                        datei.text().then((text) => ({ titel: datei.name, text: text }))
+                    )).then((gelesen) => {
+                        const neue = [];
+                        for (const eintrag of gelesen) {
+                            const seite = {
+                                id: Date.now().toString() + '-' + neue.length,
+                                title: this.eindeutigerTitel(String(eintrag.titel || '').replace(/\.[^.]+$/, '')),
+                                content: eintrag.text || '',
+                                links: [],
+                                tags: [],
+                                created: new Date().toISOString(),
+                                updated: new Date().toISOString()
+                            };
+                            seite.links = this.extractWikiLinks(seite.content);
+                            this.pages.push(seite);
+                            neue.push(seite);
+                        }
+                        this.seitenUebernehmen();
+                        this.seitenSichern();
+
+                        /* Ohne Startseite wird die erste neue zur
+                           Startseite - eine leere Wiki haette sonst
+                           keine. */
+                        if (!this.startPageId && neue.length) {
+                            this.startPageId = neue[0].id;
+                            SPEICHER.startseiteSetzen(neue[0].id);
+                        }
+                        this.selectPage(neue[0]);
+                        this.panelSetzen(null, false);
+                        this.hinweis(this.t('noticeMdLoaded').replace('{n}', neue.length));
+                    }).catch(() => this.hinweis(this.t('noticeError')));
                 },
 
                 /* Eine gesicherte Datei einlesen und übernehmen.

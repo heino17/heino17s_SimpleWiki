@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.32">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.33">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,30 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-13
+
+---
+
+## 2026-10-13
+
+### v0.1.33 — Markdown hin und zurück — 1085 Prüfungen
+
+Die offene Seite lässt sich jetzt als `.md`-Datei sichern: der Knopf 📝
+steht in der Werkzeugleiste neben dem Drucker. Der Inhalt ist schon
+Markdown, hier wird nichts umgewandelt; den Titel traegt der Dateiname
+(Zeichen, die kein Dateisystem mag, werden zu `-`). Umgekehrt liest der
+Einstellungen-Dialog unter „Daten" eine oder mehrere `.md`-Dateien ein:
+der Dateiname ohne Endung wird der Titel, ein doppelter Name wird
+eindeutig (`Notiz` wird zu `Notiz 2`), Verweise im Text werden notiert.
+Anders als beim Laden einer Wiki-Datei wird dabei nichts ersetzt - die
+neuen Seiten kommen dazu.
+
+Geprueft in einem Entwicklungsstand: im Browser die Seite `Alpha` ueber
+den Werkzeugleisten-Knopf gesichert (`Alpha.md`, Inhalt unveraendert),
+eine Seite mit Schraegstrich im Titel gesichert (`Bericht - 2026.md`),
+zwei `.md`-Dateien eingelesen und gesehen, dass `Notiz` und `Alpha 2` im
+Verzeichnis stehen, der Hinweis die Zahl nennt und Inhalt wie Verweis im
+Browserspeicher liegen; am Server dieselben Schritte, und die neue Seite
+kommt als Tiddler an. `tests/t_markdown.py` prueft alle drei Wege.
 
 ### v0.1.32 — eine Werkzeugleiste unter dem Kopf — 1066 Prüfungen
 

@@ -53,6 +53,7 @@ python3 tests/t_order.py          # a single test
 | **Search** | in the header; it searches title, content **and tags**, with the hits right below — and it is the only way to find something while the contents are folded |
 | **Flow** | read all pages one after another and print them as a PDF |
 | **Toolbar** | a row below the header, off by default and switched on in the settings dialog: word count and reading time of the open page, distraction-free reading (⛶, leaves with Escape), and the print of **just this page** |
+| **Markdown** | save the open page as a `.md` file (the file name carries the title); load one or more `.md` files as new pages (the file name without its extension becomes the title, the pages are added, not replaced) |
 | **Light / dark** | also in the editor; the 🌙/☀️ switch stays in every colour world |
 | **Colour worlds** | nine moods — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung and the **Own** one; each with a light and a dark branch, selectable in the settings dialog. The Own one grows from a cloned world and can be set colour by colour |
 | **Language** | eight languages (German, English, Russian, Spanish, French, Japanese, Korean, Chinese), built in |
@@ -133,7 +134,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.32">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.33">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -349,6 +350,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Suche** | im Kopf; sie sucht Titel, Inhalt **und Schlagworte**, die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
 | **Werkzeugleiste** | eine Zeile unter dem Kopf, standardmäßig aus und im Einstellungen-Dialog einschaltbar: Wortzahl und Lesezeit der offenen Seite, ablenkungsfreies Lesen (⛶, verlässt sich mit Escape) und der Druck **genau dieser Seite** |
+| **Markdown** | die offene Seite als `.md`-Datei sichern (der Dateiname trägt den Titel); eine oder mehrere `.md`-Dateien als neue Seiten laden (der Dateiname ohne Endung wird der Titel, die Seiten kommen dazu statt zu ersetzen) |
 | **Hell / Dunkel** | auch im Editor; die 🌙/☀️-Achse bleibt in jeder Farbwelt |
 | **Farbwelten** | neun Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung und die **Eigene**; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar. Die Eigene entsteht aus einer geklonten Welt und lässt sich Farbe für Farbe einstellen |
 | **Sprache** | acht Sprachen (Deutsch, Englisch, Russisch, Spanisch, Französisch, Japanisch, Koreanisch, Chinesisch), fest eingebaut |
@@ -359,7 +361,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 8966 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 9082 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -372,8 +374,8 @@ Reihenfolge:
               DOMPurify)
     368–3014  das Stylesheet
         3024  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    3027–3622  die Oberfläche (Vue-Template)
-    3624–8966  das Programm
+    3027–3629  die Oberfläche (Vue-Template)
+    3631–9082  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -524,7 +526,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **36 Testdateien**, 1066 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **37 Testdateien**, 1085 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

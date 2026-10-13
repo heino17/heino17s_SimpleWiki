@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.35">
+    <meta name="mws-shell-version" content="v0.1.36">
     <title>SimpleWiki</title>
 
     <!--
@@ -1103,6 +1103,61 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .seiteninhalt-ebene-1 { padding-left: 0; }
         .seiteninhalt-ebene-2 { padding-left: 16px; }
         .seiteninhalt-ebene-3 { padding-left: 32px; }
+
+        /* Hinweiskaesten im GitHub-Stil: ein Zitat mit farbigem Balken
+           links und einer Titelzeile. Fuenf Arten, jede mit eigener
+           Farbe; die Farbe traegt die Bedeutung, der Titel sagt sie im
+           Klartext. */
+        .preview .callout {
+            border-left: 4px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            padding: 10px 16px;
+        }
+
+        .preview .callout-note {
+            border-left-color: #4a90d9;
+        }
+
+        .preview .callout-tip {
+            border-left-color: #2e9e6b;
+        }
+
+        .preview .callout-important {
+            border-left-color: #8b5cf6;
+        }
+
+        .preview .callout-warning {
+            border-left-color: #d98a1f;
+        }
+
+        .preview .callout-caution {
+            border-left-color: #d9534f;
+        }
+
+        .preview .callout-titel {
+            font-weight: 600;
+        }
+
+        .preview .callout-note .callout-titel {
+            color: #4a90d9;
+        }
+
+        .preview .callout-tip .callout-titel {
+            color: #2e9e6b;
+        }
+
+        .preview .callout-important .callout-titel {
+            color: #8b5cf6;
+        }
+
+        .preview .callout-warning .callout-titel {
+            color: #d98a1f;
+        }
+
+        .preview .callout-caution .callout-titel {
+            color: #d9534f;
+        }
 
         .seiteninhalt-liste a {
             color: var(--text-secondary);
@@ -3822,6 +3877,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "Inhaltsverzeichnis der Seite",
                     "pageTocLabel": "Inhaltsverzeichnis der Seite anzeigen",
                     "pageTocHint": "Ein Verzeichnis der Überschriften über dem Text, zum Anspringen.",
+                    "callout_note": "Hinweis",
+                    "callout_tip": "Tipp",
+                    "callout_important": "Wichtig",
+                    "callout_warning": "Warnung",
+                    "callout_caution": "Achtung",
                     "zenOpen": "Ablenkungsfrei lesen",
                     "zenClose": "Ablenkungsfreien Modus verlassen",
                     "printPage": "Diese Seite drucken",
@@ -3986,6 +4046,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "Page contents",
                     "pageTocLabel": "Show page contents",
                     "pageTocHint": "A list of the headings above the text, to jump to them.",
+                    "callout_note": "Note",
+                    "callout_tip": "Tip",
+                    "callout_important": "Important",
+                    "callout_warning": "Warning",
+                    "callout_caution": "Caution",
                     "zenOpen": "Distraction-free reading",
                     "zenClose": "Leave distraction-free mode",
                     "printPage": "Print this page",
@@ -4192,6 +4257,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "Оглавление страницы",
                     "pageTocLabel": "Показывать оглавление страницы",
                     "pageTocHint": "Список заголовков над текстом, чтобы переходить к ним.",
+                    "callout_note": "Примечание",
+                    "callout_tip": "Совет",
+                    "callout_important": "Важно",
+                    "callout_warning": "Предупреждение",
+                    "callout_caution": "Внимание",
                     "zenOpen": "Чтение без отвлечений",
                     "zenClose": "Выйти из режима без отвлечений",
                     "printPage": "Печать этой страницы",
@@ -4376,6 +4446,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "Contenido de la página",
                     "pageTocLabel": "Mostrar el contenido de la página",
                     "pageTocHint": "Una lista de los encabezados sobre el texto, para saltar a ellos.",
+                    "callout_note": "Nota",
+                    "callout_tip": "Consejo",
+                    "callout_important": "Importante",
+                    "callout_warning": "Advertencia",
+                    "callout_caution": "Precaución",
                     "zenOpen": "Lectura sin distracciones",
                     "zenClose": "Salir del modo sin distracciones",
                     "printPage": "Imprimir esta página",
@@ -4560,6 +4635,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "Sommaire de la page",
                     "pageTocLabel": "Afficher le sommaire de la page",
                     "pageTocHint": "Une liste des titres au-dessus du texte, pour y sauter.",
+                    "callout_note": "Remarque",
+                    "callout_tip": "Conseil",
+                    "callout_important": "Important",
+                    "callout_warning": "Avertissement",
+                    "callout_caution": "Attention",
                     "zenOpen": "Lecture sans distraction",
                     "zenClose": "Quitter le mode sans distraction",
                     "printPage": "Imprimer cette page",
@@ -4744,6 +4824,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "ページの目次",
                     "pageTocLabel": "ページの目次を表示",
                     "pageTocHint": "本文の上に見出しの一覧を表示し、そこへ移動できます。",
+                    "callout_note": "注記",
+                    "callout_tip": "ヒント",
+                    "callout_important": "重要",
+                    "callout_warning": "警告",
+                    "callout_caution": "注意",
                     "zenOpen": "集中して読む",
                     "zenClose": "集中モードを終了",
                     "printPage": "このページを印刷",
@@ -4928,6 +5013,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "페이지 목차",
                     "pageTocLabel": "페이지 목차 표시",
                     "pageTocHint": "본문 위에 제목 목록을 표시하여 그리로 이동할 수 있습니다.",
+                    "callout_note": "참고",
+                    "callout_tip": "팁",
+                    "callout_important": "중요",
+                    "callout_warning": "경고",
+                    "callout_caution": "주의",
                     "zenOpen": "집중해서 읽기",
                     "zenClose": "집중 모드 나가기",
                     "printPage": "이 페이지 인쇄",
@@ -5112,6 +5202,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "pageTocSection": "页面目录",
                     "pageTocLabel": "显示页面目录",
                     "pageTocHint": "在正文上方列出标题，点击即可跳转。",
+                    "callout_note": "说明",
+                    "callout_tip": "提示",
+                    "callout_important": "重要",
+                    "callout_warning": "警告",
+                    "callout_caution": "注意",
                     "zenOpen": "专注阅读",
                     "zenClose": "退出专注模式",
                     "printPage": "打印此页面",
@@ -7214,7 +7309,46 @@ showSettings: false,
                    unberuehrt. */
                 alsHtml(text) {
                     const roh = this.ersetzeWikiSyntax(text || '');
-                    return this.decorateWikiLinks(marked.parse(roh, { breaks: true }));
+                    return this.gestalteCallouts(
+                        this.decorateWikiLinks(marked.parse(roh, { breaks: true })));
+                },
+
+                /* Hinweiskaesten im GitHub-Stil: ein Zitat, dessen erster
+                   Absatz mit [!NOTE] beginnt (auch [!HINWEIS] und die
+                   uebrigen Marken), wird zum farbigen Kasten mit einer
+                   Titelzeile. Alles andere Zitat bleibt ein Zitat. Die
+                   Arbeit am DOM: so ist die Marke genau das, was dasteht,
+                   und nicht eine Zeichenkette, die zufaellig so aussieht. */
+                gestalteCallouts(html) {
+                    const halter = document.createElement('div');
+                    halter.innerHTML = html;
+                    const arten = {
+                        note: 'note', tip: 'tip', important: 'important',
+                        warning: 'warning', caution: 'caution',
+                        hinweis: 'note', tipp: 'tip', wichtig: 'important',
+                        warnung: 'warning', achtung: 'caution'
+                    };
+                    const zitate = halter.querySelectorAll('blockquote');
+                    for (let i = 0; i < zitate.length; i++) {
+                        const zitat = zitate[i];
+                        const erster = zitat.querySelector('p');
+                        if (!erster) continue;
+                        const m = /^\s*\[!([A-Za-z]+)\]\s*/.exec(erster.textContent || '');
+                        if (!m) continue;
+                        const art = arten[m[1].toLowerCase()];
+                        if (!art) continue;
+                        zitat.classList.add('callout', 'callout-' + art);
+                        const titel = document.createElement('p');
+                        titel.className = 'callout-titel';
+                        titel.textContent = this.t('callout_' + art);
+                        zitat.insertBefore(titel, erster);
+                        erster.innerHTML = erster.innerHTML
+                            .replace(/^\s*\[![A-Za-z]+\]\s*(<br\s*\/?>)?/, '');
+                        if (!erster.textContent.trim() && !erster.querySelector('img, input')) {
+                            erster.parentNode.removeChild(erster);
+                        }
+                    }
+                    return halter.innerHTML;
                 },
 
                 /* Verweise einer beliebigen Seite: einmal fuer den Fluss,

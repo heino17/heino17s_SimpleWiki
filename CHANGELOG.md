@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.35">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.36">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,30 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-13
+
+### v0.1.36 — Hinweiskästen aus Zitaten — 1132 Prüfungen
+
+Ein Zitat, dessen erster Absatz mit `[!NOTE]` beginnt, wird zu einem farbigen
+Kasten mit Titelzeile. Fünf Arten wie bei GitHub — `[!NOTE]`, `[!TIP]`,
+`[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]` — und die deutschen Marken
+`[!HINWEIS]`, `[!TIPP]`, `[!WICHTIG]`, `[!WARNUNG]`, `[!ACHTUNG]`, die auf
+dieselben fünf fallen. Der Titel steht in der Sprache der Oberfläche, die
+Farbe des Balkens trägt dieselbe Bedeutung. Jedes andere Zitat bleibt ein
+Zitat, und eine unbekannte Marke ändert nichts — sie bleibt einfach stehen.
+
+Gearbeitet wird am DOM und nicht am HTML-Text: die Marke wird genau dann
+erkannt, wenn sie als erstes im ersten Absatz steht, und nicht, wenn eine
+Zeichenkette zufällig so aussieht. Wie die übrigen Formatierungsschritte
+läuft das über `alsHtml`, also in der Ansicht, im Verlauf und in der
+Vorschau der Randspalte. `details`/`summary` bleiben unberührt und sind
+weiterhin rohes HTML.
+
+Geprueft in einem Entwicklungsstand: eine Seite mit fuenf Zitaten, davon
+drei mit Marke, zeigte drei Kaesten (`callout-note`, `callout-warning` und
+fuer `[!HINWEIS]` wieder `callout-note`) mit den Titeln `Hinweis`,
+`Warnung` und `Hinweis`, den richtigen Texten, ohne die Marke im Kasten; das
+gewoehnliche Zitat und die unbekannte Marke blieben Zitate, die Marke dort
+sichtbar. `tests/t_callout.py` prueft genau das.
 
 ### v0.1.35 — das Inhaltsverzeichnis der offenen Seite — 1120 Prüfungen
 

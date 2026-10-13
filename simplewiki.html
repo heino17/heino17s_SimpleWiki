@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.33">
+    <meta name="mws-shell-version" content="v0.1.34">
     <title>SimpleWiki</title>
 
     <!--
@@ -1062,6 +1062,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .zen-ausgang:hover {
             color: var(--text-primary);
             background: var(--bg-hover);
+        }
+
+        /* Die Kaestchen einer Aufgabenliste sind beim Lesen anklickbar;
+           der Zeiger sagt das vorher. */
+        .aufgabe-kaestchen {
+            cursor: pointer;
         }
 
         .settings-schalter {
@@ -3754,6 +3760,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Markdown-Dateien laden",
                     "mdLoadHint": "Jede gewählte .md-Datei wird eine neue Seite. Der Dateiname ohne Endung wird der Titel.",
                     "noticeMdLoaded": "Markdown geladen: {n} Seite(n)",
+                    "taskToggle": "Kästchen umschalten",
                     "palettePergament": "Pergament",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Wacholder",
@@ -3913,6 +3920,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Load Markdown files",
                     "mdLoadHint": "Each chosen .md file becomes a new page. The file name without its extension becomes the title.",
                     "noticeMdLoaded": "Markdown loaded: {n} page(s)",
+                    "taskToggle": "Toggle checkbox",
                     "palettePergament": "Parchment",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Juniper",
@@ -4114,6 +4122,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Загрузить файлы Markdown",
                     "mdLoadHint": "Каждый выбранный файл .md становится новой страницей. Имя файла без расширения становится заголовком.",
                     "noticeMdLoaded": "Markdown загружен: страниц — {n}",
+                    "taskToggle": "Переключить флажок",
                     "palettePergament": "Пергамент",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Можжевельник",
@@ -4293,6 +4302,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Cargar archivos Markdown",
                     "mdLoadHint": "Cada archivo .md elegido se convierte en una página nueva. El nombre del archivo sin la extensión pasa a ser el título.",
                     "noticeMdLoaded": "Markdown cargado: {n} página(s)",
+                    "taskToggle": "Cambiar la casilla",
                     "palettePergament": "Pergamino",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Enebro",
@@ -4472,6 +4482,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Charger des fichiers Markdown",
                     "mdLoadHint": "Chaque fichier .md choisi devient une nouvelle page. Le nom du fichier sans son extension devient le titre.",
                     "noticeMdLoaded": "Markdown chargé : {n} page(s)",
+                    "taskToggle": "Basculer la case",
                     "palettePergament": "Parchemin",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Genévrier",
@@ -4651,6 +4662,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Markdown ファイルを読み込む",
                     "mdLoadHint": "選んだ .md ファイルはそれぞれ新しいページになります。拡張子を除いたファイル名がタイトルになります。",
                     "noticeMdLoaded": "Markdown を読み込みました: {n} ページ",
+                    "taskToggle": "チェックボックスを切り替える",
                     "palettePergament": "パーチメント",
                     "paletteNord": "Nord",
                     "paletteWacholder": "ジュニパー",
@@ -4830,6 +4842,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "Markdown 파일 불러오기",
                     "mdLoadHint": "선택한 .md 파일마다 새 페이지가 됩니다. 확장자를 뺀 파일 이름이 제목이 됩니다.",
                     "noticeMdLoaded": "Markdown 불러옴: {n}개 페이지",
+                    "taskToggle": "확인란 전환",
                     "palettePergament": "퍼거먼트",
                     "paletteNord": "Nord",
                     "paletteWacholder": "주니퍼",
@@ -5009,6 +5022,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdLoad": "载入 Markdown 文件",
                     "mdLoadHint": "每个选中的 .md 文件都会成为一个新页面。去掉扩展名的文件名就是标题。",
                     "noticeMdLoaded": "已载入 Markdown:{n} 个页面",
+                    "taskToggle": "切换复选框",
                     "palettePergament": "羊皮纸",
                     "paletteNord": "Nord",
                     "paletteWacholder": "杜松",
@@ -6574,6 +6588,17 @@ showSettings: false,
                 window.addEventListener('afterprint', this.nachDemDruck);
                 window.addEventListener('keydown', this.onKeydown);
                 window.addEventListener('resize', this.onResize);
+                /* Der erste Aufbau laeuft nicht durch updated() - die
+                   Kaestchen brauchen also hier einen Anstoss. */
+                this.$nextTick(() => this.kaestchenVorbereiten());
+            },
+
+            /* Nach jedem Neuaufbau der Ansicht: die Kaestchen der
+               Aufgabenlisten wieder anklickbar machen. Vue ersetzt die
+               Vorschau als Ganzes, deshalb sind sie jedes Mal neu
+               abgeschaltet. */
+            updated() {
+                this.kaestchenVorbereiten();
             },
 
             methods: {
@@ -7042,12 +7067,89 @@ showSettings: false,
                 },
 
                 onPreviewClick(event) {
+                    const kaestchen = event.target.closest('input[type="checkbox"][data-zeile]');
+                    if (kaestchen) {
+                        event.preventDefault();
+                        this.aufgabeUmschalten(Number(kaestchen.getAttribute('data-zeile')));
+                        return;
+                    }
                     const link = event.target.closest('a[data-wiki-link]');
                     if (!link) return;
                     event.preventDefault();
                     const titel = link.getAttribute('data-wiki-link');
                     if (!titel) return;
                     this.openLinkTarget(titel);
+                },
+
+                /* Aufgabenlisten im Text klickbar machen.
+
+                   Marked gibt "[ ]" und "[x]" als Kaestchen aus, aber
+                   immer abgeschaltet - eine Anzeige, keine Liste. Hier
+                   werden sie wieder angeklickt, solange geschrieben
+                   werden darf. Das Kaestchen gehoert zu einer Zeile im
+                   Quelltext; nur wenn die Zahl der Zeilenmarken und der
+                   Kaestchen uebereinstimmt, wird zugeordnet - sonst
+                   bliebe ein Kaestchen aus rohem HTML in der Rechnung. */
+                kaestchenVorbereiten() {
+                    const anzeige = document.querySelector('.content-body .preview');
+                    if (!anzeige) return;
+
+                    /* Lesen statt schreiben: schon angeklickte Kaestchen
+                       wieder abschalten. Die Vorschau selbst wird dabei
+                       nicht neu gebaut - die Abschaltung faellt sonst
+                       durchs Raster, wenn der Server erst nach dem
+                       Aufbau "nur lesen" meldet. */
+                    if (this.nurLesen || this.isEditing) {
+                        const alt = anzeige.querySelectorAll('.aufgabe-kaestchen');
+                        for (let i = 0; i < alt.length; i++) {
+                            alt[i].disabled = true;
+                            alt[i].removeAttribute('data-zeile');
+                            alt[i].classList.remove('aufgabe-kaestchen');
+                        }
+                        return;
+                    }
+                    if (!this.currentPage) return;
+                    const kaestchen = anzeige.querySelectorAll('input[type="checkbox"]');
+                    if (!kaestchen.length) return;
+
+                    const zeilen = (this.currentPage.content || '').split('\n');
+                    const marken = [];
+                    let imCode = false;
+                    for (let i = 0; i < zeilen.length; i++) {
+                        if (/^\s*(```|~~~)/.test(zeilen[i])) { imCode = !imCode; continue; }
+                        if (imCode) continue;
+                        if (/^\s*(?:[-*+]|\d+\.)\s+\[[ xX]\]/.test(zeilen[i])) marken.push(i);
+                    }
+                    if (marken.length !== kaestchen.length) return;
+
+                    for (let i = 0; i < kaestchen.length; i++) {
+                        const k = kaestchen[i];
+                        k.disabled = false;
+                        k.removeAttribute('disabled');
+                        k.setAttribute('data-zeile', String(marken[i]));
+                        k.setAttribute('title', this.t('taskToggle'));
+                        k.classList.add('aufgabe-kaestchen');
+                    }
+                },
+
+                /* Eine Aufgabe umschalten: [ ] wird [x] und zurueck.
+
+                   Geschrieben wird in der Zeile, die das Kaestchen
+                   angezeigt hat - nur der Haken aendert sich, sonst
+                   nichts. Gespeichert wird wie nach jeder Aenderung. */
+                aufgabeUmschalten(zeile) {
+                    if (!this.currentPage || this.nurLesen) return;
+                    const zeilen = (this.currentPage.content || '').split('\n');
+                    const vorher = zeilen[zeile];
+                    if (vorher === undefined) return;
+                    zeilen[zeile] = vorher.replace(
+                        /^(\s*(?:[-*+]|\d+\.)\s+)\[([ xX])\]/,
+                        (m, rumpf, haken) => rumpf + '[' + (haken === ' ' ? 'x' : ' ') + ']'
+                    );
+                    if (zeilen[zeile] === vorher) return;
+                    this.currentPage.content = zeilen.join('\n');
+                    this.currentPage.updated = new Date().toISOString();
+                    this.seiteSichern(this.currentPage);
                 },
 
                 /* Ist der Name schon vergeben? Seiten werden über den

@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.33">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.34">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,33 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-13
+
+### v0.1.34 — Aufgabenlisten: das Kästchen im Text wird anklickbar — 1107 Prüfungen
+
+Wer im Text `- [ ]` schreibt, bekommt beim Lesen ein Kästchen, das sich
+anklicken lässt. Marked setzt solche Kästchen immer auf `disabled`, damit sie
+nur zeigen und nichts tun; SimpleWiki schaltet sie wieder frei — ein Klick
+ändert **nur den Haken** in der Quellzeile (`- [ ]` wird `- [x]` und zurück)
+und speichert die Seite, sonst nichts. Wo nicht geschrieben werden darf
+(`nurLesen`), bleiben die Kästchen abgeschaltet, und meldet der Server das
+Schreibrecht erst nach dem Aufbau, werden schon freigeschaltete Kästchen
+wieder abgeschaltet.
+
+Die Zuordnung ist vorsichtig: Das Testskript sucht die Aufgabenzeilen im
+Quelltext, überspringt Codeblöcke (``` und ~~~) und schreibt erst, wenn die
+Zahl der gefundenen Zeilen genau der Zahl der angezeigten Kästchen entspricht.
+Stimmt sie nicht — etwa weil eine Aufgabe als rohes HTML im Text steht —,
+bleibt die ganze Seite ungelesen, statt das falsche Kästchen zu treffen. Das
+Kästchen trägt die Zeile als `data-zeile` und einen Hinweis (`taskToggle`) in
+allen acht Sprachen; der Zeiger wird zum Finger.
+
+Geprueft in einem Entwicklungsstand: im Browser ein Kästchen angeklickt und
+gesehen, dass nur `- [ ] offen` zu `- [x] offen` wird, die Nachbarzeile und
+der Codeblock unberührt bleiben und die Seite im Browserspeicher steht; ein
+zweiter Klick dreht den Haken zurück; nach `simplewiki:nurlesen` sind alle
+Kästchen wieder abgeschaltet und ein Klick ändert nichts. Am Server schreibt
+ein Klick die geänderte Seite als Tiddler, ohne Schreibrecht bleibt es bei
+keiner Schreibanfrage. `tests/t_kaestchen.py` prueft alle vier Wege.
 
 ---
 

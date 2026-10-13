@@ -54,6 +54,7 @@ python3 tests/t_order.py          # a single test
 | **Flow** | read all pages one after another and print them as a PDF |
 | **Toolbar** | a row below the header, off by default and switched on in the settings dialog: word count and reading time of the open page, distraction-free reading (⛶, leaves with Escape), and the print of **just this page** |
 | **Markdown** | save the open page as a `.md` file (the file name carries the title); load one or more `.md` files as new pages (the file name without its extension becomes the title, the pages are added, not replaced) |
+| **Task lists** | a `- [ ]` in the text becomes a checkbox you can click while reading; the click changes only the tick in the line and saves the page. Where you may not write, the boxes stay switched off |
 | **Light / dark** | also in the editor; the 🌙/☀️ switch stays in every colour world |
 | **Colour worlds** | nine moods — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung and the **Own** one; each with a light and a dark branch, selectable in the settings dialog. The Own one grows from a cloned world and can be set colour by colour |
 | **Language** | eight languages (German, English, Russian, Spanish, French, Japanese, Korean, Chinese), built in |
@@ -134,7 +135,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.33">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.34">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -351,6 +352,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
 | **Werkzeugleiste** | eine Zeile unter dem Kopf, standardmäßig aus und im Einstellungen-Dialog einschaltbar: Wortzahl und Lesezeit der offenen Seite, ablenkungsfreies Lesen (⛶, verlässt sich mit Escape) und der Druck **genau dieser Seite** |
 | **Markdown** | die offene Seite als `.md`-Datei sichern (der Dateiname trägt den Titel); eine oder mehrere `.md`-Dateien als neue Seiten laden (der Dateiname ohne Endung wird der Titel, die Seiten kommen dazu statt zu ersetzen) |
+| **Aufgabenlisten** | aus einem `- [ ]` im Text wird ein Kästchen, das beim Lesen angeklickt werden kann; der Klick ändert nur den Haken in der Zeile und speichert die Seite. Wo nicht geschrieben werden darf, bleiben die Kästchen abgeschaltet |
 | **Hell / Dunkel** | auch im Editor; die 🌙/☀️-Achse bleibt in jeder Farbwelt |
 | **Farbwelten** | neun Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung und die **Eigene**; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar. Die Eigene entsteht aus einer geklonten Welt und lässt sich Farbe für Farbe einstellen |
 | **Sprache** | acht Sprachen (Deutsch, Englisch, Russisch, Spanisch, Französisch, Japanisch, Koreanisch, Chinesisch), fest eingebaut |
@@ -361,7 +363,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 9082 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 9184 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -372,10 +374,10 @@ Reihenfolge:
          229  <script id="simplewiki-daten">  die Dateninsel
      233–367  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
               DOMPurify)
-    368–3014  das Stylesheet
-        3024  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    3027–3629  die Oberfläche (Vue-Template)
-    3631–9082  das Programm
+    368–3020  das Stylesheet
+        3030  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+    3033–3635  die Oberfläche (Vue-Template)
+    3637–9184  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -526,7 +528,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **37 Testdateien**, 1085 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **38 Testdateien**, 1107 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

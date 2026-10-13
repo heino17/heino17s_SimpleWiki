@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.36">
+    <meta name="mws-shell-version" content="v0.1.37">
     <title>SimpleWiki</title>
 
     <!--
@@ -3240,6 +3240,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                  Seite, der ablenkungsfreie Modus und der Druck genau
                  dieser Seite. -->
             <div v-if="toolbarSichtbar" class="werkzeugleiste" role="toolbar" :aria-label="t('toolbarAria')">
+                <button type="button" class="werkzeug-btn" :disabled="!kannRueckgaengig" @click="rueckgaengig"
+                        :title="t('undoHint')" :aria-label="t('undoHint')">↶</button>
                 <button type="button" class="werkzeug-btn" @click="zenUmschalten"
                         :title="zenModus ? t('zenClose') : t('zenOpen')"
                         :aria-label="zenModus ? t('zenClose') : t('zenOpen')">⛶</button>
@@ -3643,7 +3645,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 </div>
                 <div class="settings-section">
                     <label class="settings-label" for="settings-startpage">{{ t('startPage') }}</label>
-                    <select id="settings-startpage" class="select-input" v-model="startPageId" @change="changeStartPage">
+                    <select id="settings-startpage" class="select-input" :value="startPageId" @change="startseiteWaehlen($event)">
                         <option v-for="p in pages" :key="p.id" :value="p.id">
                             {{ p.title || t('untitled') }}
                         </option>
@@ -3888,6 +3890,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} Wörter",
                     "readingTime": "{n} Min. Lesezeit",
                     "mdSave": "Diese Seite als Markdown-Datei sichern",
+                    "undoHint": "Die letzte Änderung zurücknehmen",
+                    "undoDone": "Rückgängig gemacht.",
                     "mdLoad": "Markdown-Dateien laden",
                     "mdLoadHint": "Jede gewählte .md-Datei wird eine neue Seite. Der Dateiname ohne Endung wird der Titel.",
                     "noticeMdLoaded": "Markdown geladen: {n} Seite(n)",
@@ -4057,6 +4061,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} words",
                     "readingTime": "{n} min read",
                     "mdSave": "Save this page as a Markdown file",
+                    "undoHint": "Undo the last change",
+                    "undoDone": "Undone.",
                     "mdLoad": "Load Markdown files",
                     "mdLoadHint": "Each chosen .md file becomes a new page. The file name without its extension becomes the title.",
                     "noticeMdLoaded": "Markdown loaded: {n} page(s)",
@@ -4268,6 +4274,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} слов",
                     "readingTime": "{n} мин чтения",
                     "mdSave": "Сохранить эту страницу как файл Markdown",
+                    "undoHint": "Отменить последнее изменение",
+                    "undoDone": "Отменено.",
                     "mdLoad": "Загрузить файлы Markdown",
                     "mdLoadHint": "Каждый выбранный файл .md становится новой страницей. Имя файла без расширения становится заголовком.",
                     "noticeMdLoaded": "Markdown загружен: страниц — {n}",
@@ -4457,6 +4465,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} palabras",
                     "readingTime": "{n} min de lectura",
                     "mdSave": "Guardar esta página como archivo Markdown",
+                    "undoHint": "Deshacer el último cambio",
+                    "undoDone": "Deshecho.",
                     "mdLoad": "Cargar archivos Markdown",
                     "mdLoadHint": "Cada archivo .md elegido se convierte en una página nueva. El nombre del archivo sin la extensión pasa a ser el título.",
                     "noticeMdLoaded": "Markdown cargado: {n} página(s)",
@@ -4646,6 +4656,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} mots",
                     "readingTime": "{n} min de lecture",
                     "mdSave": "Enregistrer cette page comme fichier Markdown",
+                    "undoHint": "Annuler la dernière modification",
+                    "undoDone": "Annulé.",
                     "mdLoad": "Charger des fichiers Markdown",
                     "mdLoadHint": "Chaque fichier .md choisi devient une nouvelle page. Le nom du fichier sans son extension devient le titre.",
                     "noticeMdLoaded": "Markdown chargé : {n} page(s)",
@@ -4835,6 +4847,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} 語",
                     "readingTime": "読了時間 {n} 分",
                     "mdSave": "このページを Markdown ファイルとして保存",
+                    "undoHint": "最後の変更を元に戻す",
+                    "undoDone": "元に戻しました。",
                     "mdLoad": "Markdown ファイルを読み込む",
                     "mdLoadHint": "選んだ .md ファイルはそれぞれ新しいページになります。拡張子を除いたファイル名がタイトルになります。",
                     "noticeMdLoaded": "Markdown を読み込みました: {n} ページ",
@@ -5024,6 +5038,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "단어 {n}개",
                     "readingTime": "읽는 시간 {n}분",
                     "mdSave": "이 페이지를 Markdown 파일로 저장",
+                    "undoHint": "마지막 변경을 취소",
+                    "undoDone": "취소했습니다.",
                     "mdLoad": "Markdown 파일 불러오기",
                     "mdLoadHint": "선택한 .md 파일마다 새 페이지가 됩니다. 확장자를 뺀 파일 이름이 제목이 됩니다.",
                     "noticeMdLoaded": "Markdown 불러옴: {n}개 페이지",
@@ -5213,6 +5229,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "wordsCount": "{n} 个词",
                     "readingTime": "阅读时间 {n} 分钟",
                     "mdSave": "将此页面保存为 Markdown 文件",
+                    "undoHint": "撤销上一步修改",
+                    "undoDone": "已撤销。",
                     "mdLoad": "载入 Markdown 文件",
                     "mdLoadHint": "每个选中的 .md 文件都会成为一个新页面。去掉扩展名的文件名就是标题。",
                     "noticeMdLoaded": "已载入 Markdown:{n} 个页面",
@@ -6386,6 +6404,13 @@ showSettings: false,
                    und Text immer ueberein, auch bei Codebloecken. */
                 seiteninhaltAn: false,
                 seitenUeberschriften: [],
+                /* Die eine Stufe Ruecknahme: der Stand vor der letzten
+                   Aenderung. Es ist genau ein Platz, kein Stapel - die
+                   naechste Aenderung ueberschreibt ihn. Er wird vor jeder
+                   Aenderung neu gefuellt (merkeZustand) und beim
+                   Zuruecknehmen wiederhergestellt. */
+                undoZustand: null,
+                kannRueckgaengig: false,
                 /* Der ablenkungsfreie Modus: Kopfzeile, Werkzeugleiste und
                    Verzeichnis weg, nur der Text. Nichts wird gespeichert -
                    er ist ein Zustand des Augenblicks. */
@@ -6868,6 +6893,7 @@ showSettings: false,
                    sonst verlinken. */
                 toggleLink(titel) {
                     if (!titel) return;
+                    this.merkeZustand();
                     if (!Array.isArray(this.currentPage.links)) {
                         this.currentPage.links = [];
                     }
@@ -6888,6 +6914,7 @@ showSettings: false,
                 /* Verlinken und – falls nötig – die Seite gleich anlegen. */
                 linkAndCreate(titel) {
                     if (!titel) return;
+                    this.merkeZustand();
                     let neu = null;
                     if (!this.pages.some(p => p.title === titel)) {
                         neu = {
@@ -7457,6 +7484,7 @@ showSettings: false,
                         (m, rumpf, haken) => rumpf + '[' + (haken === ' ' ? 'x' : ' ') + ']'
                     );
                     if (zeilen[zeile] === vorher) return;
+                    this.merkeZustand();
                     this.currentPage.content = zeilen.join('\n');
                     this.currentPage.updated = new Date().toISOString();
                     this.seiteSichern(this.currentPage);
@@ -7500,6 +7528,7 @@ showSettings: false,
                         updated: new Date().toISOString()
                     };
                     this.fluechtigeSeiteId = neu.id;
+                    this.merkeZustand();
                     this.pages.push(neu);
                     this.currentPage = neu;
                     this.seiteSichern(neu);
@@ -8358,6 +8387,7 @@ showSettings: false,
                     Promise.all(dateien.map((datei) =>
                         datei.text().then((text) => ({ titel: datei.name, text: text }))
                     )).then((gelesen) => {
+                        this.merkeZustand();
                         const neue = [];
                         for (const eintrag of gelesen) {
                             const seite = {
@@ -8413,6 +8443,7 @@ showSettings: false,
                             return;
                         }
                         this.fremdeAngabenMerken(daten);
+                        this.merkeZustand();
                         this.pages = this.normiereSeiten(daten.seiten);
                         this.seitenUebernehmen();
                         this.seitenSichern();
@@ -8559,7 +8590,11 @@ showSettings: false,
                     this.seiteninhaltAn = !!geladen.seiteninhalt;
                 },
 
-                changeStartPage() {
+                startseiteWaehlen(event) {
+                    const neu = event && event.target ? event.target.value : '';
+                    if (String(neu) === String(this.startPageId)) return;
+                    this.merkeZustand();
+                    this.startPageId = neu;
                     SPEICHER.startseiteSetzen(this.startPageId);
                 },
 
@@ -8923,6 +8958,7 @@ createNewPage() {
                         updated: jetzt
                     };
                     this.fluechtigeSeiteId = seite.id;
+                    this.merkeZustand();
                     this.pages.push(seite);
                     this.seitenUebernehmen();
 
@@ -9086,6 +9122,7 @@ createNewPage() {
                            aus dem Feld aufnehmen, sonst ginge es mit dem
                            Schliessen des Editors verloren. */
                         this.tagAusEingabe();
+                        this.merkeZustand();
                         const alterTitel = this.currentPage.title;
                         const umbenannt = !!alterTitel && alterTitel !== titel;
 
@@ -9211,6 +9248,7 @@ createNewPage() {
                        heil bleibt. */
                     const quellIndex = this.pages.findIndex(p => p.id === quelle.id);
                     const stelle = quellIndex >= 0 ? this.unterbaumEnde(quellIndex) : 0;
+                    this.merkeZustand();
                     this.pages.splice(stelle, 0, kopie);
                     this.currentPage = kopie;
                     /* Wer eine eben angelegte Huellseite dupliziert, will
@@ -9237,6 +9275,7 @@ createNewPage() {
                 confirmDelete() {
                     const deleted = this.pageToDelete;
                     if (!deleted) return;
+                    this.merkeZustand();
                     this.seiteEntfernen(deleted);
                     /* Auf eine gültige Seite wechseln, sonst zeigt das
                        Wiki auf eine, die es nicht mehr gibt. */
@@ -9318,6 +9357,59 @@ createNewPage() {
                         || this.pages.find(p => p.id === this.startPageId)
                         || null;
                     this.seiteEntfernen(seite);
+                },
+
+                /* ---------- Einen Schritt zurueck ---------- */
+
+                /* Den Stand vor einer Aenderung merken. Ein Schritt,
+                   kein Stapel: jeder neue Aufruf ersetzt den alten. Ge-
+                   merkt wird der Inhalt - die Seiten, die Startseite und
+                   der Blick darauf. Eine Einstellung wie Farbe oder
+                   Sprache gehoert nicht dazu: sie ist keine Aenderung am
+                   Wiki, und ihr Zuruecknehmen waere eine eigene Handlung. */
+                merkeZustand() {
+                    this.undoZustand = {
+                        seiten: JSON.parse(JSON.stringify(this.pages)),
+                        startPageId: this.startPageId,
+                        currentPageId: this.currentPage ? this.currentPage.id : ''
+                    };
+                    this.kannRueckgaengig = true;
+                },
+
+                /* Den gemerkten Stand wiederherstellen - und ihn auch
+                   dem Speicher geben, sonst zeigte die Ansicht den alten
+                   Stand und der Speicher den neuen. Seiten, die es vorher
+                   nicht gab, werden entfernt; alle uebrigen neu geschrie-
+                   ben, damit Inhalt und Reihenfolge stimmen. */
+                rueckgaengig() {
+                    const z = this.undoZustand;
+                    if (!z) return;
+                    this.undoZustand = null;
+                    this.kannRueckgaengig = false;
+                    const alt = {};
+                    z.seiten.forEach(function (p) { alt[String(p.id)] = true; });
+                    this.pages.slice().forEach((p) => {
+                        if (!alt[String(p.id)]) SPEICHER.seiteLoeschen(p.id);
+                    });
+                    /* An Ort und Stelle, damit der Speicher dieselbe
+                       Liste behaelt. */
+                    this.pages.length = 0;
+                    z.seiten.forEach(function (p) {
+                        this.pages.push(JSON.parse(JSON.stringify(p)));
+                    }, this);
+                    for (let i = 0; i < this.pages.length; i++) {
+                        SPEICHER.seiteSichern(this.pages[i]);
+                    }
+                    this.startPageId = z.startPageId;
+                    SPEICHER.startseiteSetzen(this.startPageId);
+                    this.isEditing = false;
+                    this.destroyEditor();
+                    this.currentPage =
+                        this.pages.find(p => String(p.id) === String(z.currentPageId))
+                        || this.pages.find(p => String(p.id) === String(this.startPageId))
+                        || this.pages[0] || null;
+                    this.$nextTick(() => this.seitenInhaltAufbauen());
+                    this.hinweis(this.t('undoDone'));
                 },
 
                 toggleTheme() {

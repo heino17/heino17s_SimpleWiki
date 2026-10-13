@@ -208,6 +208,13 @@ def build(out_name, script, pages, theme='light', lang='de', startpage='1',
                   "                        usageStatistics: false\n                    });\n"
                   "                    window.__ed = this.mdEditor;   /* Testhaken */")
 
+    # Testhaken: Wurzel-Instanz erreichbar machen. mount() gibt in dieser
+    # Produktionsfassung den Proxy der Wurzelkomponente zurueck (app._instance
+    # bleibt null, das setzt nur der Entwicklungsbau). Deshalb wird das
+    # Ergebnis von mount() abgegriffen, statt in interne Felder zu greifen.
+    h = h.replace("        createApp({",
+                  "        window.__vm = createApp({")
+
     # Einfuegungen an den echten Tags
     h = hauptskripte(h, seed=seed_block, pre=PRE_SCRIPT, script=script)
 

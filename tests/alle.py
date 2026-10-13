@@ -67,6 +67,7 @@ REIHENFOLGE = [
     't_kaestchen.py',  # Aufgabenlisten: Kaestchen anklicken schreibt den Haken zurueck
     't_seiteninhalt.py',  # Inhaltsverzeichnis der offenen Seite ueber dem Text
     't_callout.py',    # Hinweiskaesten im GitHub-Stil aus Zitaten
+    't_undo.py',       # Einen Schritt zurueck: letzte Aenderung am Inhalt zuruecknehmen
     't_bild.py',       # Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen
     't_umbruch.py',    # Ein einzelner Zeilenumbruch bleibt ein Umbruch
     't_buchhaltung.py',  # Die Buchhaltung selbst: Aufbau, Fassung, Zahlen
@@ -110,6 +111,7 @@ BESCHRIEBUNG = {
     't_kaestchen.py': 'Aufgabenlisten: Kaestchen anklicken schreibt den Haken zurueck, nur lesen laesst sie stehen',
     't_seiteninhalt.py': 'Inhaltsverzeichnis der offenen Seite: Schalter, Ueberschriften, Sprungziele, Feld am Tiddler',
     't_callout.py': 'Hinweiskaesten im GitHub-Stil: [!NOTE] und [!HINWEIS] werden farbige Kaesten, andere Zitate bleiben Zitate',
+    't_undo.py': 'Einen Schritt zurueck: loeschen, aendern, anlegen - und jedes Mal zuruecknehmen, in Datei und am Server',
     't_bild.py': 'Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen',
     't_umbruch.py': 'Ein einzelner Zeilenumbruch bleibt ein Umbruch',
     't_buchhaltung.py': 'Buchhaltung ohne Browser: Aufbau, Fassung, Zahl der Testdateien',

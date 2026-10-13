@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.36">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.37">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,33 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-13
+
+### v0.1.37 — einen Schritt zurück — 1153 Prüfungen
+
+Der Knopf ↶ in der Werkzeugleiste nimmt die letzte Änderung am Inhalt zurück:
+eine gelöschte Seite, einen geänderten Text, eine frisch angelegte Seite. Ein
+Schritt, kein Stapel — jeder neue Eingriff ersetzt den gemerkten Stand. Solange
+nichts geändert wurde, ist der Knopf aus; nach dem Zurücknehmen wieder.
+
+Gemerkt wird der Inhalt: die Seiten (tiefe Kopie), die Startseite und der Blick
+darauf. **Eine Einstellung gehört nicht dazu.** Farbe, Farbwelt, Sprache,
+Werkzeugleiste und Verzeichnis-Schalter sind Vorlieben, kein Text; ihr
+Zurücknehmen wäre eine eigene Handlung und würde eine Inhaltsänderung mit einer
+unbeteiligten Vorliebe vermischen. Das ist eine Entscheidung und zugleich eine
+offene Frage: Soll das eines Tages mehr können, wird aus dem einen Schritt eine
+Chronik — das ist ein größerer Bau.
+
+Zurücknehmen stellt den Stand auch dem Speicher wieder her: Seiten, die es
+vorher nicht gab, werden gelöscht, alle übrigen neu geschrieben, die Startseite
+gesetzt. So zeigt die Ansicht dasselbe wie der Speicher, in der Datei wie am
+Server.
+
+Geprueft in einem Entwicklungsstand: eine Seite geloescht (der Knopf wurde
+moeglich), zurueckgenommen (Seite und Inhalt wieder da, der Knopf wieder aus);
+einen Text geaendert und zurueckgenommen (der alte Text stand wieder); eine
+Seite ueber einen Verweis angelegt und zurueckgenommen (sie war aus Liste und
+Speicher verschwunden). Am Server kamen Loeschen und Zurueckholen beide an.
+`tests/t_undo.py` prueft genau das.
 
 ### v0.1.36 — Hinweiskästen aus Zitaten — 1132 Prüfungen
 

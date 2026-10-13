@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.31">
+    <meta name="mws-shell-version" content="v0.1.32">
     <title>SimpleWiki</title>
 
     <!--
@@ -42,6 +42,11 @@
                      Farbwelt. Fehlt das Feld, gilt Pergament (die
                      Werte oben). thema sagt weiterhin Hell/Dunkel;
                      die Palette und der Modus sind getrennte Achsen.
+          toolbar    true | false. Zeigt die Werkzeugleiste unter der
+                     Kopfzeile (Wortzahl, Lesezeit, ablenkungsfreies
+                     Lesen, Druck der offenen Seite). Fehlt das Feld,
+                     ist sie aus. Ein Schalter der Oberfläche, keine
+                     Angabe zum Inhalt.
 
         Verweise im Text
           [[Ziel]]  oder  [[Beschriftung|Ziel]]  oder
@@ -142,9 +147,11 @@ MWS stellt die Tiddler nicht als Datenblock bereit, sondern als
           $:/SiteTitle         der Name des Wikis.
 
         Sprache und Farbe
-          Sie stehen als Felder (sprache, thema) an den Feldern des Tiddlers,
-          der die Startseite ist - nicht in jedem Tiddler, sonst liefen sie
-          auseinander. Wird die Startseite gewechselt, wandern sie mit.
+          Sie stehen als Felder (sprache, thema, palette, toolbar) an den
+          Feldern des Tiddlers, der die Startseite ist - nicht in jedem
+          Tiddler, sonst liefen sie auseinander. Wird die Startseite
+          gewechselt, wandern sie mit. toolbar ist "true" oder "false"
+          und zeigt die Werkzeugleiste unter der Kopfzeile.
 
         Was nicht uebernommen wird
           Systemtiddler ($:/...), $:/bag-info und $:/recipe-info sind keine
@@ -979,6 +986,91 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             align-items: center;
             gap: 12px;
             margin-left: auto;
+        }
+
+        /* Die Werkzeugleiste: eine volle Zeile unter dem Kopf, gleiche
+           Hoehe wie ein Knopf. Sie draengt den Koerper nach unten und
+           legt sich nicht darueber. */
+        .werkzeugleiste {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 6px 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .werkzeug-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 30px;
+            padding: 0 8px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: none;
+            color: var(--text-secondary);
+            font: inherit;
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .werkzeug-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .werkzeug-zaehler {
+            margin-left: auto;
+            padding-left: 12px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        /* Der ablenkungsfreie Modus: Kopf, Leiste und Verzeichnis weg.
+           Der Ausgang steht dann als schwebender Knopf im Bild. */
+        .app.zen .header,
+        .app.zen .werkzeugleiste,
+        .app.zen .toc-menu,
+        .app.zen .toc-faehnchen {
+            display: none;
+        }
+
+        .zen-ausgang {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 60;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font: inherit;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            cursor: pointer;
+        }
+
+        .zen-ausgang:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .settings-schalter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            cursor: pointer;
         }
 
         .theme-toggle {
@@ -2782,6 +2874,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             .such-treffer,
             .toc-menu,
             .toc-faehnchen,
+            .werkzeugleiste,
+            .zen-ausgang,
             .hinweis,
             .fluss-kopf,
             .fluss-verweise {
@@ -2931,7 +3025,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 </head>
 <body>
     <div id="app">
-        <div class="app">
+        <div class="app" :class="{ zen: zenModus }">
             <header class="header">
                 <div class="kopf-titel">
                     <h1>📚 {{ wikiTitel || t('appName') }}</h1>
@@ -3032,6 +3126,28 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 </button>
                 </div>
             </header>
+
+            <!-- Die Werkzeugleiste: eine eigene Zeile unter dem Kopf,
+                 standardmaessig aus und im Einstellungen-Dialog
+                 einschaltbar. Hier stehen die Werkzeuge, die nicht in
+                 jeden Kopf gehoeren: Wortzahl und Lesezeit der offenen
+                 Seite, der ablenkungsfreie Modus und der Druck genau
+                 dieser Seite. -->
+            <div v-if="toolbarSichtbar" class="werkzeugleiste" role="toolbar" :aria-label="t('toolbarAria')">
+                <button type="button" class="werkzeug-btn" @click="zenUmschalten"
+                        :title="zenModus ? t('zenClose') : t('zenOpen')"
+                        :aria-label="zenModus ? t('zenClose') : t('zenOpen')">⛶</button>
+                <button v-if="currentPage &amp;&amp; !zeigeFluss" type="button" class="werkzeug-btn" @click="seiteDrucken"
+                        :title="t('printPage')" :aria-label="t('printPage')">🖨</button>
+                <span v-if="currentPage &amp;&amp; !zeigeFluss" class="werkzeug-zaehler">
+                    {{ t('wordsCount').replace('{n}', wortZahl) }} · {{ t('readingTime').replace('{n}', lesezeit) }}
+                </span>
+            </div>
+
+            <!-- Im ablenkungsfreien Modus ist die Leiste weg - der Ausgang
+                 muss also woanders stehen. -->
+            <button v-if="zenModus" type="button" class="zen-ausgang" @click="zenUmschalten"
+                    :title="t('zenClose')" :aria-label="t('zenClose')">⛶ {{ t('zenClose') }}</button>
 
             <!-- Der Körper ist eine Zeile: links das Verzeichnis, rechts
                  der Inhalt. Das Menü ist eine Spalte im Aufbau und legt
@@ -3364,6 +3480,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </select>
                     <p class="settings-hint">{{ t('paletteHint') }}</p>
                 </div>
+                <div class="settings-section">
+                    <label class="settings-label">{{ t('toolbarSection') }}</label>
+                    <label class="settings-schalter">
+                        <input id="settings-toolbar" type="checkbox" :checked="toolbarSichtbar" @change="toolbarUmschalten" />
+                        <span>{{ t('toolbarLabel') }}</span>
+                    </label>
+                    <p class="settings-hint">{{ t('toolbarHint') }}</p>
+                </div>
                 <div v-if="palette === 'eigene'" class="settings-section farb-editor">
                     <label class="settings-label">{{ t('farbenBearbeiten') }}</label>
                     <p class="settings-hint">{{ t('farbenHinweis') }}</p>
@@ -3611,6 +3735,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Sprache",
                     "palette": "Farbwelt",
                     "paletteHint": "Wählt die Farbstimmung des Wikis. Der 🌙/☀️-Knopf oben schaltet darin Hell und Dunkel.",
+                    "toolbarAria": "Werkzeugleiste",
+                    "toolbarLabel": "Werkzeugleiste anzeigen",
+                    "toolbarHint": "Eine Zeile unter dem Kopf mit Wortzahl, Lesezeit, ablenkungsfreiem Modus und Druck der offenen Seite.",
+                    "zenOpen": "Ablenkungsfrei lesen",
+                    "zenClose": "Ablenkungsfreien Modus verlassen",
+                    "printPage": "Diese Seite drucken",
+                    "wordsCount": "{n} Wörter",
+                    "readingTime": "{n} Min. Lesezeit",
                     "palettePergament": "Pergament",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Wacholder",
@@ -3758,6 +3890,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Language",
                     "palette": "Colour palette",
                     "paletteHint": "Sets the wiki's colour mood. The 🌙/☀️ button above switches light and dark within it.",
+                    "toolbarAria": "Toolbar",
+                    "toolbarLabel": "Show toolbar",
+                    "toolbarHint": "A row below the header with word count, reading time, distraction-free mode and printing the open page.",
+                    "zenOpen": "Distraction-free reading",
+                    "zenClose": "Leave distraction-free mode",
+                    "printPage": "Print this page",
+                    "wordsCount": "{n} words",
+                    "readingTime": "{n} min read",
                     "palettePergament": "Parchment",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Juniper",
@@ -3947,6 +4087,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Язык",
                     "palette": "Палитра цветов",
                     "paletteHint": "Задаёт цветовое настроение вики. Кнопка 🌙/☀️ выше переключает в ней светлую и тёмную тему.",
+                    "toolbarAria": "Панель инструментов",
+                    "toolbarLabel": "Показывать панель инструментов",
+                    "toolbarHint": "Строка под заголовком: число слов, время чтения, режим без отвлечений и печать открытой страницы.",
+                    "zenOpen": "Чтение без отвлечений",
+                    "zenClose": "Выйти из режима без отвлечений",
+                    "printPage": "Печать этой страницы",
+                    "wordsCount": "{n} слов",
+                    "readingTime": "{n} мин чтения",
                     "palettePergament": "Пергамент",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Можжевельник",
@@ -4114,6 +4262,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Idioma",
                     "palette": "Paleta de colores",
                     "paletteHint": "Define el ánimo de color del wiki. El botón 🌙/☀️ de arriba cambia entre claro y oscuro dentro de él.",
+                    "toolbarAria": "Barra de herramientas",
+                    "toolbarLabel": "Mostrar la barra de herramientas",
+                    "toolbarHint": "Una fila bajo la cabecera con el recuento de palabras, el tiempo de lectura, el modo sin distracciones y la impresión de la página abierta.",
+                    "zenOpen": "Lectura sin distracciones",
+                    "zenClose": "Salir del modo sin distracciones",
+                    "printPage": "Imprimir esta página",
+                    "wordsCount": "{n} palabras",
+                    "readingTime": "{n} min de lectura",
                     "palettePergament": "Pergamino",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Enebro",
@@ -4281,6 +4437,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "Langue",
                     "palette": "Palette de couleurs",
                     "paletteHint": "Définit l'ambiance colorée du wiki. Le bouton 🌙/☀️ ci-dessus bascule clair et sombre à l'intérieur.",
+                    "toolbarAria": "Barre d'outils",
+                    "toolbarLabel": "Afficher la barre d'outils",
+                    "toolbarHint": "Une ligne sous l'en-tête avec le nombre de mots, le temps de lecture, le mode sans distraction et l'impression de la page ouverte.",
+                    "zenOpen": "Lecture sans distraction",
+                    "zenClose": "Quitter le mode sans distraction",
+                    "printPage": "Imprimer cette page",
+                    "wordsCount": "{n} mots",
+                    "readingTime": "{n} min de lecture",
                     "palettePergament": "Parchemin",
                     "paletteNord": "Nord",
                     "paletteWacholder": "Genévrier",
@@ -4448,6 +4612,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "言語",
                     "palette": "カラーパレット",
                     "paletteHint": "Wiki の色の雰囲気を決めます。上の 🌙/☀️ ボタンで、その中でライトとダークを切り替えます。",
+                    "toolbarAria": "ツールバー",
+                    "toolbarLabel": "ツールバーを表示",
+                    "toolbarHint": "見出しの下の行に、語数、読了時間、集中モード、開いているページの印刷を表示します。",
+                    "zenOpen": "集中して読む",
+                    "zenClose": "集中モードを終了",
+                    "printPage": "このページを印刷",
+                    "wordsCount": "{n} 語",
+                    "readingTime": "読了時間 {n} 分",
                     "palettePergament": "パーチメント",
                     "paletteNord": "Nord",
                     "paletteWacholder": "ジュニパー",
@@ -4615,6 +4787,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "언어",
                     "palette": "색상 팔레트",
                     "paletteHint": "위키의 색 분위기를 정합니다. 위쪽 🌙/☀️ 버튼으로 그 안에서 라이트와 다크를 전환합니다.",
+                    "toolbarAria": "도구 모음",
+                    "toolbarLabel": "도구 모음 표시",
+                    "toolbarHint": "머리글 아래 줄에 단어 수, 읽는 시간, 집중 모드, 열린 페이지 인쇄를 표시합니다.",
+                    "zenOpen": "집중해서 읽기",
+                    "zenClose": "집중 모드 나가기",
+                    "printPage": "이 페이지 인쇄",
+                    "wordsCount": "단어 {n}개",
+                    "readingTime": "읽는 시간 {n}분",
                     "palettePergament": "퍼거먼트",
                     "paletteNord": "Nord",
                     "paletteWacholder": "주니퍼",
@@ -4782,6 +4962,14 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "language": "语言",
                     "palette": "配色方案",
                     "paletteHint": "设定 Wiki 的色彩氛围。上方的 🌙/☀️ 按钮在其中切换浅色与深色。",
+                    "toolbarAria": "工具栏",
+                    "toolbarLabel": "显示工具栏",
+                    "toolbarHint": "在标题下方的一行显示字数、阅读时间、专注模式和打印当前页面。",
+                    "zenOpen": "专注阅读",
+                    "zenClose": "退出专注模式",
+                    "printPage": "打印此页面",
+                    "wordsCount": "{n} 个词",
+                    "readingTime": "阅读时间 {n} 分钟",
                     "palettePergament": "羊皮纸",
                     "paletteNord": "Nord",
                     "paletteWacholder": "杜松",
@@ -5086,6 +5274,15 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             return String(m ? m[1] : s).trim();
         }
 
+        /* Einen Schalterwert lesen, egal ob er als echtes Bool, als
+           "true"/"false" oder als "1"/"0" daherkommt. Alles andere
+           zaehlt als aus - so bleibt ein fehlendes Feld ein Aus. */
+        function wahlWahr(wert) {
+            if (wert === true) return true;
+            const s = String(wert == null ? '' : wert).trim().toLowerCase();
+            return s === 'true' || s === '1' || s === 'ja' || s === 'yes';
+        }
+
         /* ---------- Seite und Tiddler ----------
 
            Lesen (das, was der Server schickt):
@@ -5179,8 +5376,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
              laden()
                -> { seiten, vorhanden, verweise, startseite, sprache,
-                    thema, palette, eigeneFarben, nurLesen, wikiTitel,
-                    wikiUntertitel, art }
+                    thema, palette, toolbar, eigeneFarben, nurLesen,
+                    wikiTitel, wikiUntertitel, art }
                   seiten      die Seitenliste, die der Speicher verwaltet
                   vorhanden   true, wenn es etwas zu laden gab. Wichtig
                               für den Unterschied zwischen einem leeren
@@ -5213,6 +5410,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
              paletteSetzen(palette) eine Palette aus SIMPLEWIKI_PALETTEN
              eigeneFarbenSetzen(werte)  die eigenen Farben (Objekt, s. u.)
              spracheSetzen(sprache) ein Code aus SIMPLEWIKI_LANGS
+             toolbarSetzen(an)      Werkzeugleiste ein- oder ausschalten
 
            Dazu zwei Aufrufe, die nur der Serverspeicher hat: list holt
            alle Tiddler, read einen bestimmten. Im Browser gibt es nichts
@@ -5223,7 +5421,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         const SPEICHER_METHODEN = ['laden', 'uebernehmen', 'seiteSichern',
             'seiteLoeschen', 'startseiteSetzen', 'themaSetzen', 'paletteSetzen',
-            'eigeneFarbenSetzen', 'spracheSetzen'];
+            'eigeneFarbenSetzen', 'spracheSetzen', 'toolbarSetzen'];
 
         function pruefeSpeicher(speicher, name) {
             const fehlt = SPEICHER_METHODEN.filter(m => typeof speicher[m] !== 'function');
@@ -5271,6 +5469,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     sprache: SimpleWikiStore.get('simplewiki_lang') || '',
                     thema: SimpleWikiStore.get('simplewiki_theme') || '',
                     palette: SimpleWikiStore.get('simplewiki_palette') || '',
+                    toolbar: SimpleWikiStore.get('simplewiki_toolbar') === '1',
                     eigeneFarben: eigeneFarbenLesen(SimpleWikiStore.get('simplewiki_eigene_farben')),
                     nurLesen: false,
                     wikiTitel: '',
@@ -5331,6 +5530,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             spracheSetzen: function (sprache) {
                 this.einstellungen.sprache = sprache;
                 SimpleWikiStore.set('simplewiki_lang', sprache == null ? '' : String(sprache));
+                return true;
+            },
+
+            toolbarSetzen: function (an) {
+                this.einstellungen.toolbar = !!an;
+                SimpleWikiStore.set('simplewiki_toolbar', an ? '1' : '');
                 return true;
             },
 
@@ -5554,6 +5759,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 delete felder.eigeneFarben;
             }
             if (this.einstellungen.sprache) felder.sprache = this.einstellungen.sprache;
+            felder.toolbar = this.einstellungen.toolbar ? 'true' : 'false';
             return this.ruf('save', { tiddlers: [felder] });
         };
 
@@ -5613,7 +5819,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 thema: traeger.thema === 'dark' ? 'dark' : (traeger.thema === 'light' ? 'light' : ''),
                 palette: traeger.palette ? String(traeger.palette) : '',
                 eigeneFarben: eigeneFarbenLesen(traeger.eigeneFarben),
-                sprache: traeger.sprache ? String(traeger.sprache) : ''
+                sprache: traeger.sprache ? String(traeger.sprache) : '',
+                toolbar: wahlWahr(traeger.toolbar)
             };
 
             return {
@@ -5631,6 +5838,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 sprache: this.einstellungen.sprache,
                 thema: this.einstellungen.thema,
                 palette: this.einstellungen.palette,
+                toolbar: this.einstellungen.toolbar,
                 eigeneFarben: this.einstellungen.eigeneFarben,
                 nurLesen: this.nurLesen,
                 wikiTitel: this.wikiTitel,
@@ -5659,6 +5867,9 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     t.eigeneFarben = JSON.stringify(this.einstellungen.eigeneFarben);
                 }
                 if (this.einstellungen.sprache) t.sprache = this.einstellungen.sprache;
+                /* Der Schalter der Werkzeugleiste ist ein echtes Ja/Nein:
+                   er wird immer mitgeschrieben, nicht nur wenn an. */
+                t.toolbar = this.einstellungen.toolbar ? 'true' : 'false';
             }
             /* Die Stelle im Inhaltsverzeichnis mitgeben. */
             const pos = this.seiten.indexOf(seite);
@@ -5717,6 +5928,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         MwsStore.prototype.spracheSetzen = function (sprache) {
             this.einstellungen.sprache = sprache == null ? '' : String(sprache);
+            return this.einstellungenSchreiben();
+        };
+
+        MwsStore.prototype.toolbarSetzen = function (an) {
+            this.einstellungen.toolbar = !!an;
             return this.einstellungenSchreiben();
         };
 
@@ -5892,6 +6108,18 @@ showSettings: false,
                    ueber den Fluss-Knopf wieder zur ganzen Wiki. */
                 flussTag: '',
                 druckModus: false,
+                /* Die Werkzeugleiste unter der Kopfzeile: standardmaessig
+                   aus. Ob sie an ist, ist eine Einstellung wie die Farbe
+                   und wandert deshalb in die Datei bzw. an den Tiddler der
+                   Startseite. */
+                toolbarSichtbar: false,
+                /* Der ablenkungsfreie Modus: Kopfzeile, Werkzeugleiste und
+                   Verzeichnis weg, nur der Text. Nichts wird gespeichert -
+                   er ist ein Zustand des Augenblicks. */
+                zenModus: false,
+                /* Druckt gerade die offene Seite statt des ganzen Flusses?
+                   Der beforeprint-Zuhoerer fragt das, bevor er umschaltet. */
+                seiteDruckAn: false,
                 /* Unbekannte Angaben oben aus einer eingelesenen Datei. */
                 fremdeDaten: {},
                 /* Der Server hat kein Schreiben erlaubt. */
@@ -6183,6 +6411,26 @@ showSettings: false,
                 refCount() {
                     if (!this.currentPage) return 0;
                     return this.backlinks.length + this.outgoingLinks.length;
+                },
+
+                /* Wortzahl der offenen Seite - die Grundlage der Lesezeit.
+                   Gezaehlt wird der Fliesstext: erst Codebloecke ausblenden,
+                   dann Verweisziele in runden Klammern weg, dann die
+                   Markdown-Zeichen weg. Uebrig bleiben Woerter. */
+                wortZahl() {
+                    if (!this.currentPage) return 0;
+                    let s = this.quelltextAusblenden(this.currentPage.content || '').text;
+                    s = s.replace(/\]\([^)]*\)/g, ' ');
+                    s = s.replace(/^[ \t]*[-*+] \[[ xX]\]/gm, ' ');
+                    s = s.replace(/[#>*_~`|=-]+/g, ' ');
+                    return s.split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+                },
+
+                /* Lesezeit in Minuten. 200 Woerter je Minute ist die
+                   uebliche Schaetzung; angefangene Minuten zaehlen ganz,
+                   mindestens aber eine. */
+                lesezeit() {
+                    return this.wortZahl ? Math.max(1, Math.ceil(this.wortZahl / 200)) : 0;
                 },
 
                 /* Die Schlagworte der offenen Seite - als Pillen unter dem
@@ -6669,13 +6917,40 @@ showSettings: false,
                     });
                 },
 
-                /* Auch Strg+P soll den Fluss bringen. */
+                /* Auch Strg+P soll den Fluss bringen - aber nicht, wenn
+                   gerade die offene Seite gedruckt wird. */
                 vorDemDruck() {
+                    if (this.seiteDruckAn) return;
                     this.druckModus = true;
                 },
 
                 nachDemDruck() {
                     this.druckModus = false;
+                    this.seiteDruckAn = false;
+                },
+
+                /* Nur die offene Seite drucken. Sie steht schon da - der
+                   beforeprint-Zuhoerer darf den Fluss also nicht
+                   aufblenden. Das Kennzeichen bleibt gesetzt, bis
+                   afterprint es wieder loescht. */
+                seiteDrucken() {
+                    this.seiteDruckAn = true;
+                    window.print();
+                },
+
+                /* Die Werkzeugleiste ein- und ausschalten. Der Zustand ist
+                   eine Einstellung wie die Farbe, kein Inhalt - er wandert
+                   in den Speicher, nicht in die Seiten. */
+                toolbarUmschalten() {
+                    this.toolbarSichtbar = !this.toolbarSichtbar;
+                    SPEICHER.toolbarSetzen(this.toolbarSichtbar);
+                },
+
+                /* Ablenkungsfrei lesen: Kopfzeile, Leiste und Verzeichnis
+                   weg. Nur eine Sicht auf dieselben Seiten - nichts davon
+                   wird gespeichert. */
+                zenUmschalten() {
+                    this.zenModus = !this.zenModus;
                 },
 
                 /* Eine Seite im Fluss nicht bearbeiten, sondern öffnen. */
@@ -7188,6 +7463,13 @@ showSettings: false,
 
                 onKeydown(event) {
                     if (event.key === 'Escape') {
+                        /* Im ablenkungsfreien Modus ist der Ausgang das
+                           Erste: Kopfzeile und Panels sind dort ohnehin
+                           nicht zu sehen. */
+                        if (this.zenModus) {
+                            this.zenModus = false;
+                            return;
+                        }
                         /* Erst die Suche, dann die Panels. Die Trefferliste
                            liegt ueber allem und geht sonst nicht weg, und
                            wer sie wegklickt, hat die Suchabsicht beendet -
@@ -7416,6 +7698,13 @@ showSettings: false,
                         this.applyPalette();
                         SPEICHER.paletteSetzen(this.palette);
                     }
+                    /* Die Werkzeugleiste nur anfassen, wenn die Datei sie
+                       ausdruecklich nennt - sonst fiele eine Einstellung,
+                       die nur im Browser steht, beim Einlesen um. */
+                    if (Object.prototype.hasOwnProperty.call(daten, 'toolbar')) {
+                        this.toolbarSichtbar = wahlWahr(daten.toolbar);
+                        SPEICHER.toolbarSetzen(this.toolbarSichtbar);
+                    }
                 },
 
                 /* "1 Seite" oder "3 Seiten" – für Hinweise und den Fluss. */
@@ -7439,6 +7728,7 @@ showSettings: false,
                     daten.sprache = this.currentLang;
                     daten.thema = this.isDarkMode ? 'dark' : 'light';
                     daten.palette = this.palette;
+                    daten.toolbar = !!this.toolbarSichtbar;
                     daten.eigeneFarben = this.eigeneFarben;
                     return daten;
                 },
@@ -7451,7 +7741,7 @@ showSettings: false,
                         this.fremdeDaten = {};
                         return;
                     }
-                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette', 'eigeneFarben'];
+                    const bekannt = ['version', 'seiten', 'startseite', 'sprache', 'thema', 'palette', 'toolbar', 'eigeneFarben'];
                     const raus = {};
                     Object.keys(daten).forEach(k => {
                         if (bekannt.indexOf(k) < 0) raus[k] = daten[k];
@@ -7732,6 +8022,7 @@ showSettings: false,
                     if (geladen.sprache && SIMPLEWIKI_LANGS[geladen.sprache]) {
                         this.currentLang = geladen.sprache;
                     }
+                    this.toolbarSichtbar = !!geladen.toolbar;
                 },
 
                 changeStartPage() {

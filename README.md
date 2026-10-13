@@ -52,6 +52,7 @@ python3 tests/t_order.py          # a single test
 | **Duplicate** | creates a copy with its own name, with no link to the original |
 | **Search** | in the header; it searches title, content **and tags**, with the hits right below — and it is the only way to find something while the contents are folded |
 | **Flow** | read all pages one after another and print them as a PDF |
+| **Toolbar** | a row below the header, off by default and switched on in the settings dialog: word count and reading time of the open page, distraction-free reading (⛶, leaves with Escape), and the print of **just this page** |
 | **Light / dark** | also in the editor; the 🌙/☀️ switch stays in every colour world |
 | **Colour worlds** | nine moods — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung and the **Own** one; each with a light and a dark branch, selectable in the settings dialog. The Own one grows from a cloned world and can be set colour by colour |
 | **Language** | eight languages (German, English, Russian, Spanish, French, Japanese, Korean, Chinese), built in |
@@ -109,7 +110,8 @@ At **exactly one** place in the program it says where the pages come from
   closing the wiki).
 
 Both stores speak the same methods (`laden`, `uebernehmen`, `seiteSichern`,
-`seiteLoeschen`, `startseiteSetzen`, `themaSetzen`, `spracheSetzen`, `status`,
+`seiteLoeschen`, `startseiteSetzen`, `themaSetzen`, `spracheSetzen`,
+`toolbarSetzen`, `status`,
 `abmelden`). The rest of the program does not know the difference. If the
 point is not there or no tiddlers arrive, everything stays in the browser.
 
@@ -131,7 +133,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.31">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.32">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -171,7 +173,8 @@ Lives in the data island and can be written and read as its own `.json` file:
   ],
   "startseite": "id of the start page",
   "sprache": "de",
-  "thema": "light"
+  "thema": "light",
+  "toolbar": true
 }
 ```
 
@@ -345,6 +348,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Duplizieren** | legt eine Kopie mit eigenem Namen an, ohne Verknüpfung zur Vorlage |
 | **Suche** | im Kopf; sie sucht Titel, Inhalt **und Schlagworte**, die Treffer stehen direkt darunter — und sie sind der einzige Weg, etwas zu finden, wenn das Verzeichnis zugeklappt ist |
 | **Fluss** | alle Seiten hintereinander lesen und als PDF drucken |
+| **Werkzeugleiste** | eine Zeile unter dem Kopf, standardmäßig aus und im Einstellungen-Dialog einschaltbar: Wortzahl und Lesezeit der offenen Seite, ablenkungsfreies Lesen (⛶, verlässt sich mit Escape) und der Druck **genau dieser Seite** |
 | **Hell / Dunkel** | auch im Editor; die 🌙/☀️-Achse bleibt in jeder Farbwelt |
 | **Farbwelten** | neun Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung und die **Eigene**; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar. Die Eigene entsteht aus einer geklonten Welt und lässt sich Farbe für Farbe einstellen |
 | **Sprache** | acht Sprachen (Deutsch, Englisch, Russisch, Spanisch, Französisch, Japanisch, Koreanisch, Chinesisch), fest eingebaut |
@@ -355,21 +359,21 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 8675 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 8966 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
-       1–221  zwei Kommentare im <head>: der Austauschvertrag und der
+       1–228  zwei Kommentare im <head>: der Austauschvertrag und der
               MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier
               steht, warum das Format so aussieht und was der Server
               liefern muss.
-         222  <script id="simplewiki-daten">  die Dateninsel
-     226–360  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+         229  <script id="simplewiki-daten">  die Dateninsel
+     233–367  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
               DOMPurify)
-    361–2920  das Stylesheet
-        2930  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    2933–3498  die Oberfläche (Vue-Template)
-    3500–8675  das Programm
+    368–3014  das Stylesheet
+        3024  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+    3027–3622  die Oberfläche (Vue-Template)
+    3624–8966  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -403,8 +407,8 @@ An **genau einer** Stelle im Programm steht, woher die Seiten kommen
 
 Beide Speicher sprechen dieselben Methoden an (`laden`, `uebernehmen`,
 `seiteSichern`, `seiteLoeschen`, `startseiteSetzen`, `themaSetzen`,
-`spracheSetzen`, `status`, `abmelden`). Der Rest des Programms kennt den
-Unterschied nicht. Steht der Punkt nicht da oder kommen keine Tiddler an,
+`spracheSetzen`, `toolbarSetzen`, `status`, `abmelden`). Der Rest des Programms
+kennt den Unterschied nicht. Steht der Punkt nicht da oder kommen keine Tiddler an,
 bleibt alles im Browser.
 
 ## 🔌 Was SimpleWiki mit dem Server spricht
@@ -471,7 +475,8 @@ lesen:
   ],
   "startseite": "id der Startseite",
   "sprache": "de",
-  "thema": "light"
+  "thema": "light",
+  "toolbar": true
 }
 ```
 
@@ -519,7 +524,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **35 Testdateien**, 1040 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **36 Testdateien**, 1066 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

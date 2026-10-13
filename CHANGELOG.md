@@ -4,13 +4,44 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.31">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.32">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
+
+## 2026-10-13
+
+### v0.1.32 — eine Werkzeugleiste unter dem Kopf — 1066 Prüfungen
+
+Unter der Kopfzeile liegt jetzt eine zweite Zeile mit den Werkzeugen, die
+nicht in jeden Kopf gehören: **Wortzahl und Lesezeit** der offenen Seite, der
+**ablenkungsfreie Modus** (⛶) und der **Druck genau dieser Seite**. Die Leiste
+ist standardmäßig aus und wird im Einstellungen-Dialog unter „Werkzeugleiste
+anzeigen" eingeschaltet.
+
+Der Schalter ist eine Einstellung wie die Farbe und kein Inhalt: im Browser
+steht er in `localStorage` (`simplewiki_toolbar`), am Server als Feld
+`toolbar` am Tiddler der Startseite, und in der Austauschform als `toolbar`
+oben. Ein fehlendes Feld heißt aus. Ältere Fassungen lassen den unbekannten
+Schlüssel unberührt, deshalb bleibt `version` bei 1. Das neue Feld am Tiddler
+und der neue Schlüssel im Austausch sind mit MWS-wikiwise abgesprochen; das
+entsprechende `.tid`-Feld und die Vorlage dort ziehen nach.
+
+Die Wortzahl zählt den Fließtext — Codeblöcke sind vorher ausgeblendet, die
+Ziele von Verweisen zählen nicht mit. Aus ihr folgt die Lesezeit mit 200
+Wörtern je Minute, aufgerundet und mindestens eine Minute. Der ablenkungsfreie
+Modus blendet Kopfzeile, Leiste und Verzeichnis aus; ein schwebender Knopf oben
+rechts oder **Escape** holt zurück, gespeichert wird nichts. Der Druck der
+offenen Seite ist die Gegenprobe zum Fluss: der `beforeprint`-Zuhörer schaltet
+hier bewusst nicht in den Fluss um, denn wer diese Taste drückt, meint genau
+diese eine Seite und nicht das ganze Wiki.
+
+`tests/t_werkzeug.py` prüft alle drei Wege (Browser, Startseiten-Tiddler,
+JSON) und den Druck. Das neue Feld am Tiddler und der neue Schlüssel im
+Austausch tragen `toolbar` als Namen.
 
 ## 2026-10-12
 

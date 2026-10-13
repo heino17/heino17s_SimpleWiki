@@ -146,6 +146,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_export.py` | **die gesicherte Datei wirklich auf die Platte schreiben und öffnen** |
 | `t_fluss.py` | Fluss, Suche darin, Druckansicht als PDF |
 | `t_scroll.py` | Scrollen im Fluss bei kurzem Fenster, Druck über mehrere Seiten |
+| `t_werkzeug.py` | **die Werkzeugleiste unter dem Kopf**: Schalter, Wortzahl und Lesezeit, ablenkungsfreier Modus, Druck der offenen Seite, Austausch in `localStorage`, am Startseiten-Tiddler und im JSON |
 | `t_textur.py` | **die Textur kommt in beiden Modi an — und die CSS-Falle, die sie einmal verschluckt hat** |
 | `t_abbrechen.py` | **Abbrechen bei einer frisch angelegten Seite**: die Hüllseiten leben auf Widerruf, Sichern macht sie dauerhaft |
 | `t_klapp.py` | **Zuklappen im Verzeichnis**: der Zähler ist ein Anzeige-Ding dieser Ansicht, ab dem Neuladen wieder zugeklappt, nichts in `localStorage` |

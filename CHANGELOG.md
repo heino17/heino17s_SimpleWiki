@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.37">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.38">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,24 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-13
+
+### v0.1.38 — einrücken und ausrücken — 1172 Prüfungen
+
+Zwei Knöpfe in der Werkzeugleiste rücken Text ein und wieder aus. In einer
+Liste verschachteln sie einen Punkt oder holen ihn eine Ebene zurück, wie
+bisher. Außerhalb einer Liste wird der Absatz zu einem Zitat eingerückt
+(`> `), und Ausrücken macht daraus wieder einen gewöhnlichen Absatz: einen
+eingerückten Absatz ohne eigene Auszeichnung gibt es in Markdown nicht, das
+Zitat ist die nächste Entsprechung. Die beiden Knöpfe tragen ihren Namen in
+allen acht Sprachen der Oberfläche.
+
+Die eingebauten Knöpfe von TOAST UI sind ersetzt, nicht ergänzt: ihr
+Ausrücken ließ einen Absatz stehen und verschachtelte Zitate immer tiefer.
+Die neuen Befehle sind im WYSIWYG- und im Markdown-Modus angemeldet.
+
+Nebenbei ist die Höhe des Editors begrenzt, sodass die Umschalter
+WYSIWYG/Markdown unter dem Text stehen und nicht von der Werkzeugleiste
+verdeckt werden.
 
 ### v0.1.37 — einen Schritt zurück — 1153 Prüfungen
 

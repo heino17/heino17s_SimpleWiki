@@ -70,6 +70,7 @@ REIHENFOLGE = [
     't_undo.py',       # Einen Schritt zurueck: letzte Aenderung am Inhalt zuruecknehmen
     't_bild.py',       # Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen
     't_umbruch.py',    # Ein einzelner Zeilenumbruch bleibt ein Umbruch
+    't_einrueck.py',   # Einruecken/Ausruecken: Absatz wird Zitat, Listen verschachteln
     't_buchhaltung.py',  # Die Buchhaltung selbst: Aufbau, Fassung, Zahlen
 ]
 
@@ -114,6 +115,7 @@ BESCHRIEBUNG = {
     't_undo.py': 'Einen Schritt zurueck: loeschen, aendern, anlegen - und jedes Mal zuruecknehmen, in Datei und am Server',
     't_bild.py': 'Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen',
     't_umbruch.py': 'Ein einzelner Zeilenumbruch bleibt ein Umbruch',
+    't_einrueck.py': 'Einruecken und Ausruecken: Absatz wird Zitat, Listen verschachteln',
     't_buchhaltung.py': 'Buchhaltung ohne Browser: Aufbau, Fassung, Zahl der Testdateien',
 }
 

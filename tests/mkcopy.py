@@ -203,10 +203,12 @@ def build(out_name, script, pages, theme='light', lang='de', startpage='1',
     for a, b in EXTRA_REPLACEMENTS:
         h = h.replace(a, b)
 
-    # Testhaken: Editor-Instanz erreichbar machen
-    h = h.replace("                        usageStatistics: false\n                    });",
-                  "                        usageStatistics: false\n                    });\n"
-                  "                    window.__ed = this.mdEditor;   /* Testhaken */")
+    # Testhaken: Editor-Instanz erreichbar machen. Die Zeile steht hinter
+    # der Zuweisung, seit die Befehle am rohen Editor angemeldet werden
+    # (der Editor wird dafuer zuerst in eine lokale Variable gehoben).
+    h = h.replace("                    this.mdEditor = editor;\n",
+                  "                    this.mdEditor = editor;\n"
+                  "                    window.__ed = this.mdEditor;   /* Testhaken */\n")
 
     # Testhaken: Wurzel-Instanz erreichbar machen. mount() gibt in dieser
     # Produktionsfassung den Proxy der Wurzelkomponente zurueck (app._instance

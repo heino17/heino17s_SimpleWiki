@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.37">
+    <meta name="mws-shell-version" content="v0.1.38">
     <title>SimpleWiki</title>
 
     <!--
@@ -2723,7 +2723,12 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
 /* ---------- WYSIWYG-Editor an das Wiki-Thema anpassen ---------- */
         .md-host {
-            min-height: 200px;
+            /* Kein festes Mindestmass mehr. Die Hoehe kommt aus dem
+               gemessenen Platz (siehe editorHeight in der App). Eine
+               Untergrenze hier liess den Editor unter die Fusszeile und
+               ueber die Umschaltreiter Markdown/WYSIWYG laufen, sobald
+               die Werkzeugleiste eingeblendet war. */
+            min-height: 0;
         }
 
         .toastui-editor-defaultUI {
@@ -3892,6 +3897,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "Diese Seite als Markdown-Datei sichern",
                     "undoHint": "Die letzte Änderung zurücknehmen",
                     "undoDone": "Rückgängig gemacht.",
+                    "editorIndent": "Einrücken",
+                    "editorOutdent": "Ausrücken",
                     "mdLoad": "Markdown-Dateien laden",
                     "mdLoadHint": "Jede gewählte .md-Datei wird eine neue Seite. Der Dateiname ohne Endung wird der Titel.",
                     "noticeMdLoaded": "Markdown geladen: {n} Seite(n)",
@@ -4063,6 +4070,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "Save this page as a Markdown file",
                     "undoHint": "Undo the last change",
                     "undoDone": "Undone.",
+                    "editorIndent": "Indent",
+                    "editorOutdent": "Outdent",
                     "mdLoad": "Load Markdown files",
                     "mdLoadHint": "Each chosen .md file becomes a new page. The file name without its extension becomes the title.",
                     "noticeMdLoaded": "Markdown loaded: {n} page(s)",
@@ -4276,6 +4285,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "Сохранить эту страницу как файл Markdown",
                     "undoHint": "Отменить последнее изменение",
                     "undoDone": "Отменено.",
+                    "editorIndent": "Увеличить отступ",
+                    "editorOutdent": "Уменьшить отступ",
                     "mdLoad": "Загрузить файлы Markdown",
                     "mdLoadHint": "Каждый выбранный файл .md становится новой страницей. Имя файла без расширения становится заголовком.",
                     "noticeMdLoaded": "Markdown загружен: страниц — {n}",
@@ -4467,6 +4478,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "Guardar esta página como archivo Markdown",
                     "undoHint": "Deshacer el último cambio",
                     "undoDone": "Deshecho.",
+                    "editorIndent": "Aumentar sangría",
+                    "editorOutdent": "Reducir sangría",
                     "mdLoad": "Cargar archivos Markdown",
                     "mdLoadHint": "Cada archivo .md elegido se convierte en una página nueva. El nombre del archivo sin la extensión pasa a ser el título.",
                     "noticeMdLoaded": "Markdown cargado: {n} página(s)",
@@ -4658,6 +4671,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "Enregistrer cette page comme fichier Markdown",
                     "undoHint": "Annuler la dernière modification",
                     "undoDone": "Annulé.",
+                    "editorIndent": "Augmenter le retrait",
+                    "editorOutdent": "Réduire le retrait",
                     "mdLoad": "Charger des fichiers Markdown",
                     "mdLoadHint": "Chaque fichier .md choisi devient une nouvelle page. Le nom du fichier sans son extension devient le titre.",
                     "noticeMdLoaded": "Markdown chargé : {n} page(s)",
@@ -4849,6 +4864,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "このページを Markdown ファイルとして保存",
                     "undoHint": "最後の変更を元に戻す",
                     "undoDone": "元に戻しました。",
+                    "editorIndent": "インデントを増やす",
+                    "editorOutdent": "インデントを減らす",
                     "mdLoad": "Markdown ファイルを読み込む",
                     "mdLoadHint": "選んだ .md ファイルはそれぞれ新しいページになります。拡張子を除いたファイル名がタイトルになります。",
                     "noticeMdLoaded": "Markdown を読み込みました: {n} ページ",
@@ -5040,6 +5057,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "이 페이지를 Markdown 파일로 저장",
                     "undoHint": "마지막 변경을 취소",
                     "undoDone": "취소했습니다.",
+                    "editorIndent": "들여쓰기",
+                    "editorOutdent": "내어쓰기",
                     "mdLoad": "Markdown 파일 불러오기",
                     "mdLoadHint": "선택한 .md 파일마다 새 페이지가 됩니다. 확장자를 뺀 파일 이름이 제목이 됩니다.",
                     "noticeMdLoaded": "Markdown 불러옴: {n}개 페이지",
@@ -5231,6 +5250,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "mdSave": "将此页面保存为 Markdown 文件",
                     "undoHint": "撤销上一步修改",
                     "undoDone": "已撤销。",
+                    "editorIndent": "增加缩进",
+                    "editorOutdent": "减少缩进",
                     "mdLoad": "载入 Markdown 文件",
                     "mdLoadHint": "每个选中的 .md 文件都会成为一个新页面。去掉扩展名的文件名就是标题。",
                     "noticeMdLoaded": "已载入 Markdown:{n} 个页面",
@@ -9054,7 +9075,7 @@ createNewPage() {
                         return;
                     }
 
-                    this.mdEditor = new window.toastui.Editor({
+                    const editor = new window.toastui.Editor({
                         el: host,
                         height: this.editorHeight(),
                         initialEditType: 'wysiwyg',
@@ -9065,7 +9086,109 @@ createNewPage() {
                         placeholder: this.t('contentPlaceholder'),
                         usageStatistics: false
                     });
+                    this.mdEditor = editor;
+                    /* Die eigenen Einrück-Befehle am rohen Editor
+                       anmelden, solange er kein Vue-Proxy ist. */
+                    this.einrueckungEinrichten(editor);
                     this.applyEditorTheme();
+                },
+
+                /* Einrücken und Ausrücken auch für normale Absätze. Toast
+                   UI blendet die beiden Schaltflächen nur in Listen ein,
+                   außerhalb sind sie grau. Für einen Absatz ist
+                   "eingerückt" ein Zitat (siehe CHANGELOG): Einrücken
+                   macht aus dem Absatz ein Zitat, Ausrücken nimmt die
+                   Zitat-Ebene wieder weg. In Listen bleibt das eingebaute
+                   Verhalten - die Verschachtelung - erhalten. Die Knöpfe
+                   der Werkzeugleiste werden darum durch eigene ersetzt,
+                   die immer wählbar sind.
+
+                   Die Befehle werden am rohen Editor angemeldet, nicht an
+                   this.mdEditor: dieser ist ein Vue-Proxy. Über den Proxy
+                   griffe der Befehl auf einen gebundenen Zustand zu, und
+                   ProseMirror lehnt die Ausgabe dann als "mismatched"
+                   ab. */
+                einrueckungEinrichten(editor) {
+                    const cm = editor.commandManager;
+                    const inListe = (state) => {
+                        const $f = state.selection.$from;
+                        for (let i = $f.depth; i > 0; i--) {
+                            const name = $f.node(i).type.name;
+                            if (name === 'listItem' || name === 'bulletList'
+                                || name === 'orderedList' || name === 'taskList') {
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+                    const inZitat = (state) => {
+                        const $f = state.selection.$from;
+                        for (let i = $f.depth; i > 0; i--) {
+                            if ($f.node(i).type.name === 'blockQuote') {
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+                    const zitieren = cm.wwCommands.blockQuote;
+                    const listeEin = cm.wwCommands.indent;
+                    const listeAus = cm.wwCommands.outdent;
+
+                    editor.addCommand('wysiwyg', 'eingerueckt', (payload, state) => {
+                        if (inListe(state)) {
+                            listeEin(payload);
+                            return;
+                        }
+                        zitieren(payload);
+                    });
+                    editor.addCommand('wysiwyg', 'ausgerueckt', (payload, state, dispatch) => {
+                        if (inListe(state)) {
+                            listeAus(payload);
+                            return;
+                        }
+                        if (!inZitat(state)) {
+                            return;
+                        }
+                        const $f = state.selection.$from;
+                        let tiefe = 0;
+                        for (let i = $f.depth; i > 0; i--) {
+                            if ($f.node(i).type.name === 'blockQuote') {
+                                tiefe = i;
+                                break;
+                            }
+                        }
+                        if (tiefe) {
+                            dispatch(state.tr.replaceWith(
+                                $f.before(tiefe), $f.after(tiefe),
+                                $f.node(tiefe).content));
+                        }
+                    });
+                    /* Markdown-Modus: das eingebaute Verhalten behalten.
+                       Die Befehle werden direkt in der Befehlsliste
+                       angemeldet - so wie Toast UI es selbst tut -, denn
+                       die gespeicherten Markdown-Befehle erwarten nur die
+                       Nutzlast. */
+                    if (cm.mdCommands.indent) {
+                        cm.addCommand('markdown', 'eingerueckt', cm.mdCommands.indent);
+                    }
+                    if (cm.mdCommands.outdent) {
+                        cm.addCommand('markdown', 'ausgerueckt', cm.mdCommands.outdent);
+                    }
+
+                    editor.removeToolbarItem('indent');
+                    editor.removeToolbarItem('outdent');
+                    editor.insertToolbarItem({ groupIndex: 2, itemIndex: 3 }, {
+                        name: 'eingerueckt',
+                        tooltip: this.t('editorIndent'),
+                        command: 'eingerueckt',
+                        className: 'toastui-editor-toolbar-icons indent'
+                    });
+                    editor.insertToolbarItem({ groupIndex: 2, itemIndex: 4 }, {
+                        name: 'ausgerueckt',
+                        tooltip: this.t('editorOutdent'),
+                        command: 'ausgerueckt',
+                        className: 'toastui-editor-toolbar-icons outdent'
+                    });
                 },
 
                 /* Die offizielle Dunkel-Klasse von Toast UI setzen, damit auch
@@ -9086,7 +9209,25 @@ createNewPage() {
                     this.editorReady = false;
                 },
 
+                /* Die Hoehe des Editors aus dem wirklich freien Platz
+                   ableiten statt aus einer festen Zahl. Vorher rechnete
+                   "window.innerHeight - 260" die eigene Werkzeugleiste
+                   nicht heraus: sobald sie eingeblendet war, wuchs der
+                   Editor ueber die Fusszeile hinaus und legte sich ueber
+                   die Umschaltreiter Markdown/WYSIWYG. Gemessen wird
+                   deshalb der Inhaltsbereich - der Elternknoten des
+                   Editorplatzes - ohne seine Polsterung. Bleibt zu
+                   wenig Platz, greift die alte Notreserve, damit der
+                   Editor nie ganz verschwindet. */
                 editorHeight() {
+                    const host = this.$refs.mdHost;
+                    const koerper = host && host.parentElement;
+                    if (koerper) {
+                        const platz = koerper.clientHeight - 40;   /* 20 oben, 20 unten */
+                        if (platz > 120) {
+                            return platz + 'px';
+                        }
+                    }
                     return Math.max(260, window.innerHeight - 260) + 'px';
                 },
 

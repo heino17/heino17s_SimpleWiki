@@ -51,8 +51,8 @@ python3 tests/t_kopf.py          # einen einzelnen Test
 ```
 
 Zwei Abhängigkeiten: **python3** und **chromium** im Pfad. Für die
-Drucktests zusätzlich **`pdfinfo`** und **`pdftotext`**. Stand: 41
-Testdateien, 1153 Prüfungen.
+Drucktests zusätzlich **`pdfinfo`** und **`pdftotext`**. Stand: 42
+Testdateien, 1172 Prüfungen.
 
 Die wiederkehrenden Zahlen — Fassung, Prüfungszahl, Testdateien und die
 Strukturtafel — stellt `python3 tests/buchhaltung.py` her, nachdem die Suite

@@ -114,14 +114,6 @@ läuft sie am Ende wirklich, und ein roter Lauf hält den Commit auf.
 aus den Commit-Nachrichten, nicht erfunden. **Eine Prüfung ohne Zahl ist eine
 Prüfung ohne Wirkung** — siehe `tests/README.md`.
 
-## Offen (mitnehmen, aber nicht jetzt)
-
-- **„JSON sichern" heißt noch `simplewiki.json`.** Der Name sollte, wie die
-  HTML-Sicherung, vom Wiki kommen (`<name>.json`). Das zieht die Hinweistexte
-  in allen Sprachen nach sich.
-- **Der Hinweistext unter „Als Datei sichern" nennt noch `simplewiki.html`**
-  als festen Namen. Im Serverbetrieb ist es jetzt `<name>.html`.
-
 ## Was hier ausdrücklich nicht gemacht wird
 
 - `tests/live_mws.py` wird **aus einem anderen Ordner** aufgerufen. Nicht

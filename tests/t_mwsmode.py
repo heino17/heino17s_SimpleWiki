@@ -170,7 +170,7 @@ teil1 = r"""
         setTimeout(function () {
           all('.settings-btn').filter(function (b) { return /JSON/.test(b.textContent); })[0].click();
           /* Der Klick laeuft synchron, der Downloadname steht sofort. */
-          ok(window.__name === 'simplewiki.json', 'JSON heisst simplewiki.json: ' + window.__name);
+          ok(window.__name === 'alpha.json', 'JSON heisst alpha.json: ' + window.__name);
           setTimeout(function () {
             ok(!!window.__blob, 'JSON erzeugt');
             if (!window.__blob) { ende(); return; }

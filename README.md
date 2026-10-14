@@ -371,7 +371,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 9772 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 9776 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -385,7 +385,7 @@ Reihenfolge:
     368–3125  das Stylesheet
         3135  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
     3138–3764  die Oberfläche (Vue-Template)
-    3766–9772  das Programm
+    3766–9776  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die

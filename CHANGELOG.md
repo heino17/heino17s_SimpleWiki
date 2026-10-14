@@ -19,13 +19,18 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 Im Serverbetrieb hieß jede gesicherte Datei `simplewiki.html` — auch beim
 Handbuch. Der Name des Wikis steht aber im Pfad (`/wiki/<name>`). Die App
 reicht ihn jetzt durch und benennt die Datei danach: aus dem Handbuch wird
-`simplewiki-manual.html`. Im Browser, wo es keinen Servernamen gibt, bleibt es
-beim festen `simplewiki.html`. Zeichen, die in keinem Dateinamen stehen dürfen,
-werden zu `-`.
+`simplewiki-manual.html`. Dasselbe gilt für „JSON sichern“: die Datei heißt
+jetzt `simplewiki-manual.json`. Der Hinweistext unter dem Knopf setzt den
+Namen beim Anzeigen ein und nennt ihn in allen acht Sprachen. Im Browser, wo
+es keinen Servernamen gibt, bleibt es beim festen `simplewiki.html` und
+`simplewiki.json`. Zeichen, die in keinem Dateinamen stehen dürfen, werden
+zu `-`.
 
 Geprueft in einem Entwicklungsstand: ein Wiki auf dem Testserver geoeffnet und
 ueber "Als Datei sichern" gesichert - der Download hieß wie das Wiki
-(`alpha.html`). `tests/t_mwsmode.py` prueft das.
+(`alpha.html`); "JSON sichern" lieferte `alpha.json`, der Hinweis im
+Einstellungen-Bereich trug den Wiki-Namen. `tests/t_mwsmode.py` prueft beide
+Dateinamen.
 
 ### v0.1.39 — der leere Datenblock ist kein Fehler — 1173 Prüfungen
 

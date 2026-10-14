@@ -3663,7 +3663,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <button class="settings-btn" @click="sichernAlsDatei">
                         💾 {{ t('fileSave') }}
                     </button>
-                    <p class="settings-hint">{{ t('fileSaveHint') }}</p>
+                    <p class="settings-hint">{{ t('fileSaveHint').replace('{name}', sicherungsName()) }}</p>
                     <button class="settings-btn" @click="jsonExportieren">
                         📄 {{ t('fileSaveJson') }}
                     </button>
@@ -3802,13 +3802,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "Als Datei sichern",
                                         "fileSaveJson": "JSON exportieren",
                     "fileSaveJsonHint": "Schreibt nur die Daten als JSON – gleicher Aufbau wie beim Laden, ohne HTML-Hülle. Gedacht für Werkzeuge, die keine HTML-Datei bauen können.",
-                    "noticeJsonSaved": "JSON gesichert: simplewiki.json",
+                    "noticeJsonSaved": "JSON gesichert: {name}",
                     "noticeNoPages": "Die Datei enthält keine Seiten – es wurde nichts ersetzt.",
                     "noticeVersionFehlt": "Die Datei nennt keine Formatversion und wurde nicht gelesen – so geht keine Information verloren.",
                     "noticeVersionUngueltig": "Die Datei nennt die Version „{version}“. Erlaubt ist eine Zahl ab 1.",
                     "noticeVersionZuNeu": "Die Datei hat Version {version}, diese Wiki kommt bis Version {eigen}. Es wurde nichts übernommen.",
                     "noticeTitleFrei": "Den Namen „{title}“ gibt es schon. Bitte einen anderen wählen.",
-"fileSaveHint": "Legt eine HTML-Datei mit allen Seiten in dieser Reihenfolge an – du kannst sie unter dem Namen simplewiki.html speichern und damit diese Datei ersetzen.",
+"fileSaveHint": "Legt eine HTML-Datei mit allen Seiten in dieser Reihenfolge an. Speichere sie als {name} — damit kannst du diese Datei ersetzen.",
                     "fileLoad": "Datei laden",
                     "fileLoadHint": "Übernimmt die Seiten aus einer gesicherten HTML- oder JSON-Datei und ersetzt das aktuelle Wiki.",
                     "noticeSaved": "Gesichert. Die Datei liegt jetzt im Download-Ordner.",
@@ -3996,13 +3996,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "Save as file",
                                         "fileSaveJson": "Export JSON",
                     "fileSaveJsonHint": "Writes only the data as JSON – same structure as on import, without an HTML wrapper. Meant for tools that cannot build an HTML file.",
-                    "noticeJsonSaved": "JSON saved: simplewiki.json",
+                    "noticeJsonSaved": "JSON saved: {name}",
                     "noticeNoPages": "The file contains no pages – nothing was replaced.",
                     "noticeVersionFehlt": "The file names no format version and was not read – so no information is lost.",
                     "noticeVersionUngueltig": "The file names version \u201e{version}\u201c. A number from 1 upwards is allowed.",
                     "noticeVersionZuNeu": "The file has version {version}, this wiki goes up to version {eigen}. Nothing was taken over.",
                     "noticeTitleFrei": "There is already a page named \u201e{title}\u201c. Please choose another one.",
-"fileSaveHint": "Creates an HTML file with all pages in this order – save it as simplewiki.html to replace this file.",
+"fileSaveHint": "Creates an HTML file with all pages in this order. Save it as {name} — that replaces this file.",
                     "fileLoad": "Load file",
                     "fileLoadHint": "Takes over the pages from a saved HTML or JSON file and replaces the current wiki.",
                     "noticeSaved": "Saved. The file is now in your download folder.",
@@ -4190,13 +4190,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "Сохранить как файл",
                     "fileSaveJson": "Экспортировать JSON",
                     "fileSaveJsonHint": "Записывает только данные в формате JSON — та же структура, что и при импорте, без HTML-обёртки. Для инструментов, которые не могут собрать HTML-файл.",
-                    "noticeJsonSaved": "JSON сохранён: simplewiki.json",
+                    "noticeJsonSaved": "JSON сохранён: {name}",
                     "noticeNoPages": "Файл не содержит страниц — ничего не заменено.",
                     "noticeVersionFehlt": "В файле не указана версия формата, и он не был прочитан — так не теряется информация.",
                     "noticeVersionUngueltig": "В файле указана версия «{version}». Допустимо число от 1 и выше.",
                     "noticeVersionZuNeu": "В файле версия {version}, эта вики поддерживает до версии {eigen}. Ничего не перенесено.",
                     "noticeTitleFrei": "Страница с именем «{title}» уже существует. Выберите другое.",
-                    "fileSaveHint": "Создаёт HTML-файл со всеми страницами в этом порядке — сохраните его как simplewiki.html, чтобы заменить этот файл.",
+                    "fileSaveHint": "Создаёт HTML-файл со всеми страницами в этом порядке. Сохраните его как {name} — так вы замените этот файл.",
                     "fileLoad": "Загрузить файл",
                     "fileLoadHint": "Переносит страницы из сохранённого HTML- или JSON-файла и заменяет текущую вики.",
                     "noticeSaved": "Сохранено. Файл теперь в папке загрузок.",
@@ -4383,13 +4383,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "Guardar como archivo",
                     "fileSaveJson": "Exportar JSON",
                     "fileSaveJsonHint": "Escribe solo los datos como JSON: la misma estructura que al importar, sin envoltorio HTML. Pensado para herramientas que no pueden crear un archivo HTML.",
-                    "noticeJsonSaved": "JSON guardado: simplewiki.json",
+                    "noticeJsonSaved": "JSON guardado: {name}",
                     "noticeNoPages": "El archivo no contiene páginas; no se reemplazó nada.",
                     "noticeVersionFehlt": "El archivo no indica ninguna versión de formato y no se leyó, para no perder información.",
                     "noticeVersionUngueltig": "El archivo indica la versión «{version}». Se permite un número a partir de 1.",
                     "noticeVersionZuNeu": "El archivo tiene la versión {version}; este wiki llega hasta la versión {eigen}. No se adoptó nada.",
                     "noticeTitleFrei": "Ya existe una página llamada «{title}». Elige otro nombre.",
-                    "fileSaveHint": "Crea un archivo HTML con todas las páginas en este orden; guárdalo como simplewiki.html para reemplazar este archivo.",
+                    "fileSaveHint": "Crea un archivo HTML con todas las páginas en este orden. Guárdalo como {name} — así reemplazas este archivo.",
                     "fileLoad": "Cargar archivo",
                     "fileLoadHint": "Toma las páginas de un archivo HTML o JSON guardado y reemplaza el wiki actual.",
                     "noticeSaved": "Guardado. El archivo está ahora en tu carpeta de descargas.",
@@ -4576,13 +4576,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "Enregistrer comme fichier",
                     "fileSaveJson": "Exporter en JSON",
                     "fileSaveJsonHint": "N'écrit que les données au format JSON — même structure qu'à l'import, sans enveloppe HTML. Prévu pour les outils qui ne peuvent pas créer de fichier HTML.",
-                    "noticeJsonSaved": "JSON enregistré : simplewiki.json",
+                    "noticeJsonSaved": "JSON enregistré : {name}",
                     "noticeNoPages": "Le fichier ne contient aucune page — rien n'a été remplacé.",
                     "noticeVersionFehlt": "Le fichier n'indique aucune version de format et n'a pas été lu — ainsi aucune information n'est perdue.",
                     "noticeVersionUngueltig": "Le fichier indique la version « {version} ». Un nombre à partir de 1 est autorisé.",
                     "noticeVersionZuNeu": "Le fichier a la version {version}, ce wiki va jusqu'à la version {eigen}. Rien n'a été repris.",
                     "noticeTitleFrei": "Une page nommée « {title} » existe déjà. Veuillez en choisir un autre.",
-                    "fileSaveHint": "Crée un fichier HTML avec toutes les pages dans cet ordre — enregistrez-le sous simplewiki.html pour remplacer ce fichier.",
+                    "fileSaveHint": "Crée un fichier HTML avec toutes les pages dans cet ordre. Enregistrez-le sous {name} — cela remplace ce fichier.",
                     "fileLoad": "Charger un fichier",
                     "fileLoadHint": "Reprend les pages d'un fichier HTML ou JSON enregistré et remplace le wiki actuel.",
                     "noticeSaved": "Enregistré. Le fichier est maintenant dans votre dossier de téléchargements.",
@@ -4769,13 +4769,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "ファイルとして保存",
                     "fileSaveJson": "JSON を書き出す",
                     "fileSaveJsonHint": "データだけを JSON で書き出します。読み込み時と同じ構造で、HTML の外枠はありません。HTML ファイルを作れないツール向けです。",
-                    "noticeJsonSaved": "JSON を保存しました: simplewiki.json",
+                    "noticeJsonSaved": "JSON を保存しました: {name}",
                     "noticeNoPages": "ファイルにページが含まれていないため、何も置き換えませんでした。",
                     "noticeVersionFehlt": "ファイルに形式のバージョンが指定されていないため読み込みませんでした。こうして情報が失われません。",
                     "noticeVersionUngueltig": "ファイルはバージョン「{version}」を指定しています。1 以上の数値が使用できます。",
                     "noticeVersionZuNeu": "ファイルのバージョンは {version}、この Wiki はバージョン {eigen} まで対応します。何も取り込みませんでした。",
                     "noticeTitleFrei": "「{title}」という名前のページはすでにあります。別の名前を選んでください。",
-                    "fileSaveHint": "すべてのページをこの順序で含む HTML ファイルを作成します。simplewiki.html として保存すると、このファイルを置き換えられます。",
+                    "fileSaveHint": "すべてのページをこの順序で含む HTML ファイルを作成します。{name} として保存すると、このファイルを置き換えられます。",
                     "fileLoad": "ファイルを読み込む",
                     "fileLoadHint": "保存した HTML または JSON ファイルからページを取り込み、現在の Wiki を置き換えます。",
                     "noticeSaved": "保存しました。ファイルはダウンロードフォルダーにあります。",
@@ -4962,13 +4962,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "파일로 저장",
                     "fileSaveJson": "JSON 내보내기",
                     "fileSaveJsonHint": "데이터만 JSON으로 씁니다. 가져올 때와 같은 구조이며 HTML 껍데기는 없습니다. HTML 파일을 만들 수 없는 도구를 위한 것입니다.",
-                    "noticeJsonSaved": "JSON 저장됨: simplewiki.json",
+                    "noticeJsonSaved": "JSON 저장됨: {name}",
                     "noticeNoPages": "파일에 페이지가 없어 아무것도 바뀌지 않았습니다.",
                     "noticeVersionFehlt": "파일에 형식 버전이 없어 읽지 않았습니다. 그래야 정보가 사라지지 않습니다.",
                     "noticeVersionUngueltig": "파일에 버전 「{version}」이(가) 지정되어 있습니다. 1 이상의 숫자를 사용할 수 있습니다.",
                     "noticeVersionZuNeu": "파일 버전은 {version}, 이 위키는 버전 {eigen}까지 지원합니다. 아무것도 가져오지 않았습니다.",
                     "noticeTitleFrei": "「{title}」이라는 이름의 페이지가 이미 있습니다. 다른 이름을 선택하세요.",
-                    "fileSaveHint": "모든 페이지를 이 순서로 담은 HTML 파일을 만듭니다. simplewiki.html로 저장하면 이 파일을 대체할 수 있습니다.",
+                    "fileSaveHint": "모든 페이지를 이 순서로 담은 HTML 파일을 만듭니다. {name}로 저장하면 이 파일을 대체할 수 있습니다.",
                     "fileLoad": "파일 불러오기",
                     "fileLoadHint": "저장된 HTML 또는 JSON 파일에서 페이지를 가져와 현재 위키를 대체합니다.",
                     "noticeSaved": "저장되었습니다. 파일은 다운로드 폴더에 있습니다.",
@@ -5155,13 +5155,13 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "fileSave": "另存为文件",
                     "fileSaveJson": "导出 JSON",
                     "fileSaveJsonHint": "仅将数据以 JSON 写出——与导入时结构相同，没有 HTML 外壳。供无法构建 HTML 文件的工具使用。",
-                    "noticeJsonSaved": "JSON 已保存：simplewiki.json",
+                    "noticeJsonSaved": "JSON 已保存：{name}",
                     "noticeNoPages": "该文件不包含页面——未替换任何内容。",
                     "noticeVersionFehlt": "该文件未注明格式版本，因此未被读取——这样不会丢失任何信息。",
                     "noticeVersionUngueltig": "该文件注明版本「{version}」。允许使用 1 及以上的数字。",
                     "noticeVersionZuNeu": "该文件的版本为 {version}，此 Wiki 最高支持版本 {eigen}。未采用任何内容。",
                     "noticeTitleFrei": "名为「{title}」的页面已存在。请另选一个。",
-                    "fileSaveHint": "按此顺序创建一个包含所有页面的 HTML 文件——将其保存为 simplewiki.html 即可替换此文件。",
+                    "fileSaveHint": "按此顺序创建一个包含所有页面的 HTML 文件。将其保存为 {name} 即可替换此文件。",
                     "fileLoad": "加载文件",
                     "fileLoadHint": "从已保存的 HTML 或 JSON 文件中接管页面，并替换当前 Wiki。",
                     "noticeSaved": "已保存。文件现在位于你的下载文件夹中。",
@@ -8331,7 +8331,7 @@ showSettings: false,
 
                 sichernAlsDatei() {
                     try {
-                        this.dateiHerunterladen(this.bauExport(), this.sicherungsName(), 'text/html');
+                        this.dateiHerunterladen(this.bauExport(), this.sicherungsName('.html'), 'text/html');
                         this.hinweis(this.t('noticeSaved'));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
@@ -8342,19 +8342,22 @@ showSettings: false,
                    der Name des Wikis aus dem Pfad (/wiki/<name>) - so heisst
                    die Sicherung des Handbuchs simplewiki-manual.html und
                    nicht fuer jedes Wiki gleich. Ohne Servernamen (Browser)
-                   bleibt es beim festen simplewiki.html.
+                   bleibt es beim festen simplewiki. Die Endung sagt, was
+                   gesichert wird: ".html" die ganze Wiki, ".json" nur die
+                   Daten - so heisst auch die JSON-Datei nach ihrem Wiki.
 
                    Zeichen, die in keinem Dateinamen stehen duerfen, werden
                    zu "-", damit ein Name nie einen Pfad aufreisst. */
-                sicherungsName() {
+                sicherungsName(erweiterung) {
+                    const endung = erweiterung === undefined ? '.html' : erweiterung;
                     const roh = String(this.wikiSlug || '').trim();
-                    if (!roh) return 'simplewiki.html';
+                    if (!roh) return 'simplewiki' + endung;
                     const sauber = roh
                         .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
                         .replace(/^\.+/, '')
                         .replace(/[. ]+$/, '')
                         .trim();
-                    return (sauber || 'simplewiki') + '.html';
+                    return (sauber || 'simplewiki') + endung;
                 },
 
                 /* Eine leere Wiki-Datei als Vorlage.
@@ -8393,8 +8396,9 @@ showSettings: false,
                 jsonExportieren() {
                     try {
                         const text = JSON.stringify(this.bauDaten(), null, 2);
-                        this.dateiHerunterladen(text, 'simplewiki.json', 'application/json');
-                        this.hinweis(this.t('noticeJsonSaved'));
+                        const name = this.sicherungsName('.json');
+                        this.dateiHerunterladen(text, name, 'application/json');
+                        this.hinweis(this.t('noticeJsonSaved').replace('{name}', name));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
                     }

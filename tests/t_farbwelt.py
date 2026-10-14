@@ -64,6 +64,9 @@ teil1 = r"""
           pal.dispatchEvent(new Event('change', { bubbles: true }));
           setTimeout(function () {
             ok(!!q('.farb-editor'), 'der Farb-Editor ist da');
+            ok(q('.farb-editor-inhalt').offsetParent === null, 'der Editor ist zugeklappt');
+            ok(!!q('.farb-editor-schalter'), 'der Schalter zum Aufklappen ist da');
+            q('.farb-editor-schalter').click();
             ok(all('.farb-feld').length === 18, 'achtzehn Farbwaehler: ' + all('.farb-feld').length);
             ok(all('.farb-text').length === 4, 'vier Textfelder fuer Transparenz: ' + all('.farb-text').length);
             var gruppen = all('.farb-gruppe-titel').map(function (g) { return g.textContent.trim(); });
@@ -74,6 +77,7 @@ teil1 = r"""
             quelle.value = 'nord';
             quelle.dispatchEvent(new Event('change', { bubbles: true }));
             setTimeout(function () {
+              ok(q('.farb-editor-inhalt').offsetParent !== null, 'der Schalter hat den Editor aufgeklappt');
               q('.farb-klon .settings-btn').click();
               setTimeout(function () {
                 ok(document.body.classList.contains('pal-nord'), 'Basis Nord am body: ' + document.body.className);
@@ -224,8 +228,11 @@ teil3 = r"""
             var pal = document.getElementById('settings-palette');
             ok(pal.value === 'eigene', 'die eigene Welt ist gewaehlt: ' + pal.value);
             ok(!!q('.farb-editor'), 'der Farb-Editor ist da');
+            ok(q('.farb-editor-inhalt').offsetParent === null, 'der Editor ist zugeklappt');
+            q('.farb-editor-schalter').click();
             document.querySelectorAll('.farb-modus')[1].click();
             setTimeout(function () {
+              ok(q('.farb-editor-inhalt').offsetParent !== null, 'der Editor ist aufgeklappt');
               var bg = document.querySelectorAll('.farb-feld')[0];
               bg.value = '#0d0e0f';
               bg.dispatchEvent(new Event('input', { bubbles: true }));

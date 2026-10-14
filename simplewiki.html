@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.40">
+    <meta name="mws-shell-version" content="v0.1.41">
     <title>SimpleWiki</title>
 
     <!--
@@ -1344,6 +1344,40 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .settings-btn:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
+        }
+
+        /* Der Kopf des Farb-Editors: Beschriftung links, der Schalter
+           rechts. Der Schalter klappt die lange Farbenliste auf und zu. */
+        .farb-editor-kopf {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .farb-editor-kopf .settings-label {
+            margin-bottom: 0;
+        }
+
+        .farb-editor-schalter {
+            padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-muted);
+            font: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .farb-editor-schalter:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .farb-editor-inhalt {
+            margin-top: 10px;
         }
 
         /* Der Farb-Editor der eigenen Welt */
@@ -3601,15 +3635,6 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </select>
                 </div>
                 <div class="settings-section">
-                    <label class="settings-label" for="settings-palette">{{ t('palette') }}</label>
-                    <select id="settings-palette" class="select-input" v-model="palette" @change="changePalette">
-                        <option v-for="p in paletten" :key="p.id" :value="p.id">
-                            {{ p.name }}
-                        </option>
-                    </select>
-                    <p class="settings-hint">{{ t('paletteHint') }}</p>
-                </div>
-                <div class="settings-section">
                     <label class="settings-label">{{ t('toolbarSection') }}</label>
                     <label class="settings-schalter">
                         <input id="settings-toolbar" type="checkbox" :checked="toolbarSichtbar" @change="toolbarUmschalten" />
@@ -3625,28 +3650,44 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     </label>
                     <p class="settings-hint">{{ t('pageTocHint') }}</p>
                 </div>
+                <div class="settings-section">
+                    <label class="settings-label" for="settings-palette">{{ t('palette') }}</label>
+                    <select id="settings-palette" class="select-input" v-model="palette" @change="changePalette">
+                        <option v-for="p in paletten" :key="p.id" :value="p.id">
+                            {{ p.name }}
+                        </option>
+                    </select>
+                    <p class="settings-hint">{{ t('paletteHint') }}</p>
+                </div>
                 <div v-if="palette === 'eigene'" class="settings-section farb-editor">
-                    <label class="settings-label">{{ t('farbenBearbeiten') }}</label>
-                    <p class="settings-hint">{{ t('farbenHinweis') }}</p>
-                    <div class="farb-klon">
-                        <select class="select-input" v-model="farbQuelle" :aria-label="t('farbenQuelle')">
-                            <option v-for="q in farbQuellen" :key="q.id" :value="q.id">{{ q.name }}</option>
-                        </select>
-                        <button type="button" class="settings-btn" @click="farbeKlonen">{{ t('farbenUebernehmen') }}</button>
+                    <div class="farb-editor-kopf">
+                        <label class="settings-label">{{ t('farbenBearbeiten') }}</label>
+                        <button type="button" class="farb-editor-schalter" :aria-expanded="farbEditorOffen" @click="farbEditorOffen = !farbEditorOffen">
+                            {{ (farbEditorOffen ? '▾ ' : '▸ ') + t(farbEditorOffen ? 'farbenVerbergen' : 'farbenAnzeigen') }}
+                        </button>
                     </div>
-                    <div class="farb-modi">
-                        <button type="button" class="farb-modus" :class="{ aktiv: farbModus === 'hell' }" @click="farbModusSetzen('hell')">{{ t('farbenHell') }}</button>
-                        <button type="button" class="farb-modus" :class="{ aktiv: farbModus === 'dunkel' }" @click="farbModusSetzen('dunkel')">{{ t('farbenDunkel') }}</button>
+                    <div v-show="farbEditorOffen" class="farb-editor-inhalt">
+                        <p class="settings-hint">{{ t('farbenHinweis') }}</p>
+                        <div class="farb-klon">
+                            <select class="select-input" v-model="farbQuelle" :aria-label="t('farbenQuelle')">
+                                <option v-for="q in farbQuellen" :key="q.id" :value="q.id">{{ q.name }}</option>
+                            </select>
+                            <button type="button" class="settings-btn" @click="farbeKlonen">{{ t('farbenUebernehmen') }}</button>
+                        </div>
+                        <div class="farb-modi">
+                            <button type="button" class="farb-modus" :class="{ aktiv: farbModus === 'hell' }" @click="farbModusSetzen('hell')">{{ t('farbenHell') }}</button>
+                            <button type="button" class="farb-modus" :class="{ aktiv: farbModus === 'dunkel' }" @click="farbModusSetzen('dunkel')">{{ t('farbenDunkel') }}</button>
+                        </div>
+                        <div v-for="g in farbgruppen" :key="g.titel" class="farb-gruppe">
+                            <p class="farb-gruppe-titel">{{ g.titel }}</p>
+                            <label v-for="f in g.farben" :key="f.name" class="farb-zeile">
+                                <span class="farb-name">{{ f.label }}</span>
+                                <input v-if="istAlphaFarbe(f.name)" type="text" class="farb-text" :value="farbWert(f.name)" @change="farbeAendern(f.name, $event.target.value)" spellcheck="false" />
+                                <input v-else type="color" class="farb-feld" :value="farbWertHex(f.name)" @input="farbeAendern(f.name, $event.target.value)" />
+                            </label>
+                        </div>
+                        <button type="button" class="settings-btn" @click="eigeneZuruecksetzen">{{ t('farbenZuruecksetzen') }}</button>
                     </div>
-                    <div v-for="g in farbgruppen" :key="g.titel" class="farb-gruppe">
-                        <p class="farb-gruppe-titel">{{ g.titel }}</p>
-                        <label v-for="f in g.farben" :key="f.name" class="farb-zeile">
-                            <span class="farb-name">{{ f.label }}</span>
-                            <input v-if="istAlphaFarbe(f.name)" type="text" class="farb-text" :value="farbWert(f.name)" @change="farbeAendern(f.name, $event.target.value)" spellcheck="false" />
-                            <input v-else type="color" class="farb-feld" :value="farbWertHex(f.name)" @input="farbeAendern(f.name, $event.target.value)" />
-                        </label>
-                    </div>
-                    <button type="button" class="settings-btn" @click="eigeneZuruecksetzen">{{ t('farbenZuruecksetzen') }}</button>
                 </div>
                 <div class="settings-section">
                     <label class="settings-label" for="settings-startpage">{{ t('startPage') }}</label>
@@ -3919,6 +3960,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "Hell",
                     "farbenDunkel": "Dunkel",
                     "farbenZuruecksetzen": "Zurücksetzen",
+                    "farbenAnzeigen": "Anzeigen",
+                    "farbenVerbergen": "Verbergen",
                     "farbgruppeFlaechen": "Flächen",
                     "farbgruppeUeberschriften": "Überschriften",
                     "farbgruppeText": "Text",
@@ -4092,6 +4135,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "Light",
                     "farbenDunkel": "Dark",
                     "farbenZuruecksetzen": "Reset",
+                    "farbenAnzeigen": "Show",
+                    "farbenVerbergen": "Hide",
                     "farbgruppeFlaechen": "Surfaces",
                     "farbgruppeUeberschriften": "Headings",
                     "farbgruppeText": "Text",
@@ -4307,6 +4352,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "Светлая",
                     "farbenDunkel": "Тёмная",
                     "farbenZuruecksetzen": "Сбросить",
+                    "farbenAnzeigen": "Показать",
+                    "farbenVerbergen": "Скрыть",
                     "farbgruppeFlaechen": "Фоны",
                     "farbgruppeUeberschriften": "Заголовки",
                     "farbgruppeText": "Текст",
@@ -4500,6 +4547,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "Clara",
                     "farbenDunkel": "Oscura",
                     "farbenZuruecksetzen": "Restablecer",
+                    "farbenAnzeigen": "Mostrar",
+                    "farbenVerbergen": "Ocultar",
                     "farbgruppeFlaechen": "Superficies",
                     "farbgruppeUeberschriften": "Encabezados",
                     "farbgruppeText": "Texto",
@@ -4693,6 +4742,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "Claire",
                     "farbenDunkel": "Sombre",
                     "farbenZuruecksetzen": "Réinitialiser",
+                    "farbenAnzeigen": "Afficher",
+                    "farbenVerbergen": "Masquer",
                     "farbgruppeFlaechen": "Fonds",
                     "farbgruppeUeberschriften": "Titres",
                     "farbgruppeText": "Texte",
@@ -4886,6 +4937,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "ライト",
                     "farbenDunkel": "ダーク",
                     "farbenZuruecksetzen": "リセット",
+                    "farbenAnzeigen": "表示",
+                    "farbenVerbergen": "非表示",
                     "farbgruppeFlaechen": "背景",
                     "farbgruppeUeberschriften": "見出し",
                     "farbgruppeText": "テキスト",
@@ -5079,6 +5132,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "밝게",
                     "farbenDunkel": "어둡게",
                     "farbenZuruecksetzen": "초기화",
+                    "farbenAnzeigen": "표시",
+                    "farbenVerbergen": "숨기기",
                     "farbgruppeFlaechen": "배경",
                     "farbgruppeUeberschriften": "제목",
                     "farbgruppeText": "텍스트",
@@ -5272,6 +5327,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "farbenHell": "浅色",
                     "farbenDunkel": "深色",
                     "farbenZuruecksetzen": "重置",
+                    "farbenAnzeigen": "显示",
+                    "farbenVerbergen": "隐藏",
                     "farbgruppeFlaechen": "表面",
                     "farbgruppeUeberschriften": "标题",
                     "farbgruppeText": "文本",
@@ -6534,6 +6591,10 @@ showSettings: false,
                        und aus welcher Welt geklont wird. */
                     farbModus: 'hell',
                     farbQuelle: 'pergament',
+                    /* Der Farb-Editor der eigenen Welt ist zugeklappt, bis
+                       jemand ihn aufschlaegt - die lange Farbenliste soll
+                       nicht dauerhaft im Panel stehen. */
+                    farbEditorOffen: false,
                     startPageId: '',
                     mdEditor: null,
                     editorReady: false,

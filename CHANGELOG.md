@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.40">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.41">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,27 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-14
+
+### v0.1.41 — der Farb-Editor ist zugeklappt — 1180 Prüfungen
+
+Der Bereich *Farbwelt* stand ganz oben im Einstellungen-Dialog, sein
+Editor — die lange Farbenliste — weiter unten nach dem Verzeichnis-Schalter.
+Jetzt steht die Weltwahl direkt vor ihrem Editor: *Farbwelt* und *Eigene
+Farben* bilden ein Paar.
+
+Der Editor selbst ist zugeklappt, bis jemand ihn aufschlaegt. Neun Farbwelten
+teilen sich denselben Dialog; nur die eigene Welt hat etwas zu bearbeiten, und
+achtzehn Farbwaehler plus vier Transparenzfelder nehmen viel Platz. Rechts
+neben der Beschriftung sitzt jetzt ein Schalter: „▸ Anzeigen" klappt die
+Liste auf, „▾ Verbergen" schliesst sie wieder. Der Zustand startet
+zugeklappt und wird nicht gemerkt — wer die eigene Welt bearbeitet, klappt
+sie auf. Die Schalterbeschriftungen tragen alle acht Sprachen.
+
+Geprueft in einem Entwicklungsstand: Einstellungen geoeffnet, die eigene Welt
+gewaehlt — die Liste war zu und der Schalter sass rechts neben *Eigene
+Farben*; aufgeklappt — die achtzehn Farbwaehler standen da und liessen sich
+wie bisher aendern. `tests/t_farbwelt.py` klappt den Editor vor jeder
+Aenderung auf.
 
 ### v0.1.40 — die Sicherung heißt wie das Wiki — 1175 Prüfungen
 

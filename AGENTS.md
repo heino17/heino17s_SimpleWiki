@@ -60,9 +60,27 @@ grün war; `--check` meldet nur und ist der schnelle Blick vor dem Commit. Ob
 die Buchhaltung noch stimmt, prüft `tests/t_buchhaltung.py` ohne Browser —
 Teil der Suite, damit sie nicht unbemerkt veraltet.
 
-**Nach jeder Änderung an `simplewiki.html` die Suite laufen lassen.** Sie
-prüft im echten Browser und hat schon Dinge gefunden, die kein Blick auf den
-Bildschirm findet. Ein Test, der nicht läuft, ist schlimmer als keiner.
+## Prüfroutine: „Heizung später"
+
+Während der Arbeit läuft **nicht** die Suite. Der Ablauf ist ein Dreiklang:
+
+1. **Arbeit.** `simplewiki.html` ändern, provisionieren, im Dev-Browser
+   (Strg+Umschalt+R) ansehen. Kein Test. Erst mehrere passende Änderungen
+   sammeln.
+2. **Ein Griff** — nur wenn ein Signal gebraucht wird: ein einzelner Test
+   (`python3 tests/t_undo.py`) oder ein Stichwort (`python3 tests/alle.py
+   fluss`). Nie die Suite nebenher.
+3. **Heizung** — am Ende eines Arbeitspakets, vor dem Commit:
+   `python3 tests/alle.py -j <cpus>`, dann `tests/buchhaltung.py`, dann
+   `tests/t_buchhaltung.py`. Erst jetzt zählt die Prüfungszahl.
+
+Jeder Browser-Test baut eine eigene Kopie und startet ein eigenes Chromium:
+der kleinste kostet trotzdem rund 20 s, der größte über zwei Minuten.
+Deshalb ist die Suite ein Abschluss, keine Begleitmusik. Neue oder geänderte
+Tests entstehen bei der Arbeit, ihre Zahl aber kommt erst nach einer grünen
+Heizung in CHANGELOG und Commit-Betreff. Die Suite im echten Browser hat
+schon Dinge gefunden, die kein Blick auf den Bildschirm findet — deshalb
+läuft sie am Ende wirklich, und ein roter Lauf hält den Commit auf.
 
 ### Drei Fallen, die hier schon zugeschlagen sind
 
@@ -95,6 +113,14 @@ Bildschirm findet. Ein Test, der nicht läuft, ist schlimmer als keiner.
 Überschrift nennt die Prüfungszahl des Stands danach. Nachgeschrieben wird
 aus den Commit-Nachrichten, nicht erfunden. **Eine Prüfung ohne Zahl ist eine
 Prüfung ohne Wirkung** — siehe `tests/README.md`.
+
+## Offen (mitnehmen, aber nicht jetzt)
+
+- **„JSON sichern" heißt noch `simplewiki.json`.** Der Name sollte, wie die
+  HTML-Sicherung, vom Wiki kommen (`<name>.json`). Das zieht die Hinweistexte
+  in allen Sprachen nach sich.
+- **Der Hinweistext unter „Als Datei sichern" nennt noch `simplewiki.html`**
+  als festen Namen. Im Serverbetrieb ist es jetzt `<name>.html`.
 
 ## Was hier ausdrücklich nicht gemacht wird
 

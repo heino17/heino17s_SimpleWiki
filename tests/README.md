@@ -27,6 +27,31 @@ Grundabhängigkeiten: **python3** und **chromium** im Pfad. Für die beiden
 Drucktests kommen **`pdfinfo`** und **`pdftotext`** dazu (poppler-utils) — sie
 lesen das erzeugte PDF aus und sagen, was wirklich drinsteht.
 
+## Wann welche Tests
+
+Die Suite ist der **Abschluss** eines Arbeitspakets, nicht die Begleitung
+jeder Änderung. Während der Arbeit genügt der Blick im Browser; erst wenn
+das Paket steht, wird geheizt:
+
+1. **Arbeit**: `simplewiki.html` ändern, provisionieren, hart neu laden und
+   ansehen. Kein Test.
+2. **Ein Griff** (nur bei Bedarf): ein Einzeltest oder ein Stichwort:
+   ```bash
+   python3 tests/t_undo.py
+   python3 tests/alle.py fluss
+   ```
+3. **Heizung** (Abschluss):
+   ```bash
+   python3 tests/alle.py -j 4
+   python3 tests/buchhaltung.py
+   ```
+
+Jeder Browser-Test baut eine eigene Kopie und startet ein eigenes Chromium:
+der kleinste kostet trotzdem rund 20 s, der größte über zwei Minuten. Deshalb
+läuft die Suite einmal am Ende eines Pakets, nicht nach jeder Zeile. Neue
+oder geänderte Tests entstehen bei der Arbeit; ihre Zahl kommt erst nach einer
+grünen Heizung in CHANGELOG, README und Commit-Betreff.
+
 ## Nach jeder Änderung an `simplewiki.html` provisionieren
 
 ```bash

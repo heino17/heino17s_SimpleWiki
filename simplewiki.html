@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.38">
+    <meta name="mws-shell-version" content="v0.1.39">
     <title>SimpleWiki</title>
 
     <!--
@@ -8132,6 +8132,13 @@ showSettings: false,
                     if (!halter) return null;
                     const daten = this.datenAusText(halter.textContent || '');
                     if (!daten) return null;
+                    /* Ein leerer Datenblock ist kein Fehler. Die Vorlage
+                       bringt einen mit, und im Serverbetrieb stehen die
+                       Seiten nicht in der Datei, sondern kommen vom
+                       Server. Es gibt nichts zu uebernehmen - also still
+                       bleiben. Der Hinweis "keine Seiten" gehoert nur zum
+                       ausdruecklichen Oeffnen einer Datei (dateiLaden). */
+                    if (!Array.isArray(daten.seiten) || !daten.seiten.length) return null;
                     /* Auch hier gilt: passt die Version nicht, wird nichts
                        übernommen - auch nicht halb. */
                     const grund = this.pruefeFormat(daten);

@@ -119,6 +119,14 @@ teil1 = r"""
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
       setTimeout(function () {
+        log.push('--- Beim Laden kein falscher Hinweis');
+        /* Die ausgelieferte Vorlage bringt einen leeren Datenblock mit.
+           Die Seiten stehen auf dem Server - der leere Block darf
+           deshalb nicht als "Datei ohne Seiten" gemeldet werden. */
+        ok(!q('.hinweis'),
+           'der leere Datenblock der Vorlage ist kein Fehler: ' +
+           (q('.hinweis') ? q('.hinweis').textContent.trim() : 'kein Hinweis'));
+
         log.push('--- Seiten kommen vom Server');
         ok(titel().join('|') === 'Beta|Alpha|Ohne Kennung',
            'Reihenfolge aus reihenfolge: ' + titel().join('|'));

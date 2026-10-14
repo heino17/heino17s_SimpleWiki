@@ -4,11 +4,29 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.38">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.39">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
+
+---
+
+## 2026-10-14
+
+### v0.1.39 — der leere Datenblock ist kein Fehler — 1173 Prüfungen
+
+Beim Öffnen eines Wikis auf dem Server stand unten der Hinweis „Die Datei
+enthält keine Seiten – es wurde nichts ersetzt." Er war falsch: die
+ausgelieferte Vorlage bringt einen leeren Datenblock mit — die Seiten kommen
+vom Server —, und der Aufbau las ihn wie eine geöffnete Datei ohne Seiten. Der
+Hinweis erscheint jetzt nur noch, wenn jemand ausdrücklich eine Datei ohne
+Seiten öffnet (`dateiLaden`); ein leerer Datenblock beim Laden bleibt still.
+
+Geprueft in einem Entwicklungsstand: ein Wiki mit Seiten auf dem Testserver
+geoeffnet - der Hinweis blieb aus; eine JSON-Datei ohne Seiten ueber "Datei
+laden" geoeffnet - der Hinweis kam weiterhin. `tests/t_mwsmode.py` prueft den
+ersten Fall.
 
 ---
 

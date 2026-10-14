@@ -139,7 +139,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.38">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.39">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -371,7 +371,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 9733 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 9740 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -385,7 +385,7 @@ Reihenfolge:
     368–3125  das Stylesheet
         3135  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
     3138–3764  die Oberfläche (Vue-Template)
-    3766–9733  das Programm
+    3766–9740  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -536,7 +536,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **42 Testdateien**, 1172 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **42 Testdateien**, 1173 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

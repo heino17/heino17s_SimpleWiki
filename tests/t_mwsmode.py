@@ -162,12 +162,15 @@ teil1 = r"""
            wirklich in ihr steht - und geht dabei durch denselben Weg
            wie das Lesen aus den Tiddlern. */
         window.__blob = null;
+        window.__name = null;
         var echtesErzeugen = URL.createObjectURL;
         URL.createObjectURL = function (b) { window.__blob = b; return echtesErzeugen.call(URL, b); };
-        HTMLAnchorElement.prototype.click = function () {};
+        HTMLAnchorElement.prototype.click = function () { window.__name = this.download; };
         q('.settings-toggle').click();
         setTimeout(function () {
           all('.settings-btn').filter(function (b) { return /JSON/.test(b.textContent); })[0].click();
+          /* Der Klick laeuft synchron, der Downloadname steht sofort. */
+          ok(window.__name === 'simplewiki.json', 'JSON heisst simplewiki.json: ' + window.__name);
           setTimeout(function () {
             ok(!!window.__blob, 'JSON erzeugt');
             if (!window.__blob) { ende(); return; }
@@ -181,6 +184,12 @@ teil1 = r"""
               ok(alpha.updated === '2026-02-03T11:30:45.678Z',
                  'updated aus 20260203113045678: ' + alpha.updated);
               ok(alpha.id === 'a1', 'id ist die Tiddler-Kennung: ' + alpha.id);
+              /* Sichern als Datei: der Name traegt den Namen des Wikis
+                 aus dem Pfad, nicht fuer jedes Wiki simplewiki.html. */
+              window.__name = null;
+              all('.settings-btn').filter(function (b) { return /Als Datei sichern|Save as file/.test(b.textContent); })[0].click();
+              ok(window.__name === 'alpha.html',
+                 'Sicherung heisst wie das Wiki: ' + window.__name);
               ende();
             });
           }, 700);

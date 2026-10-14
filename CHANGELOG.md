@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.39">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.40">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,19 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-14
+
+### v0.1.40 — die Sicherung heißt wie das Wiki — 1175 Prüfungen
+
+Im Serverbetrieb hieß jede gesicherte Datei `simplewiki.html` — auch beim
+Handbuch. Der Name des Wikis steht aber im Pfad (`/wiki/<name>`). Die App
+reicht ihn jetzt durch und benennt die Datei danach: aus dem Handbuch wird
+`simplewiki-manual.html`. Im Browser, wo es keinen Servernamen gibt, bleibt es
+beim festen `simplewiki.html`. Zeichen, die in keinem Dateinamen stehen dürfen,
+werden zu `-`.
+
+Geprueft in einem Entwicklungsstand: ein Wiki auf dem Testserver geoeffnet und
+ueber "Als Datei sichern" gesichert - der Download hieß wie das Wiki
+(`alpha.html`). `tests/t_mwsmode.py` prueft das.
 
 ### v0.1.39 — der leere Datenblock ist kein Fehler — 1173 Prüfungen
 

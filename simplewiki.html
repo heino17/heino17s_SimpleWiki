@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.39">
+    <meta name="mws-shell-version" content="v0.1.40">
     <title>SimpleWiki</title>
 
     <!--
@@ -5763,7 +5763,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     eigeneFarben: eigeneFarbenLesen(SimpleWikiStore.get('simplewiki_eigene_farben')),
                     nurLesen: false,
                     wikiTitel: '',
-                    wikiUntertitel: ''
+                    wikiUntertitel: '',
+                    /* Im Browser gibt es keinen Servernamen. Das Feld
+                       steht trotzdem hier, damit beide Speicher dieselben
+                       Felder liefern. */
+                    slug: ''
                 };
             },
 
@@ -6141,7 +6145,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 eigeneFarben: this.einstellungen.eigeneFarben,
                 nurLesen: this.nurLesen,
                 wikiTitel: this.wikiTitel,
-                wikiUntertitel: this.wikiUntertitel
+                wikiUntertitel: this.wikiUntertitel,
+                /* Der Name des Wikis aus dem Pfad (/wiki/<name>). Die App
+                   nimmt ihn fuer den Namen der gesicherten Datei; im
+                   Browser ist er leer. */
+                slug: this.slug
             };
         };
 
@@ -6450,6 +6458,10 @@ showSettings: false,
                 /* Der Untertitel aus $:/SiteSubtitle, eine Zeile unter dem
                    Namen. Im Browser leer; dann fehlt die Zeile. */
                 wikiUntertitel: '',
+                /* Der Name des Wikis aus dem Serverpfad (/wiki/<name>).
+                   Er benennt die gesicherte Datei. Im Browser leer, dann
+                   heisst die Sicherung weiterhin simplewiki.html. */
+                wikiSlug: '',
                 /* Wer hier gerade arbeitet. Der Name ist das einzige,
                    was der Server freiwillig nennt, und er steht nur da,
                    wenn der Server ihn genannt hat. */
@@ -8319,11 +8331,30 @@ showSettings: false,
 
                 sichernAlsDatei() {
                     try {
-                        this.dateiHerunterladen(this.bauExport(), 'simplewiki.html', 'text/html');
+                        this.dateiHerunterladen(this.bauExport(), this.sicherungsName(), 'text/html');
                         this.hinweis(this.t('noticeSaved'));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
                     }
+                },
+
+                /* Der Name der gesicherten Datei. Im Serverbetrieb ist das
+                   der Name des Wikis aus dem Pfad (/wiki/<name>) - so heisst
+                   die Sicherung des Handbuchs simplewiki-manual.html und
+                   nicht fuer jedes Wiki gleich. Ohne Servernamen (Browser)
+                   bleibt es beim festen simplewiki.html.
+
+                   Zeichen, die in keinem Dateinamen stehen duerfen, werden
+                   zu "-", damit ein Name nie einen Pfad aufreisst. */
+                sicherungsName() {
+                    const roh = String(this.wikiSlug || '').trim();
+                    if (!roh) return 'simplewiki.html';
+                    const sauber = roh
+                        .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
+                        .replace(/^\.+/, '')
+                        .replace(/[. ]+$/, '')
+                        .trim();
+                    return (sauber || 'simplewiki') + '.html';
                 },
 
                 /* Eine leere Wiki-Datei als Vorlage.
@@ -8548,6 +8579,7 @@ showSettings: false,
                     this.nurLesen = !!geladen.nurLesen;
                     this.wikiTitel = geladen.wikiTitel || '';
                     this.wikiUntertitel = geladen.wikiUntertitel || '';
+                    this.wikiSlug = geladen.slug || '';
                     this.showRefs = !!geladen.verweise;
 
                     const ausDatei = this.readDatenAusDatei();

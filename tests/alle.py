@@ -57,6 +57,7 @@ REIHENFOLGE = [
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_finger.py',     # Fingerabdruck: eine andere Datei gewinnt ohne Speicher leeren
     't_dokument.py',   # Kennung und Zeitpunkt im Kopf: welche Datei, was ist neuer
+    't_titel.py',      # Der eigene Wiki-Name im Kopf: bearbeiten, sichern, oeffnen
     't_dateiwarnung.py',  # Warnhinweis unter file://: bearbeiten, speichern, sichern
     't_fluss.py',      # Fluss und Druckansicht
     't_scroll.py',     # Scrollen und Druck ueber Blaetter
@@ -104,6 +105,7 @@ BESCHRIEBUNG = {
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_finger.py': 'Fingerabdruck: eine andere Datei gewinnt ohne Speicher leeren',
     't_dokument.py': 'Kennung und Zeitpunkt: die neuere Datei gewinnt, leere Datei ohne fremden Entwurf',
+    't_titel.py': 'Der eigene Wiki-Name im Kopf: bearbeiten, leeren, sichern, aus Speicher und Datei',
     't_dateiwarnung.py': 'Warnhinweis unter file://: bearbeiten, speichern, Datei sichern',
     't_fluss.py': 'Fluss und Druckansicht',
     't_scroll.py': 'Scrollen im Fluss, Druck ueber Blaetter',

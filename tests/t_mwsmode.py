@@ -144,6 +144,8 @@ teil1 = r"""
         ok(q('.kopf-untertitel') && q('.kopf-untertitel').textContent.trim() === 'Klein und fein',
            'Untertitel aus $:/SiteSubtitle: ' +
            (q('.kopf-untertitel') ? q('.kopf-untertitel').textContent.trim() : '-'));
+        ok(q('.header h1') && q('.header h1').className.indexOf('kopf-titel-editierbar') < 0,
+           'im Serverbetrieb ist der Name nicht anklickbar (er kommt aus $:/SiteTitle)');
 
         log.push('--- Inhalt genaue');
         ok(q('.preview').innerHTML.indexOf('data-wiki-link="Beta"') > 0,

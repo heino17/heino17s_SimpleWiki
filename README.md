@@ -45,6 +45,7 @@ python3 tests/t_order.py          # a single test
 | **Writing** | Markdown, in the WYSIWYG editor (TOAST UI) or in the plain text field; a page just created disappears again if you then click "Cancel" |
 | **Indent** | the two buttons in the toolbar move text a level in or back out: a list item nests or flattens, every other paragraph becomes a quote (`> `) and back |
 | **New page** | a button in the header, left of the contents — gone for anyone who may not write; the new page is appended to the contents |
+| **Name** | the wiki's name stands in the header; click it to rename — Enter or a click away saves, Escape keeps the old one, an empty field brings back the fixed name. The name travels in the file and is remembered per document; in server mode it comes from the server and cannot be changed |
 | **Contents** | as a left column, pushes the content aside and keeps the header clear; foldable at the little flag, starts folded below a 640px window width |
 | **Linking** | `[[Page]]` and `[[Label\|Page]]` in the text, plus a dialog while editing |
 | **Backlinks** | incoming and outgoing links in their own panel, with a counter in the header |
@@ -139,7 +140,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.45">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.46">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -347,6 +348,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Schreiben** | Markdown, im WYSIWYG-Editor (TOAST UI) oder im reinen Textfeld; eine eben angelegte Seite verschwindet wieder, wer danach «Abbrechen» klickt |
 | **Einrücken** | die zwei Knöpfe in der Werkzeugleiste schieben Text eine Ebene ein oder wieder heraus: ein Listenpunkt verschachtelt oder flacht ab, jeder andere Absatz wird zu einem Zitat (`> `) und wieder zurück |
 | **Neue Seite** | ein Knopf im Kopf, links vom Verzeichnis — weg, wer nicht schreiben darf; die neue Seite kommt unten ins Verzeichnis |
+| **Name** | der Name der Wiki steht im Kopf; anklicken benennt sie um — Enter oder ein Klick daneben sichert, Escape lässt den alten stehen, ein leeres Feld bringt den festen Namen zurück. Der Name wandert mit der Datei und wird je Dokument gemerkt; im Serverbetrieb kommt er vom Server und lässt sich nicht ändern |
 | **Inhaltsverzeichnis** | als Spalte links, drängt den Inhalt zur Seite und lässt die Kopfzeile frei; am Fähnchen zu- und aufklappbar, unter 640px Fensterbreite fängt es zugeklappt an |
 | **Verlinken** | `[[Seite]]` und `[[Beschriftung\|Seite]]` im Text, dazu ein Dialog beim Bearbeiten |
 | **Verweise** | Rück- und Ausgehende in einem eigenen Panel, mit Zähler im Kopf |
@@ -371,21 +373,21 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 10245 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 10406 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
-       1–251  zwei Kommentare im <head>: der Austauschvertrag und der
+       1–260  zwei Kommentare im <head>: der Austauschvertrag und der
               MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier
               steht, warum das Format so aussieht und was der Server
               liefern muss.
-         252  <script id="simplewiki-daten">  die Dateninsel
-     256–390  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+         261  <script id="simplewiki-daten">  die Dateninsel
+     265–399  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
               DOMPurify)
-    391–3225  das Stylesheet
-        3235  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    3238–3872  die Oberfläche (Vue-Template)
-    3874–10245  das Programm
+    400–3262  das Stylesheet
+        3272  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+    3275–3920  die Oberfläche (Vue-Template)
+    3922–10406  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -536,7 +538,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **44 Testdateien**, 1222 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **45 Testdateien**, 1247 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

@@ -2,9 +2,10 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.45">
+    <meta name="mws-shell-version" content="v0.1.46">
     <meta name="simplewiki-doc-id" content="">
     <meta name="simplewiki-exported" content="">
+    <meta name="simplewiki-title" content="">
     <title>SimpleWiki</title>
 
     <!--
@@ -73,8 +74,9 @@
           vorhandene Wiki ersetzen. Die leere Vorlage ist zum Füllen da, nicht
           zum Laden.
 
-        Kennung und Zeitpunkt (nicht Teil dieses Blocks, sondern des Kopfes)
-          Beim Sichern schreibt "Als Datei sichern" zwei <meta>-Angaben in
+        Kennung, Zeitpunkt und Titel (nicht Teil dieses Blocks, sondern des
+        Kopfes)
+          Beim Sichern schreibt "Als Datei sichern" drei <meta>-Angaben in
           den Kopf der Datei, neben mws-shell-version:
 
             simplewiki-doc-id     die Kennung des Dokuments. Sie bleibt
@@ -85,14 +87,21 @@
                                   "Was neuer ist, gewinnt": Ist die Datei
                                   juenger als der Entwurf im Browser, gilt
                                   die Datei; bei Gleichstand ebenfalls.
+            simplewiki-title      der eigene Wiki-Name, den die Person oben
+                                  im Kopf vergibt. Leer heisst: es bleibt
+                                  beim festen Namen. Er steht im Kopf, weil
+                                  er zur Datei gehoert und nicht zu den
+                                  Seiten - dieselbe Datei soll ueberall
+                                  denselben Namen tragen.
 
-          Beide stehen bewusst hier und nicht im Datenblock: der Vertrag
-          unten bleibt damit unveraendert, und eine fremde Anwendung darf
-          die Angaben setzen oder weglassen. Fehlen sie, verhaelt sich die
-          Datei wie vorher, und der Fingerabdruck ihres Datenblocks
-          entscheidet. Der rohe Bauplan traegt beide leer; "Leeres Wiki
-          exportieren" vergibt eine frische Kennung, damit die leere
-          Vorlage nicht den Entwurf der erzeugenden Person erbt.
+          Alle drei stehen bewusst hier und nicht im Datenblock: der
+          Vertrag unten bleibt damit unveraendert, und eine fremde
+          Anwendung darf die Angaben setzen oder weglassen. Fehlen sie,
+          verhaelt sich die Datei wie vorher, und der Fingerabdruck ihres
+          Datenblocks entscheidet. Der rohe Bauplan traegt sie leer;
+          "Leeres Wiki exportieren" vergibt eine frische Kennung und laesst
+          den Titel leer, damit die leere Vorlage weder den Entwurf noch
+          den Namen der erzeugenden Person erbt.
 
         =========================================================================
     -->
@@ -826,6 +835,34 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                die Rueckfallkette steht in der eigenen Farbwelt bereit. */
             color: var(--h1-color, var(--text-primary));
             white-space: nowrap;
+        }
+
+        /* Der Name ist unter file:// anklickbar: der Cursor und ein leiser
+           Strich beim Ueberfahren sagen es. Im Serverbetrieb fehlt die
+           Klasse - dort bleibt der Name Text. */
+        .header h1.kopf-titel-editierbar {
+            cursor: text;
+        }
+
+        .header h1.kopf-titel-editierbar:hover {
+            text-decoration: underline dotted;
+            text-underline-offset: 3px;
+        }
+
+        /* Das Eingabefeld anstelle des Namens sieht aus wie die
+           Ueberschrift, damit an derselben Stelle nichts springt. */
+        .header .kopf-titel-feld {
+            font-family: inherit;
+            font-size: 1.3rem;
+            font-weight: bold;
+            line-height: 1.15;
+            color: var(--h1-color, var(--text-primary));
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1px 6px;
+            min-width: 10ch;
+            max-width: 60vw;
         }
 
         /* Der Titelblock: der Name oben, darunter der Untertitel aus
@@ -3239,7 +3276,18 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         <div class="app" :class="{ zen: zenModus }">
             <header class="header">
                 <div class="kopf-titel">
-                    <h1>📚 {{ wikiTitel || t('appName') }}</h1>
+                    <!-- Unter file:// ist der Name anklickbar: er wird zum
+                         Eingabefeld, Enter uebernimmt, Escape verwirft.
+                         Im Serverbetrieb kommt er aus $:/SiteTitle und ist
+                         kein Gegenstand dieser Oberflaeche. -->
+                    <input v-if="titelBearbeiten" ref="titelFeld" class="kopf-titel-feld"
+                           v-model="titelEntwurf" :aria-label="t('titelHint')"
+                           @keydown.enter.prevent="titelSichern"
+                           @keydown.esc.prevent="titelAbbrechen"
+                           @blur="titelSichern">
+                    <h1 v-else :class="{ 'kopf-titel-editierbar': !mwsModus }"
+                        :title="!mwsModus ? t('titelHint') : ''"
+                        @click="titelStarten">📚 {{ kopfTitel() }}</h1>
                     <p v-if="wikiUntertitel" class="kopf-untertitel">{{ wikiUntertitel }}</p>
                 </div>
                 <!-- Suche. Das Feld steht im Kopf, und die Treffer kommen
@@ -3797,7 +3845,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                  Hinweis. Die Version fuehrt zum Autor. -->
             <div class="settings-fuss">
                 <div class="kopf-titel">
-                    <span class="fuss-titel">📚 {{ wikiTitel || t('appName') }}</span>
+                    <span class="fuss-titel">📚 {{ kopfTitel() }}</span>
                     <span v-if="wikiUntertitel" class="fuss-untertitel">{{ wikiUntertitel }}</span>
                 </div>
                 <a class="fuss-version" :href="autorUrl" target="_blank" rel="noopener">{{ shellVersion }}</a>
@@ -3982,6 +4030,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "Erstelle deine erste Seite oder wähle eine bestehende aus.",
                     "titlePlaceholder": "Seitentitel...",
                     "contentPlaceholder": "Schreibe hier... (Markdown wird unterstützt)",
+                    "titelHint": "Titel ändern – klicken und tippen",
                     "untitled": "Neue Seite",
                     "language": "Sprache",
                     "palette": "Farbwelt",
@@ -4255,6 +4304,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "Create your first page or select an existing one.",
                     "titlePlaceholder": "Page title...",
                     "contentPlaceholder": "Write here... (Markdown is supported)",
+                    "titelHint": "Change title – click and type",
                     "untitled": "New Page",
                     "nurLesen": "This wiki cannot be written to. You can read everything, but not create, change or delete anything.",
                     "nurLesenKurz": "Read only",
@@ -4378,6 +4428,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "Создайте первую страницу или выберите существующую.",
                     "titlePlaceholder": "Заголовок страницы...",
                     "contentPlaceholder": "Пишите здесь... (поддерживается Markdown)",
+                    "titelHint": "Изменить заголовок – нажмите и введите",
                     "untitled": "Новая страница",
                     "language": "Язык",
                     "palette": "Палитра цветов",
@@ -4575,6 +4626,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "Crea tu primera página o selecciona una existente.",
                     "titlePlaceholder": "Título de la página...",
                     "contentPlaceholder": "Escribe aquí... (se admite Markdown)",
+                    "titelHint": "Cambiar el título – haga clic y escriba",
                     "untitled": "Nueva página",
                     "language": "Idioma",
                     "palette": "Paleta de colores",
@@ -4772,6 +4824,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "Créez votre première page ou sélectionnez-en une existante.",
                     "titlePlaceholder": "Titre de la page...",
                     "contentPlaceholder": "Écrivez ici... (Markdown est pris en charge)",
+                    "titelHint": "Modifier le titre – cliquez et saisissez",
                     "untitled": "Nouvelle page",
                     "language": "Langue",
                     "palette": "Palette de couleurs",
@@ -4969,6 +5022,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "最初のページを作成するか、既存のページを選んでください。",
                     "titlePlaceholder": "ページタイトル...",
                     "contentPlaceholder": "ここに入力...（Markdown に対応）",
+                    "titelHint": "タイトルを変更 – クリックして入力",
                     "untitled": "新しいページ",
                     "language": "言語",
                     "palette": "カラーパレット",
@@ -5166,6 +5220,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "첫 페이지를 만들거나 기존 페이지를 선택하세요.",
                     "titlePlaceholder": "페이지 제목...",
                     "contentPlaceholder": "여기에 작성하세요... (Markdown 지원)",
+                    "titelHint": "제목 변경 – 클릭하고 입력",
                     "untitled": "새 페이지",
                     "language": "언어",
                     "palette": "색상 팔레트",
@@ -5363,6 +5418,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "welcomeText": "创建你的第一个页面，或选择一个已有页面。",
                     "titlePlaceholder": "页面标题...",
                     "contentPlaceholder": "在此书写……（支持 Markdown）",
+                    "titelHint": "更改标题 – 点击并输入",
                     "untitled": "新页面",
                     "language": "语言",
                     "palette": "配色方案",
@@ -5655,6 +5711,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
 
         const KENNUNG_META = 'simplewiki-doc-id';
         const ZEIT_META = 'simplewiki-exported';
+        const TITEL_META = 'simplewiki-title';
         const ARCHIV_PRAEFIX = 'simplewiki_archiv__';
 
         /* Schluessel, die zum Entwurf eines Dokuments gehoeren. Beim
@@ -5664,7 +5721,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             'simplewiki_refs', 'simplewiki_lang', 'simplewiki_theme',
             'simplewiki_palette', 'simplewiki_toolbar', 'simplewiki_seiteninhalt',
             'simplewiki_eigene_farben', 'simplewiki_datei_warnung',
-            'simplewiki_draft_time', 'simplewiki_digest'];
+            'simplewiki_draft_time', 'simplewiki_digest', 'simplewiki_titel'];
 
         /* Eine Kennung auf harmlose Zeichen bringen: sie wird Teil eines
            Speicherschluessels und steht in der Datei. Leer heisst: keine
@@ -5732,6 +5789,25 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             if (!meta) return 0;
             const t = Date.parse(String(meta.getAttribute('content') || ''));
             return isFinite(t) ? t : 0;
+        }
+
+        /* Den eigenen Wiki-Namen auf harmlose Zeichen bringen: eine Zeile,
+           ohne Steuerzeichen, gedeckelt. Er steht im Kopf der Datei und
+           wird im Titel gezeigt - ein Zeilenumbruch darin waere eine
+           zweite Zeile, die niemand will. */
+        function titelSaeubern(text) {
+            return String(text == null ? '' : text)
+                .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 120);
+        }
+
+        /* Der eigene Wiki-Name der geoeffneten Datei. Leer heisst: keiner
+           gesetzt - dann gilt der feste Name. */
+        function dateiTitel() {
+            const meta = document.querySelector('meta[name="' + TITEL_META + '"]');
+            return titelSaeubern(meta ? meta.getAttribute('content') : '');
         }
 
         /* Die Kennung, unter der dieser Tab arbeitet. Sie ist einmal
@@ -6795,6 +6871,15 @@ showSettings: false,
                    Verwaltung dem Wiki gibt. Im Browser leer; dann steht oben
                    der feste Name. */
                 wikiTitel: '',
+                /* Der eigene Wiki-Name, den die Person unter file:// oben im
+                   Kopf selbst vergibt. Er wandert in den Kopf der gesicherten
+                   Datei (meta simplewiki-title) und gehoert zu genau dieser
+                   Datei. Im Serverbetrieb leer - dort gilt $:/SiteTitle. */
+                eigenerTitel: '',
+                /* Der Kopf zeigt gerade das Eingabefeld statt des Namens. */
+                titelBearbeiten: false,
+                /* Was im Eingabefeld steht, bevor Enter es uebernimmt. */
+                titelEntwurf: '',
                 /* Der Untertitel aus $:/SiteSubtitle, eine Zeile unter dem
                    Namen. Im Browser leer; dann fehlt die Zeile. */
                 wikiUntertitel: '',
@@ -8348,9 +8433,58 @@ showSettings: false,
                     return this.langDict[key] || this.baseDict[key] || key;
                 },
 
+                /* Der Name oben im Kopf. Reihenfolge: der Servername aus
+                   $:/SiteTitle, dann der eigene Name unter file://, dann
+                   der feste Name. Der Server gewinnt immer - dort gehoert
+                   der Name zur Verwaltung, nicht zur Datei. */
+                kopfTitel() {
+                    if (this.wikiTitel) return this.wikiTitel;
+                    if (!this.mwsModus && this.eigenerTitel) return this.eigenerTitel;
+                    return this.t('appName');
+                },
+
                 applyLanguage() {
                     document.documentElement.lang = this.currentLang;
-                    document.title = 'SimpleWiki – ' + this.t('appName');
+                    document.title = this.kopfTitel();
+                },
+
+                /* Darf der Name hier geaendert werden? Nur unter file://:
+                   im Serverbetrieb gehoert er zur Verwaltung ($:/SiteTitle). */
+                titelBearbeitbar() {
+                    return !this.mwsModus;
+                },
+
+                /* Der Name wird zum Eingabefeld: den gezeigten Namen
+                   hineinschreiben, damit man ihn aendert statt neu tippt. */
+                titelStarten() {
+                    if (!this.titelBearbeitbar()) return;
+                    this.titelEntwurf = this.kopfTitel();
+                    this.titelBearbeiten = true;
+                    this.$nextTick(() => {
+                        const feld = this.$refs.titelFeld;
+                        if (feld) { feld.focus(); feld.select(); }
+                    });
+                },
+
+                /* Enter oder Weglklicken: den Namen uebernehmen. Leer heisst
+                   zurueck zum festen Namen. Geaendert heisst: die Datei auf
+                   der Platte kennt den Namen noch nicht - also warnen. */
+                titelSichern() {
+                    if (!this.titelBearbeiten) return;
+                    this.titelBearbeiten = false;
+                    const neu = titelSaeubern(this.titelEntwurf);
+                    this.titelEntwurf = '';
+                    if (neu === this.eigenerTitel) return;
+                    this.eigenerTitel = neu;
+                    try { SimpleWikiStore.set('simplewiki_titel', neu); } catch (e) { /* egal */ }
+                    this.applyLanguage();
+                    this.dateiWarnen();
+                },
+
+                /* Escape: nichts uebernehmen. Der Name bleibt, wie er war. */
+                titelAbbrechen() {
+                    this.titelBearbeiten = false;
+                    this.titelEntwurf = '';
                 },
 
                 changeLanguage() {
@@ -8641,18 +8775,22 @@ showSettings: false,
                    inklusive Reihenfolge in der Datei. */
                 /* Die gesicherte Datei bauen: die Vorlage von vor dem Mount,
                    nur mit frischen Daten im Datenblock. */
-                bauExport(daten, kennung) {
+                bauExport(daten, kennung, titel) {
                     const doc = new DOMParser().parseFromString(VORLAGE_HTML, 'text/html');
-                    /* Kennung und Zeitpunkt in den Kopf schreiben. Die
-                       Kennung ist die des offenen Dokuments - so erkennt
-                       die Datei beim naechsten Oeffnen ihren eigenen
+                    /* Kennung, Zeitpunkt und Titel in den Kopf schreiben.
+                       Die Kennung ist die des offenen Dokuments - so
+                       erkennt die Datei beim naechsten Oeffnen ihren eigenen
                        Entwurf wieder. Die leere Vorlage bekommt ueber den
-                       Aufrufer eine frische Kennung, damit sie nicht den
-                       Entwurf der Person erbt, die sie erzeugt. Der
-                       Zeitpunkt ist jetzt: er entscheidet, ob die Datei
-                       oder ein Entwurf im Browser gewinnt. */
+                       Aufrufer eine frische Kennung und einen leeren Titel,
+                       damit sie weder den Entwurf noch den Namen der Person
+                       erbt, die sie erzeugt. Der Zeitpunkt ist jetzt: er
+                       entscheidet, ob die Datei oder ein Entwurf im Browser
+                       gewinnt. Der Titel ist der eigene Name des offenen
+                       Dokuments, sofern der Aufrufer keinen anderen nennt. */
                     metaSetzen(doc, KENNUNG_META, kennung || arbeitsId());
                     metaSetzen(doc, ZEIT_META, new Date().toISOString());
+                    metaSetzen(doc, TITEL_META,
+                        titel === undefined ? this.eigenerTitel : titelSaeubern(titel));
                     /* Nur hier wird "<" escaped: der Block steckt in einer
                        HTML-Datei, und ein Script-Ende im Inhalt wuerde sie
                        zerreissen. Als JSON-Datei ist das unnoetig und
@@ -8772,7 +8910,7 @@ showSettings: false,
                             palette: this.palette,
                             eigeneFarben: this.eigeneFarben
                         };
-                        this.dateiHerunterladen(this.bauExport(leer, neueKennung()), 'simplewiki-leer.html', 'text/html');
+                        this.dateiHerunterladen(this.bauExport(leer, neueKennung(), ''), 'simplewiki-leer.html', 'text/html');
                         this.hinweis(this.t('noticeLeerSaved'));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
@@ -8981,6 +9119,14 @@ showSettings: false,
                         SimpleWikiStore.set('simplewiki_doc_id', arbeitsId());
                     }
 
+                    /* Der eigene Name des offenen Dokuments. Der Wechsel
+                       oben hat ihn mit dem Entwurf hervorgeholt oder
+                       weggeraeumt. Eine Datei, die gleich die Seiten
+                       liefert, setzt ihn gleich danach aus ihrem Kopf. */
+                    this.eigenerTitel = this.mwsModus
+                        ? ''
+                        : (SimpleWikiStore.get('simplewiki_titel', '') || '');
+
                     const geladen = SPEICHER.laden();
                     /* Die gemerkte Warnung nur im Browserbetrieb: auf dem
                        Server gibt es keine Datei zu sichern. */
@@ -9003,6 +9149,7 @@ showSettings: false,
                             this.pages = this.normiereSeiten(ausDatei.seiten);
                             this.seitenUebernehmen();
                             this.seitenSichern();
+                            this.titelAusDatei();
                             this.uebernehmenAusDatei(ausDatei);
                             this.dateiUebernommen(finger);
                             this.dateiWarnungLoeschen();
@@ -9030,6 +9177,7 @@ showSettings: false,
                         this.pages = this.normiereSeiten(ausDatei.seiten);
                         this.seitenUebernehmen();
                         this.seitenSichern();
+                        this.titelAusDatei();
                         this.uebernehmenAusDatei(ausDatei);
                         this.dateiUebernommen(finger);
                         this.dateiWarnungLoeschen();
@@ -9095,6 +9243,19 @@ showSettings: false,
                    Zeitpunkt des Entwurfs auf die Datei ziehen. So gilt
                    dieselbe Datei beim naechsten Oeffnen als gleich alt
                    (Gleichstand -> Datei) und nicht als aelter. */
+                /* Den eigenen Namen aus dem Kopf der offenen Datei
+                   uebernehmen. Nur beim Oeffnen der Datei - dort ist das
+                   laufende Dokument die Datei selbst. Der Knopf
+                   "Datenbereich laden" liest dagegen nur den Datenblock,
+                   nicht den Kopf, und laesst den Namen stehen. */
+                titelAusDatei() {
+                    if (this.mwsModus) return;
+                    this.eigenerTitel = dateiTitel();
+                    try {
+                        SimpleWikiStore.set('simplewiki_titel', this.eigenerTitel);
+                    } catch (e) { /* es gibt Speicher ohne Platz */ }
+                },
+
                 dateiUebernommen(finger) {
                     if (this.mwsModus) return;
                     SimpleWikiStore.set('simplewiki_digest', finger || '');

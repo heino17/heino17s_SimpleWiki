@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.45">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.46">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -14,7 +14,35 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-15
 
-### v0.1.45 — JSON und leere Wiki sagen denselben Speicherort-Hinweis — 1222 Prüfungen
+### v0.1.46 — Der eigene Wiki-Name im Kopf — 1247 Prüfungen
+
+Der Kopf trug unter `file://` immer den festen Namen „📚 SimpleWiki". Wer
+mehrere Wikis als Dateien nebeneinander hielt, sah in jedem Fenster denselben
+Namen. Jetzt lässt sich der Name anklicken: aus der Überschrift wird ein
+Eingabefeld, Enter oder ein Klick daneben sichern, Escape lässt den alten Namen
+stehen. Der feste Name bleibt, solange niemand etwas einträgt; ein leeres Feld
+setzt ihn zurück. Das Buch-Symbol bleibt ein festes Zeichen, nur der Text
+dahinter ändert sich.
+
+Der Name gehört zur Datei. Er steht im Kopf als
+`<meta name="simplewiki-title" content="…">`, neben `mws-shell-version` und den
+Angaben aus v0.1.44. Damit wandert er mit *Als Datei sichern* in die neue Datei
+und kommt beim Öffnen einer Datei wieder heraus. Zwischendurch merkt ihn der
+Browserspeicher je Dokument; beim Wechsel der Datei wird er zusammen mit dem
+Entwurf zur Seite gelegt und der der neuen Datei hervorgeholt.
+
+Wie die Kennung steht der Name bewusst im Kopf und nicht im Datenblock: der
+Austauschvertrag bleibt damit unverändert, und eine fremde Anwendung darf ihn
+setzen oder weglassen. Fehlt er, gilt der feste Name wie zuvor. Im Serverbetrieb
+bleibt der Name unantastbar: dort kommt er aus `$:/SiteTitle`, und die
+Überschrift ist nicht anklickbar.
+
+Geprueft mit `tests/t_titel.py`: bearbeiten, leeren und wiederherstellen unter
+`file://`; der Name aus dem Browserspeicher; der Name aus dem Kopf einer
+geoeffneten Datei. `tests/t_mwsmode.py` haelt fest, dass der Name im
+Serverbetrieb nicht anklickbar ist.
+
+### v0.1.45 — JSON und leere Wiki sagen denselben Speicherort-Hinweis — 1243 Prüfungen
 
 *Als Datei sichern* und *Seite als Markdown* sagen seit v0.1.43 „Bitte
 Speicherort bestimmen. Erscheint der Speichern-Dialog nicht, liegt die Datei

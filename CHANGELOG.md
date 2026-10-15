@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.44">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.45">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,25 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-15
+
+### v0.1.45 — JSON und leere Wiki sagen denselben Speicherort-Hinweis — 1222 Prüfungen
+
+*Als Datei sichern* und *Seite als Markdown* sagen seit v0.1.43 „Bitte
+Speicherort bestimmen. Erscheint der Speichern-Dialog nicht, liegt die Datei
+jetzt wahrscheinlich in Deinem Download-Ordner." Die beiden übrigen Ausgaben
+*JSON exportieren* und *Leeres Wiki exportieren* meldeten dagegen weiter
+„JSON gesichert: …" und „Leere Wiki-Datei gesichert: simplewiki-leer.html" —
+dasselbe Versprechen, das sie nicht halten können: erscheint der
+Speichern-Dialog, entscheidet der Mensch den Ort.
+
+Jetzt tragen alle vier Wege denselben Hinweis. Die JSON-Meldung nennt die
+Datei beim Namen („… liegt die JSON-Datei simplewiki.json …"), die leere
+Vorlage ihren festen Namen `simplewiki-leer.html`. Alle acht Sprachen sind
+nachgezogen.
+
+Geprueft mit `tests/t_leerwiki.py` und `tests/t_mws.py`: beide verlangen im
+Banner jetzt den Dateinamen (bzw. `JSON`) *und* das Wort „Speicherort", damit
+der alte Wortlaut nicht zurueckkommt.
 
 ### v0.1.44 — Kennung und Zeitpunkt: die neuere Datei gewinnt — 1221 Prüfungen
 

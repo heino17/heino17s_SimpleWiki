@@ -319,8 +319,9 @@ script3 = r"""
           setTimeout(function () {
             ok(window.__name === 'simplewiki.json', 'Dateiname: ' + window.__name);
             ok(!!window.__blob, 'Datei erzeugt');
-            ok(!!q('.hinweis') && q('.hinweis').textContent.indexOf('JSON') >= 0,
-               'Hinweis: ' + (q('.hinweis') ? q('.hinweis').textContent.trim() : 'KEINER'));
+            ok(!!q('.hinweis') && q('.hinweis').textContent.indexOf('JSON') >= 0 &&
+               q('.hinweis').textContent.indexOf('Speicherort') >= 0,
+               'Hinweis nennt JSON und Speicherort: ' + (q('.hinweis') ? q('.hinweis').textContent.trim() : 'KEINER'));
             window.__blob.text().then(function (text) {
               var d = JSON.parse(text);
               ok(d.version === 1, 'Version: ' + d.version);

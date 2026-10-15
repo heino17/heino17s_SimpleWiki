@@ -160,8 +160,9 @@ script2 = r"""
             ok(!!window.__blob, 'Datei erzeugt');
             window.__blob.text().then(function (text) {
               var p=document.createElement('pre');p.id='exportiert';p.textContent=text;document.body.appendChild(p);
-              ok(gemeldet.join(' | ').indexOf('simplewiki-leer') >= 0,
-                 'Hinweis beim Sichern: ' + (gemeldet.join(' | ') || 'KEINER'));
+              ok(gemeldet.join(' | ').indexOf('simplewiki-leer') >= 0 &&
+                 gemeldet.join(' | ').indexOf('Speicherort') >= 0,
+                 'Hinweis nennt Datei und Speicherort: ' + (gemeldet.join(' | ') || 'KEINER'));
               ende();
             });
           }, 900);

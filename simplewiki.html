@@ -2,7 +2,7 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.41">
+    <meta name="mws-shell-version" content="v0.1.43">
     <title>SimpleWiki</title>
 
     <!--
@@ -1227,6 +1227,28 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
             pointer-events: none;
         }
 
+        /* Der Warnpunkt am Zahnrad: im Browser liegen Aenderungen nur im
+           Browserspeicher, die Datei auf der Platte bleibt zurueck, bis
+           sie gesichert wird. Er sieht aus wie der Update-Punkt, ist
+           aber rot und pulsiert leicht - eine Warnung, kein Angebot. */
+        .datei-warn-punkt {
+            position: absolute;
+            top: 5px;
+            right: 6px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--danger-color);
+            box-shadow: 0 0 0 2px var(--bg-hover);
+            pointer-events: none;
+            animation: datei-warn-puls 1.6s ease-in-out infinite;
+        }
+
+        @keyframes datei-warn-puls {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.45; transform: scale(1.3); }
+        }
+
         /* Einstellungen: Abschnitte für spätere Optionen */
         .settings-body {
             flex: 1;
@@ -1344,6 +1366,27 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
         .settings-btn:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
+        }
+
+        /* Der Knopf "Als Datei sichern", solange es ungesicherte
+           Aenderungen gibt: ein leicht rot pulsierender Rand. Der Puls
+           ist ein ins Innere wachsender Schatten, damit keine eigene
+           Farbe noetig ist und jede Farbwelt ihren eigenen Rotton
+           behaelt. */
+        .settings-btn.datei-warn-rand {
+            border-color: var(--danger-color);
+            animation: datei-warn-rand 1.6s ease-in-out infinite;
+        }
+
+        @keyframes datei-warn-rand {
+            0%, 100% { box-shadow: inset 0 0 0 0 var(--danger-color); }
+            50%      { box-shadow: inset 0 0 0 2px var(--danger-color); }
+        }
+
+        /* Die eine Zeile ueber dem Sicherungs-Knopf, solange es etwas
+           zu sichern gibt. */
+        .datei-warn-hinweis {
+            color: var(--danger-color);
         }
 
         /* Der Kopf des Farb-Editors: Beschriftung links, der Schalter
@@ -3265,7 +3308,7 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     <button class="abmelden-btn" @click="abmelden" :disabled="meldeAb"
                             :title="t('abmeldenTitel')" :aria-label="t('abmeldenTitel')">⎋</button>
                 </template>
-                <button class="settings-toggle" @click="openSettings" :title="t('settings')" :aria-label="shellUpdate ? t('menuSettingsUpdate') : t('settings')"><span v-if="shellUpdate" class="shell-update-punkt" aria-hidden="true"></span>⚙️</button>
+                <button class="settings-toggle" @click="openSettings" :title="t('settings')" :aria-label="dateiWarnung ? t('menuSettingsFileWarn') : (shellUpdate ? t('menuSettingsUpdate') : t('settings'))"><span v-if="shellUpdate" class="shell-update-punkt" aria-hidden="true"></span><span v-if="dateiWarnung" class="datei-warn-punkt" aria-hidden="true"></span>⚙️</button>
                 <button class="theme-toggle" @click="toggleTheme" :title="t('theme')" :aria-label="t('theme')">
                     {{ isDarkMode ? '☀️' : '🌙' }}
                 </button>
@@ -3701,9 +3744,10 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 <div class="settings-section">
                     <label class="settings-label">{{ t('dataSection') }}</label>
                     <p class="settings-hint data-hinweis">{{ t('dataSectionHint') }}</p>
-                    <button class="settings-btn" @click="sichernAlsDatei">
+                    <button class="settings-btn" :class="{ 'datei-warn-rand': dateiWarnung }" @click="sichernAlsDatei">
                         💾 {{ t('fileSave') }}
                     </button>
+                    <p v-if="dateiWarnung" class="settings-hint datei-warn-hinweis">{{ t('fileWarnHint') }}</p>
                     <p class="settings-hint">{{ t('fileSaveHint').replace('{name}', sicherungsName()) }}</p>
                     <button class="settings-btn" @click="jsonExportieren">
                         📄 {{ t('fileSaveJson') }}
@@ -3849,10 +3893,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "Die Datei nennt die Version „{version}“. Erlaubt ist eine Zahl ab 1.",
                     "noticeVersionZuNeu": "Die Datei hat Version {version}, diese Wiki kommt bis Version {eigen}. Es wurde nichts übernommen.",
                     "noticeTitleFrei": "Den Namen „{title}“ gibt es schon. Bitte einen anderen wählen.",
+                    "fileWarnHint": "Achtung: Diese Änderungen stehen nur im Browserspeicher. Sichere die Datei, sonst sind sie beim nächsten Öffnen weg.",
 "fileSaveHint": "Legt eine HTML-Datei mit allen Seiten in dieser Reihenfolge an. Speichere sie als {name} — damit kannst du diese Datei ersetzen.",
                     "fileLoad": "Datei laden",
                     "fileLoadHint": "Übernimmt die Seiten aus einer gesicherten HTML- oder JSON-Datei und ersetzt das aktuelle Wiki.",
-                    "noticeSaved": "Gesichert. Die Datei liegt jetzt im Download-Ordner.",
+                    "noticeSaved": "Bitte Speicherort bestimmen. Erscheint der Speichern-Dialog nicht, liegt die Datei jetzt wahrscheinlich in Deinem Download-Ordner.",
                     "noticeLoaded": "Wiki übernommen: {zahl} in dieser Reihenfolge.",
                     "seite1": "1 Seite",
                     "seitenN": "{n} Seiten",
@@ -4009,7 +4054,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "In einem Monat erinnern",
                     "updateFehler": "Das hat nicht geklappt. Bitte noch einmal versuchen.",
                     "updateTooltip": "Die Inhalte Deines Wikis werden bei diesem Update nicht verändert!",
-                    "menuSettingsUpdate": "Einstellungen, neue Oberflächen-Version verfügbar"
+                    "menuSettingsUpdate": "Einstellungen, neue Oberflächen-Version verfügbar",
+                    "menuSettingsFileWarn": "Einstellungen, es gibt ungesicherte Änderungen"
                 }
             },
             "en": {
@@ -4045,10 +4091,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "The file names version \u201e{version}\u201c. A number from 1 upwards is allowed.",
                     "noticeVersionZuNeu": "The file has version {version}, this wiki goes up to version {eigen}. Nothing was taken over.",
                     "noticeTitleFrei": "There is already a page named \u201e{title}\u201c. Please choose another one.",
+                    "fileWarnHint": "Careful: these changes live only in the browser. Save the file, or they will be gone the next time you open it.",
 "fileSaveHint": "Creates an HTML file with all pages in this order. Save it as {name} — that replaces this file.",
                     "fileLoad": "Load file",
                     "fileLoadHint": "Takes over the pages from a saved HTML or JSON file and replaces the current wiki.",
-                    "noticeSaved": "Saved. The file is now in your download folder.",
+                    "noticeSaved": "Please choose where to save. If no save dialog appears, the file is now probably in your Downloads folder.",
                     "noticeLoaded": "Wiki taken over: {zahl} in this order.",
                     "seite1": "1 page",
                     "seitenN": "{n} pages",
@@ -4205,7 +4252,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "Remind me in a month",
                     "updateFehler": "That did not work. Please try again.",
                     "updateTooltip": "The contents of your wiki are untouched by this update!",
-                    "menuSettingsUpdate": "Settings, new interface version available"
+                    "menuSettingsUpdate": "Settings, new interface version available",
+                    "menuSettingsFileWarn": "Settings, there are unsaved changes"
                 }
             },
             "ru": {
@@ -4241,10 +4289,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "В файле указана версия «{version}». Допустимо число от 1 и выше.",
                     "noticeVersionZuNeu": "В файле версия {version}, эта вики поддерживает до версии {eigen}. Ничего не перенесено.",
                     "noticeTitleFrei": "Страница с именем «{title}» уже существует. Выберите другое.",
+                    "fileWarnHint": "Внимание: эти изменения хранятся только в браузере. Сохраните файл, иначе они пропадут при следующем открытии.",
                     "fileSaveHint": "Создаёт HTML-файл со всеми страницами в этом порядке. Сохраните его как {name} — так вы замените этот файл.",
                     "fileLoad": "Загрузить файл",
                     "fileLoadHint": "Переносит страницы из сохранённого HTML- или JSON-файла и заменяет текущую вики.",
-                    "noticeSaved": "Сохранено. Файл теперь в папке загрузок.",
+                    "noticeSaved": "Укажите место сохранения. Если диалог сохранения не появился, файл, вероятно, сейчас в папке загрузок.",
                     "noticeLoaded": "Вики перенесена: {zahl} в этом порядке.",
                     "seite1": "1 страница",
                     "seitenN": "{n} страниц",
@@ -4400,7 +4449,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "Напомнить через месяц",
                     "updateFehler": "Не получилось. Попробуйте ещё раз.",
                     "updateTooltip": "Содержимое вашей вики этим обновлением не затрагивается!",
-                    "menuSettingsUpdate": "Настройки, доступна новая версия интерфейса"
+                    "menuSettingsUpdate": "Настройки, доступна новая версия интерфейса",
+                    "menuSettingsFileWarn": "Настройки, есть несохранённые изменения"
                 }
             },
             "es": {
@@ -4436,10 +4486,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "El archivo indica la versión «{version}». Se permite un número a partir de 1.",
                     "noticeVersionZuNeu": "El archivo tiene la versión {version}; este wiki llega hasta la versión {eigen}. No se adoptó nada.",
                     "noticeTitleFrei": "Ya existe una página llamada «{title}». Elige otro nombre.",
+                    "fileWarnHint": "Atención: estos cambios solo están en el navegador. Guarda el archivo o se perderán la próxima vez que lo abras.",
                     "fileSaveHint": "Crea un archivo HTML con todas las páginas en este orden. Guárdalo como {name} — así reemplazas este archivo.",
                     "fileLoad": "Cargar archivo",
                     "fileLoadHint": "Toma las páginas de un archivo HTML o JSON guardado y reemplaza el wiki actual.",
-                    "noticeSaved": "Guardado. El archivo está ahora en tu carpeta de descargas.",
+                    "noticeSaved": "Elige dónde guardarlo. Si no aparece el diálogo de guardado, el archivo está ahora probablemente en tu carpeta de descargas.",
                     "noticeLoaded": "Wiki adoptado: {zahl} en este orden.",
                     "seite1": "1 página",
                     "seitenN": "{n} páginas",
@@ -4595,7 +4646,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "Recordármelo en un mes",
                     "updateFehler": "No ha funcionado. Inténtalo de nuevo.",
                     "updateTooltip": "¡El contenido de tu wiki no se toca con esta actualización!",
-                    "menuSettingsUpdate": "Ajustes, nueva versión de la interfaz disponible"
+                    "menuSettingsUpdate": "Ajustes, nueva versión de la interfaz disponible",
+                    "menuSettingsFileWarn": "Ajustes, hay cambios sin guardar"
                 }
             },
             "fr": {
@@ -4631,10 +4683,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "Le fichier indique la version « {version} ». Un nombre à partir de 1 est autorisé.",
                     "noticeVersionZuNeu": "Le fichier a la version {version}, ce wiki va jusqu'à la version {eigen}. Rien n'a été repris.",
                     "noticeTitleFrei": "Une page nommée « {title} » existe déjà. Veuillez en choisir un autre.",
+                    "fileWarnHint": "Attention : ces modifications ne sont que dans le navigateur. Enregistrez le fichier, sinon elles disparaîtront à la prochaine ouverture.",
                     "fileSaveHint": "Crée un fichier HTML avec toutes les pages dans cet ordre. Enregistrez-le sous {name} — cela remplace ce fichier.",
                     "fileLoad": "Charger un fichier",
                     "fileLoadHint": "Reprend les pages d'un fichier HTML ou JSON enregistré et remplace le wiki actuel.",
-                    "noticeSaved": "Enregistré. Le fichier est maintenant dans votre dossier de téléchargements.",
+                    "noticeSaved": "Choisissez où enregistrer. Si la boîte de dialogue n'apparaît pas, le fichier se trouve probablement maintenant dans votre dossier de téléchargements.",
                     "noticeLoaded": "Wiki repris : {zahl} dans cet ordre.",
                     "seite1": "1 page",
                     "seitenN": "{n} pages",
@@ -4790,7 +4843,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "Me rappeler dans un mois",
                     "updateFehler": "Cela n'a pas fonctionné. Veuillez réessayer.",
                     "updateTooltip": "Le contenu de votre wiki n'est pas modifié par cette mise à jour !",
-                    "menuSettingsUpdate": "Réglages, nouvelle version de l'interface disponible"
+                    "menuSettingsUpdate": "Réglages, nouvelle version de l'interface disponible",
+                    "menuSettingsFileWarn": "Réglages, des modifications non enregistrées"
                 }
             },
             "ja": {
@@ -4826,10 +4880,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "ファイルはバージョン「{version}」を指定しています。1 以上の数値が使用できます。",
                     "noticeVersionZuNeu": "ファイルのバージョンは {version}、この Wiki はバージョン {eigen} まで対応します。何も取り込みませんでした。",
                     "noticeTitleFrei": "「{title}」という名前のページはすでにあります。別の名前を選んでください。",
+                    "fileWarnHint": "注意:この変更はブラウザーにのみ保存されています。ファイルを保存しないと、次に開いたときに失われます。",
                     "fileSaveHint": "すべてのページをこの順序で含む HTML ファイルを作成します。{name} として保存すると、このファイルを置き換えられます。",
                     "fileLoad": "ファイルを読み込む",
                     "fileLoadHint": "保存した HTML または JSON ファイルからページを取り込み、現在の Wiki を置き換えます。",
-                    "noticeSaved": "保存しました。ファイルはダウンロードフォルダーにあります。",
+                    "noticeSaved": "保存先を指定してください。保存ダイアログが表示されない場合、ファイルは現在、おそらくダウンロードフォルダーにあります。",
                     "noticeLoaded": "Wiki を取り込みました: {zahl}、この順序。",
                     "seite1": "1 ページ",
                     "seitenN": "{n} ページ",
@@ -4985,7 +5040,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "1 か月後に通知する",
                     "updateFehler": "うまくいきませんでした。もう一度お試しください。",
                     "updateTooltip": "この更新で Wiki の内容は変更されません！",
-                    "menuSettingsUpdate": "設定、新しいインターフェース版が利用可能です"
+                    "menuSettingsUpdate": "設定、新しいインターフェース版が利用可能です",
+                    "menuSettingsFileWarn": "設定、保存されていない変更があります"
                 }
             },
             "ko": {
@@ -5021,10 +5077,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "파일에 버전 「{version}」이(가) 지정되어 있습니다. 1 이상의 숫자를 사용할 수 있습니다.",
                     "noticeVersionZuNeu": "파일 버전은 {version}, 이 위키는 버전 {eigen}까지 지원합니다. 아무것도 가져오지 않았습니다.",
                     "noticeTitleFrei": "「{title}」이라는 이름의 페이지가 이미 있습니다. 다른 이름을 선택하세요.",
+                    "fileWarnHint": "주의: 이 변경 사항은 브라우저에만 있습니다. 파일로 저장하지 않으면 다음에 열 때 사라집니다.",
                     "fileSaveHint": "모든 페이지를 이 순서로 담은 HTML 파일을 만듭니다. {name}로 저장하면 이 파일을 대체할 수 있습니다.",
                     "fileLoad": "파일 불러오기",
                     "fileLoadHint": "저장된 HTML 또는 JSON 파일에서 페이지를 가져와 현재 위키를 대체합니다.",
-                    "noticeSaved": "저장되었습니다. 파일은 다운로드 폴더에 있습니다.",
+                    "noticeSaved": "저장 위치를 정하세요. 저장 대화 상자가 나타나지 않으면 파일은 지금쯤 다운로드 폴더에 있을 것입니다.",
                     "noticeLoaded": "위키를 가져왔습니다: {zahl}, 이 순서대로.",
                     "seite1": "1페이지",
                     "seitenN": "{n}페이지",
@@ -5180,7 +5237,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "한 달 후에 알림",
                     "updateFehler": "잘 되지 않았습니다. 다시 시도하세요.",
                     "updateTooltip": "이 업데이트로 위키 내용은 변경되지 않습니다!",
-                    "menuSettingsUpdate": "설정, 새 인터페이스 버전 사용 가능"
+                    "menuSettingsUpdate": "설정, 새 인터페이스 버전 사용 가능",
+                    "menuSettingsFileWarn": "설정, 저장되지 않은 변경 사항이 있습니다"
                 }
             },
             "zh-cn": {
@@ -5216,10 +5274,11 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "noticeVersionUngueltig": "该文件注明版本「{version}」。允许使用 1 及以上的数字。",
                     "noticeVersionZuNeu": "该文件的版本为 {version}，此 Wiki 最高支持版本 {eigen}。未采用任何内容。",
                     "noticeTitleFrei": "名为「{title}」的页面已存在。请另选一个。",
+                    "fileWarnHint": "注意：这些更改只保存在浏览器中。请保存文件，否则下次打开时它们会丢失。",
                     "fileSaveHint": "按此顺序创建一个包含所有页面的 HTML 文件。将其保存为 {name} 即可替换此文件。",
                     "fileLoad": "加载文件",
                     "fileLoadHint": "从已保存的 HTML 或 JSON 文件中接管页面，并替换当前 Wiki。",
-                    "noticeSaved": "已保存。文件现在位于你的下载文件夹中。",
+                    "noticeSaved": "请确定保存位置。如果没有出现保存对话框，文件现在可能已在你的下载文件夹中。",
                     "noticeLoaded": "已接管 Wiki：{zahl}，按此顺序。",
                     "seite1": "1 个页面",
                     "seitenN": "{n} 个页面",
@@ -5375,7 +5434,8 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                     "updateMonat": "一个月后提醒我",
                     "updateFehler": "未能成功。请重试。",
                     "updateTooltip": "此更新不会改动你的 Wiki 内容！",
-                    "menuSettingsUpdate": "设置，有新的界面版本可用"
+                    "menuSettingsUpdate": "设置，有新的界面版本可用",
+                    "menuSettingsFileWarn": "设置，有未保存的更改"
                 }
             }
         };
@@ -6465,6 +6525,12 @@ showSettings: false,
                 shellUpdate: null,
                 shellTaetig: false,
                 shellFehler: false,
+                /* Gibt es Aenderungen, die nur im Browserspeicher stehen
+                   und noch nicht in der Datei auf der Platte? Dann steht
+                   der rote Punkt am Zahnrad und der Knopf "Als Datei
+                   sichern" pulsiert. Im Serverbetrieb immer false - dort
+                   schreibt der Server. */
+                dateiWarnung: false,
 /* Das Inhaltsverzeichnis links steht beim Oeffnen da, ausser das
                    Fenster ist zu schmal dafuer (TOC_MENUE_OFFEN_BIS). Nur
                    fuer dieses eine Fenster - wer es zuklappt, will es auch
@@ -6541,6 +6607,11 @@ showSettings: false,
                 rechteWeg: false,
                 /* Kommt der Inhalt vom Server statt aus dem Browser? */
                 mwsModus: false,
+                /* Laeuft gerade der erste Aufbau (loadPages)? Dann sind
+                   die Schreibvorgaenge in den Browserspeicher kein Werk
+                   der Benutzerin, sondern nur das Einlesen - sie duerfen
+                   die Warnung nicht anschalten. */
+                laedt: false,
                 /* Der Hinweis auf den Server ist weggeklickt worden.
                    Solange die Session lebt, bleibt er weg - gespeichert
                    wird das in sessionStorage, nicht localStorage, damit
@@ -8390,10 +8461,41 @@ showSettings: false,
                     return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
                 },
 
+                /* ---------- Die Warnung vor ungesicherten Aenderungen ----------
+
+                   Im Browser ist der Browserspeicher die einzige Ablage:
+                   die Datei auf der Platte kennt die Aenderung nicht. Wer
+                   die Datei weitergibt oder neu oeffnet, verliert sie.
+                   Zwei Zeichen erinnern daran (der rote Punkt am Zahnrad
+                   und der pulsierende Rand am Sicherungs-Knopf); beide
+                   haengen an dateiWarnung.
+
+                   Angeschaltet wird die Warnung bei jedem Schreiben an den
+                   Browserspeicher, das von einer Handlung kommt - nicht
+                   beim Einlesen (laedt). Gemerkt wird sie in localStorage,
+                   damit sie ein Neuladen uebersteht: der Browserspeicher
+                   haelt die Aenderung ja auch. */
+                dateiWarnen() {
+                    if (this.mwsModus || this.laedt) return;
+                    this.dateiWarnung = true;
+                    SimpleWikiStore.set('simplewiki_datei_warnung', '1');
+                },
+
+                /* Die Warnung zuruecknehmen: nach dem Sichern der Datei und
+                   immer dann, wenn ein anderer Dateiinhalt den Stand des
+                   Browsers ersetzt - dann stimmt die Datei wieder. */
+                dateiWarnungLoeschen() {
+                    this.dateiWarnung = false;
+                    SimpleWikiStore.set('simplewiki_datei_warnung', '');
+                },
+
                 sichernAlsDatei() {
                     try {
                         this.dateiHerunterladen(this.bauExport(), this.sicherungsName('.html'), 'text/html');
                         this.hinweis(this.t('noticeSaved'));
+                        /* Mit dieser Datei ist gesichert, was im Browser
+                           stand - die Warnung hat ihre Aufgabe getan. */
+                        this.dateiWarnungLoeschen();
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
                     }
@@ -8639,8 +8741,13 @@ showSettings: false,
                    Datei sein, und was der Browser hat, bleibt stehen
                    (auch eigene Aenderungen). */
                 loadPages() {
+                    this.laedt = true;
                     const geladen = SPEICHER.laden();
                     this.mwsModus = SPEICHER.art === 'mws';
+                    /* Die gemerkte Warnung nur im Browserbetrieb: auf dem
+                       Server gibt es keine Datei zu sichern. */
+                    this.dateiWarnung = !this.mwsModus
+                        && SimpleWikiStore.get('simplewiki_datei_warnung') === '1';
                     this.nurLesen = !!geladen.nurLesen;
                     this.wikiTitel = geladen.wikiTitel || '';
                     this.wikiUntertitel = geladen.wikiUntertitel || '';
@@ -8659,6 +8766,7 @@ showSettings: false,
                             this.seitenSichern();
                             this.uebernehmenAusDatei(ausDatei);
                             SimpleWikiStore.set('simplewiki_digest', finger);
+                            this.dateiWarnungLoeschen();
                         } else {
                             this.pages = this.normiereSeiten(geladen.seiten);
                             this.seitenUebernehmen();
@@ -8672,6 +8780,7 @@ showSettings: false,
                         this.seitenSichern();
                         this.uebernehmenAusDatei(ausDatei);
                         if (finger) SimpleWikiStore.set('simplewiki_digest', finger);
+                        this.dateiWarnungLoeschen();
                     } else {
                         this.pages = [
                             {
@@ -8686,6 +8795,7 @@ showSettings: false,
                         ];
                         this.seitenUebernehmen();
                         this.seitenSichern();
+                        this.dateiWarnungLoeschen();
                     }
 
                     /* Beim Start die Startseite öffnen. */
@@ -8697,6 +8807,7 @@ showSettings: false,
                         SPEICHER.startseiteSetzen(this.startPageId);
                     }
                     this.currentPage = this.pages.find(p => p.id === this.startPageId) || null;
+                    this.laedt = false;
                 },
 
                 /* Farbe, Farbwelt und Sprache, die der Speicher mitgebracht hat. */
@@ -8721,6 +8832,7 @@ showSettings: false,
                     this.merkeZustand();
                     this.startPageId = neu;
                     SPEICHER.startseiteSetzen(this.startPageId);
+                    this.dateiWarnen();
                 },
 
                 /* Der Speicher und die App arbeiten auf derselben
@@ -8735,6 +8847,7 @@ showSettings: false,
                    einer Datei gebraucht, wo mehrere Seiten auf einmal
                    entstehen. */
                 seitenSichern() {
+                    this.dateiWarnen();
                     for (let i = 0; i < this.pages.length; i++) {
                         SPEICHER.seiteSichern(this.pages[i]);
                     }
@@ -8750,6 +8863,7 @@ showSettings: false,
                    Im Browser wird es ignoriert - dort kennt die
                    localStorage keinen Tiddler. */
                 seiteSichern(seite, alterTitel) {
+                    this.dateiWarnen();
                     SPEICHER.seiteSichern(seite, alterTitel);
                 },
 
@@ -9574,6 +9688,7 @@ createNewPage() {
                     /* Die Kinder gehoeren auf dem Server mitgespeichert,
                        sonst stehen dort die alten eltern-Werte. */
                     kinder.forEach((kind) => this.seiteSichern(kind));
+                    this.dateiWarnen();
                     SPEICHER.seiteLoeschen(deleted.id);
                 },
 
@@ -9631,6 +9746,7 @@ createNewPage() {
                     if (!z) return;
                     this.undoZustand = null;
                     this.kannRueckgaengig = false;
+                    this.dateiWarnen();
                     const alt = {};
                     z.seiten.forEach(function (p) { alt[String(p.id)] = true; });
                     this.pages.slice().forEach((p) => {

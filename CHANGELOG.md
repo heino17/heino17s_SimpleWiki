@@ -4,11 +4,55 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.41">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.43">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
+
+---
+
+## 2026-10-15
+
+### v0.1.43 — der Banner spricht vom Speicherort — 1206 Prüfungen
+
+Nach *Als Datei sichern* stand unten „Gesichert. Die Datei liegt jetzt im
+Download-Ordner." Das stimmt nicht immer: wer den Speichern-Dialog sieht,
+legt den Ort selbst fest, und „gesichert" ist die Datei erst, wenn sie an
+ihrem Platz liegt. Der Banner sagt jetzt zuerst die Aufgabe — „Bitte
+Speicherort bestimmen." — und nennt den Download-Ordner nur als den Fall,
+dass kein Dialog erscheint. Denselben Banner zeigt auch *Seite als
+Markdown*; er steht in allen acht Sprachen.
+
+Geprueft in einem Entwicklungsstand: "Als Datei sichern" geklickt - der
+Banner trug den neuen Wortlaut, die Warnung war zugleich weg.
+`tests/t_dateiwarnung.py` prueft den Wortlaut mit.
+
+### v0.1.42 — der Warnpunkt, wenn die Änderung nur im Browser steht — 1205 Prüfungen
+
+Wer `simplewiki.html` per Doppelklick im Browser öffnet, arbeitet in dessen
+Speicher: die Änderung ist sofort da, aber nur dort. Bisher sagte das nichts.
+Jetzt erscheint nach dem Speichern einer Seite ein roter Punkt am Zahnrad,
+und der Knopf *Als Datei sichern* bekommt einen roten, pochenden Rand mit
+einer Zeile darunter, die zum Sichern auffordert. Beide Zeichen
+verschwinden, sobald die Datei wirklich gesichert wurde.
+
+Am Server passiert nichts: dort liegen die Seiten im Store, und der
+Serverbetrieb ist der einzige, der sie wirklich hält. Der Hinweis gilt nur
+für den Dateibetrieb. Der Punkt merkt sich seinen Zustand (im lokalen
+Speicher), übersteht also das Neuladen; er verfällt, wenn die Daten einer
+*anderen* Datei den Browserspeicher ersetzen.
+
+Undeutsch, aber genau: die Warnung hängt am Browserbetrieb, nicht an einer
+einzelnen Handlung. Geändert wird sie beim Speichern der Seiten, beim
+Löschen, beim Zurücknehmen, beim Anlegen und Wählen der Startseite.
+
+Geprueft in einem Entwicklungsstand: eine Seite im Browser geaendert und
+gespeichert - der rote Punkt sass am Zahnrad, der Sicherungs-Knopf trug den
+Rand, die Warnzeile stand da; "Als Datei sichern" - alles wieder weg. Mit
+gesetztem Merker neu geladen - die Warnung war wieder da, ohne Merker nicht.
+Auf dem Testserver gespeichert - keine Warnung. `tests/t_dateiwarnung.py`
+prueft die drei Faelle.
 
 ---
 

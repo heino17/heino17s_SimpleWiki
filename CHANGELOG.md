@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.43">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.44">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -14,7 +14,39 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-15
 
-### v0.1.43 — der Banner spricht vom Speicherort — 1206 Prüfungen
+### v0.1.44 — Kennung und Zeitpunkt: die neuere Datei gewinnt — 1221 Prüfungen
+
+Zwei getrennte Wikis derselben Herkunft `file://` teilten sich bisher den
+Browserspeicher. Wer eine andere Datei öffnete, sah den Entwurf der vorigen;
+wer in einem Browser arbeitete und in einem anderen sicherte, sah nach dem
+Neuladen den alten Stand der Datei. Der einzige Ausweg war, den
+Browserspeicher zu leeren — kein zumutbarer Umgang mit einer einfachen Wiki.
+
+Jetzt trägt jede gesicherte Datei zwei Angaben im Kopf, neben
+`mws-shell-version`. `simplewiki-doc-id` ist die Kennung des Dokuments, sie
+bleibt beim Sichern dieselbe. `simplewiki-exported` ist der Zeitpunkt der
+Sicherung (ISO-8601). Beim Öffnen wird zuerst das Dokument geklaert: der
+Browserspeicher gehört immer nur einer Datei; beim Wechsel wird der alte
+Entwurf zur Seite gelegt und der der neuen Datei hervorgeholt. Danach
+entscheidet der Vergleich. Ist die Datei neuer als der Entwurf — oder
+gleich alt —, gilt die Datei. Ist der Entwurf neuer, bleibt er, und der rote
+Punkt am Zahnrad sagt, dass die Datei diesen Stand noch nicht kennt. Eine
+alte Datei ohne Zeitpunkt entscheidet weiter über den Fingerabdruck ihres
+Datenblocks: derselbe heisst dieselbe Datei.
+
+Beide Angaben stehen bewusst im Kopf und nicht im Datenblock. Der
+Austauschvertrag unten bleibt damit unverändert, und eine fremde Anwendung
+darf die Angaben setzen oder weglassen. Fehlen sie, verhält sich die Datei
+wie vorher. Eine leere Datei mit frischer Kennung zeigt keinen fremden
+Entwurf mehr — genau der Fehler, der die Leute zwang, den Speicher zu leeren.
+
+Geprueft mit `tests/t_dokument.py` in vier Faellen: neuere Datei gegen alten
+Entwurf (die Datei gewinnt, keine Warnung), aeltere Datei gegen neuen Entwurf
+(der Entwurf bleibt, die Warnung steht), Gleichstand (die Datei gewinnt),
+leere Datei (kein fremder Entwurf). `tests/t_finger.py` haelt fest, dass jede
+Datei ihren eigenen Entwurf behaelt.
+
+### v0.1.43 — der Banner spricht vom Speicherort — 1221 Prüfungen
 
 Nach *Als Datei sichern* stand unten „Gesichert. Die Datei liegt jetzt im
 Download-Ordner." Das stimmt nicht immer: wer den Speichern-Dialog sieht,

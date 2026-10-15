@@ -7,11 +7,13 @@ from _hilfe import dumpdom, bericht, ziel, zahlen
 
 # ------------------------------------------------------------------ Inhalt
 # Zwei verschiedene Wiki-Dateien, deren Datenbloecke als Stapel im Browser
-# landen. Der Fingerabdruck aus dem Datenblock entscheidet, welche von
-# beiden beim naechsten Oeffnen gilt - ohne dass der Browserspeicher
-# geleert werden muss (t_export legt den Stand schon fest, die Suche ist
-# die Frage "andere Datei?". Die Suite prueft dieselbe Datei nur einmal;
-# hier wird die Datei dasselbe zweimal geoeffnet, und danach eine andere.)
+# landen. Der Fingerabdruck aus dem Datenblock gibt der Datei eine Kennung
+# (alte Dateien tragen keine im Kopf), und die Kennung trennt die Entwuerfe:
+# dieselbe Datei behaelt ihren Entwurf, eine andere bekommt einen eigenen,
+# und beim Zurueckwechseln ist der alte Entwurf wieder da - ohne dass der
+# Browserspeicher geleert werden muss. (t_export legt den Stand schon fest;
+# die Suite prueft dieselbe Datei nur einmal, hier wird dieselbe Datei
+# zweimal geoeffnet, danach eine andere und zum Schluss wieder die erste.)
 DATEN_A = {
     'version': 1,
     'startseite': 'a1',
@@ -128,7 +130,7 @@ teil3 = r"""
         ok(ps.length === 2 && ps[0].title === 'Alpha' && ps[1].title === 'Beta',
            'der Browserspeicher traegt B, nichts mehr von A');
         ok(ps[0].content.indexOf('Geaendert im Browser') < 0,
-           'der alte Stand von A ist weg - die Datei hat gewonnen');
+           'A liegt jetzt zur Seite - B hat den Arbeitsspeicher');
         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
       }, 2500);
@@ -137,7 +139,8 @@ teil3 = r"""
 """
 
 # ---------------------------------------------------------------- Teil 4
-# Und zurueck zu A: auch die andere Richtung erkennt der Fingerabdruck.
+# Und zurueck zu A: jede Datei hat ihren eigenen Entwurf, also kommt der
+# Stand von A wieder - samt der Aenderung aus Lauf 1.
 teil4 = r"""
     <script>
     (function () {
@@ -148,10 +151,11 @@ teil4 = r"""
         ok(q('.content-title') && q('.content-title').textContent.trim() === 'Eins',
            'Startseite wieder Eins: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
         ok(titel().join('|') === 'Eins', 'wieder nur Eins');
-        ok(q('.preview').textContent.indexOf('Inhalt der Datei A.') >= 0,
-           'der Stand von A aus dem Datenblock ist zurueck');
-        ok(q('.preview').textContent.indexOf('Geaendert im Browser') < 0,
-           'ohne die Aenderung aus Lauef 1 - die Datei war der Stand');
+        ok(q('.preview').textContent.indexOf('Geaendert im Browser') >= 0,
+           'A hat seinen eigenen Entwurf wieder - die Aenderung aus Lauef 1');
+        ok(q('.preview').textContent.indexOf('Datei B') < 0 &&
+           q('.preview').textContent.indexOf('Beta') < 0,
+           'nichts von B schleppt sich ein');
         log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
         out();
       }, 2500);

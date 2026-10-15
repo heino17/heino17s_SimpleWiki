@@ -2,7 +2,9 @@
 <html lang="de"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mws-shell-version" content="v0.1.43">
+    <meta name="mws-shell-version" content="v0.1.44">
+    <meta name="simplewiki-doc-id" content="">
+    <meta name="simplewiki-exported" content="">
     <title>SimpleWiki</title>
 
     <!--
@@ -70,6 +72,27 @@
           Eine Datei ohne Seiten wird nicht eingelesen – sie würde eine
           vorhandene Wiki ersetzen. Die leere Vorlage ist zum Füllen da, nicht
           zum Laden.
+
+        Kennung und Zeitpunkt (nicht Teil dieses Blocks, sondern des Kopfes)
+          Beim Sichern schreibt "Als Datei sichern" zwei <meta>-Angaben in
+          den Kopf der Datei, neben mws-shell-version:
+
+            simplewiki-doc-id     die Kennung des Dokuments. Sie bleibt
+                                  beim Speichern dieselbe, damit eine Datei
+                                  ihren eigenen Entwurf im Browserspeicher
+                                  wiederfindet.
+            simplewiki-exported   der Zeitpunkt der Sicherung (ISO-8601).
+                                  "Was neuer ist, gewinnt": Ist die Datei
+                                  juenger als der Entwurf im Browser, gilt
+                                  die Datei; bei Gleichstand ebenfalls.
+
+          Beide stehen bewusst hier und nicht im Datenblock: der Vertrag
+          unten bleibt damit unveraendert, und eine fremde Anwendung darf
+          die Angaben setzen oder weglassen. Fehlen sie, verhaelt sich die
+          Datei wie vorher, und der Fingerabdruck ihres Datenblocks
+          entscheidet. Der rohe Bauplan traegt beide leer; "Leeres Wiki
+          exportieren" vergibt eine frische Kennung, damit die leere
+          Vorlage nicht den Entwurf der erzeugenden Person erbt.
 
         =========================================================================
     -->
@@ -5591,8 +5614,202 @@ var e=function(t,n){return e=Object.setPrototypeOf||{__proto__:[]}instanceof Arr
                 } catch (e) {
                     console.warn('SimpleWiki: Speichern nicht möglich –', e.message);
                 }
+            },
+            remove: function (key) {
+                try {
+                    window.localStorage.removeItem(key);
+                } catch (e) {
+                    /* gesperrter Speicher: dann ist auch nichts zu entfernen */
+                }
             }
         };
+
+        /* ---------- Welches Dokument ist geöffnet? ----------
+
+           Eine per Doppelklick geoeffnete Datei und der rohe Bauplan
+           teilen sich denselben Browserspeicher. Ohne Kennung kann das
+           Programm nicht wissen, ob die Seiten im Speicher zu der
+           gerade offenen Datei gehoeren oder zu einer anderen, die
+           vorher offen war. Genau daraus entstand der Fehler, dass eine
+           frisch geladene, leere Datei den alten Stand zeigte.
+
+           Die Kennung kommt deshalb aus der Datei selbst: "Als Datei
+           sichern" schreibt sie als <meta> in den Kopf (siehe oben).
+           Ein Dokument ohne Kennung - der rohe Bauplan, eine alte Datei
+           - bekommt eine, die im Browserspeicher bleibt. Alte Dateien
+           mit Inhalt bekommen den Fingerabdruck ihres Datenblocks: zwei
+           verschiedene Dateien haben dann verschiedene Kennungen.
+
+           Dazu der Zeitpunkt der letzten Sicherung. "Was neuer ist,
+           gewinnt": Ist die Datei juenger als der Entwurf im Browser,
+           gilt die Datei; sonst bleibt der Entwurf stehen. Bei
+           Gleichstand gewinnt die Datei - sie ist das, was weitergegeben
+           wird.
+
+           Getrennt gehalten wird ueber die Kennung: Beim Wechsel von
+           einer Datei zur anderen wandert der bisherige Stand zur Seite
+           (archivSichern) und der Stand der neuen Datei kommt zurueck
+           (archivLaden). So behaelt jede Datei ihren eigenen Entwurf.
+           Eine Datei, die hier noch nie offen war, faengt mit leerem
+           Speicher an - ihr Dateiinhalt gewinnt. */
+
+        const KENNUNG_META = 'simplewiki-doc-id';
+        const ZEIT_META = 'simplewiki-exported';
+        const ARCHIV_PRAEFIX = 'simplewiki_archiv__';
+
+        /* Schluessel, die zum Entwurf eines Dokuments gehoeren. Beim
+           Wechsel ziehen sie mit um. simplewiki_doc_id steht bewusst
+           nicht dabei: sie ist die Kennung selbst, nicht ihr Inhalt. */
+        const ARCHIV_SCHLUESSEL = ['simplewiki_pages', 'simplewiki_startpage',
+            'simplewiki_refs', 'simplewiki_lang', 'simplewiki_theme',
+            'simplewiki_palette', 'simplewiki_toolbar', 'simplewiki_seiteninhalt',
+            'simplewiki_eigene_farben', 'simplewiki_datei_warnung',
+            'simplewiki_draft_time', 'simplewiki_digest'];
+
+        /* Eine Kennung auf harmlose Zeichen bringen: sie wird Teil eines
+           Speicherschluessels und steht in der Datei. Leer heisst: keine
+           Kennung. Die Laenge ist gedeckelt, damit eine fremde Datei mit
+           einem riesigen Attribut keinen riesigen Schluessel erzwingt. */
+        function kennungSaeubern(text) {
+            return String(text == null ? '' : text)
+                .replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
+        }
+
+        function neueKennung() {
+            return 'd' + Date.now().toString(36) + '-' +
+                Math.random().toString(36).slice(2, 8);
+        }
+
+        /* Derselbe Fingerabdruck wie dateiFingerabdruck: die Laenge vor
+           der FNV-1a-Summe, damit zwei verschiedene Texte so gut wie
+           sicher verschieden sind. Als eigene Funktion, weil er hier
+           fuer die Kennung und dort fuer die Entscheidung gebraucht
+           wird - zweimal gerechnet waeren zwei Wahrheiten. */
+        function fnvAbdruck(text) {
+            let h = 0x811c9dc5;
+            for (let i = 0; i < text.length; i++) {
+                h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
+            }
+            return 'f' + text.length + '-' + h.toString(36);
+        }
+
+        /* Kennung aus dem Datenblock: nur, wenn die Datei auch Seiten
+           mitbringt. Ein leerer Datenblock ist keine Kennung, sonst
+           hiessen alle leeren Dateien gleich. */
+        function dateiDatenblockKennung() {
+            const halter = document.getElementById('simplewiki-daten');
+            if (!halter) return '';
+            const text = halter.textContent || '';
+            try {
+                const d = JSON.parse(text.replace(/\\u003c/g, '<'));
+                if (!d || !Array.isArray(d.seiten) || !d.seiten.length) return '';
+            } catch (e) {
+                return '';
+            }
+            return fnvAbdruck(text);
+        }
+
+        /* Die Kennung der geoeffneten Datei. Reihenfolge: der Kopf der
+           Datei, dann der Name des Wikis auf dem Server, dann der
+           Fingerabdruck einer alten Datei mit Inhalt. Leer heisst: diese
+           Datei sagt nichts ueber sich - dann gilt der Browserspeicher. */
+        function dateiId() {
+            const meta = document.querySelector('meta[name="' + KENNUNG_META + '"]');
+            const ausKopf = kennungSaeubern(meta ? meta.getAttribute('content') : '');
+            if (ausKopf) return ausKopf;
+            /* Der Name aus dem Pfad zaehlt nur im Serverbetrieb. Sonst
+               hiesse jede Datei in einem Ordner "wiki" nach ihrem Pfad. */
+            const slug = (typeof mwsTiddlerLesen === 'function' && mwsTiddlerLesen())
+                ? mwsSlug() : '';
+            if (slug) return 'mws-' + kennungSaeubern(slug);
+            return dateiDatenblockKennung();
+        }
+
+        /* Der Zeitpunkt der letzten Sicherung, in Millisekunden. 0 heisst:
+           die Datei nennt keinen - eine alte Datei oder der rohe Bauplan. */
+        function dateiExportZeit() {
+            const meta = document.querySelector('meta[name="' + ZEIT_META + '"]');
+            if (!meta) return 0;
+            const t = Date.parse(String(meta.getAttribute('content') || ''));
+            return isFinite(t) ? t : 0;
+        }
+
+        /* Die Kennung, unter der dieser Tab arbeitet. Sie ist einmal
+           festgelegt: eine Datei mit Kennung bringt sie mit, der rohe
+           Bauplan bekommt eine, die bleibt. */
+        let ARBEITS_KENNUNG = null;
+        function arbeitsId() {
+            if (ARBEITS_KENNUNG) return ARBEITS_KENNUNG;
+            let id = dateiId();
+            if (!id) {
+                id = kennungSaeubern(SimpleWikiStore.get('simplewiki_doc_id', ''));
+                if (!id) {
+                    id = neueKennung();
+                    SimpleWikiStore.set('simplewiki_doc_id', id);
+                }
+            }
+            ARBEITS_KENNUNG = id;
+            return id;
+        }
+
+        /* Den Entwurf des bisherigen Dokuments zur Seite legen. Nur, wenn
+           wirklich etwas da ist - ein leerer Eintrag waere nur Ballast. */
+        function archivSichern(id) {
+            const raus = {};
+            let etwas = false;
+            ARCHIV_SCHLUESSEL.forEach(function (k) {
+                const v = SimpleWikiStore.get(k, null);
+                if (v !== null) { raus[k] = v; etwas = true; }
+            });
+            if (!etwas) return;
+            SimpleWikiStore.set(ARCHIV_PRAEFIX + id, JSON.stringify(raus));
+        }
+
+        /* Den Entwurf eines Dokuments zurueckholen. Ohne Eintrag wird der
+           Arbeitsspeicher geleert, damit die neue Datei mit ihrem eigenen
+           Inhalt anfaengt und nicht mit dem der vorigen. */
+        function archivLaden(id) {
+            ARCHIV_SCHLUESSEL.forEach(function (k) { SimpleWikiStore.remove(k); });
+            const roh = SimpleWikiStore.get(ARCHIV_PRAEFIX + id, null);
+            if (!roh) return;
+            let daten = null;
+            try { daten = JSON.parse(roh); } catch (e) { daten = null; }
+            if (!daten || typeof daten !== 'object') return;
+            ARCHIV_SCHLUESSEL.forEach(function (k) {
+                if (Object.prototype.hasOwnProperty.call(daten, k)) {
+                    SimpleWikiStore.set(k, daten[k]);
+                }
+            });
+        }
+
+        /* Beim Wechsel von einer Datei zur anderen: den alten Entwurf
+           wegraeumen und den der neuen hervorholen. Ohne Kennung (roher
+           Bauplan, alte leere Datei) bleibt alles, wie es ist. */
+        function dokumentwechsel(neueId) {
+            if (!neueId) return;
+            const alteId = kennungSaeubern(SimpleWikiStore.get('simplewiki_doc_id', ''));
+            if (alteId === neueId) return;
+            if (!alteId) {
+                SimpleWikiStore.set('simplewiki_doc_id', neueId);
+                return;
+            }
+            archivSichern(alteId);
+            archivLaden(neueId);
+            SimpleWikiStore.set('simplewiki_doc_id', neueId);
+        }
+
+        /* Eine Angabe im Kopf der gesicherten Datei setzen oder anlegen.
+           Wird von bauExport gebraucht, das auf einem geparsten Dokument
+           arbeitet statt auf dem laufenden. */
+        function metaSetzen(doc, name, wert) {
+            let m = doc.querySelector('meta[name="' + name + '"]');
+            if (!m) {
+                m = doc.createElement('meta');
+                m.setAttribute('name', name);
+                doc.head.appendChild(m);
+            }
+            m.setAttribute('content', wert == null ? '' : String(wert));
+        }
 
         /* ---------- Wo die Seiten liegen: Browser oder MWS ----------
 
@@ -8310,12 +8527,7 @@ showSettings: false,
                     if (!document.getElementById('simplewiki-daten')) return '';
                     if (!this.readDatenAusDatei()) return '';
                     const halter = document.getElementById('simplewiki-daten');
-                    const text = halter.textContent || '';
-                    let h = 0x811c9dc5;
-                    for (let i = 0; i < text.length; i++) {
-                        h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
-                    }
-                    return 'f' + text.length + '-' + h.toString(36);
+                    return fnvAbdruck(halter.textContent || '');
                 },
 
                 /* Startseite, Sprache und Farbe aus der Datei übernehmen.
@@ -8429,8 +8641,18 @@ showSettings: false,
                    inklusive Reihenfolge in der Datei. */
                 /* Die gesicherte Datei bauen: die Vorlage von vor dem Mount,
                    nur mit frischen Daten im Datenblock. */
-                bauExport(daten) {
+                bauExport(daten, kennung) {
                     const doc = new DOMParser().parseFromString(VORLAGE_HTML, 'text/html');
+                    /* Kennung und Zeitpunkt in den Kopf schreiben. Die
+                       Kennung ist die des offenen Dokuments - so erkennt
+                       die Datei beim naechsten Oeffnen ihren eigenen
+                       Entwurf wieder. Die leere Vorlage bekommt ueber den
+                       Aufrufer eine frische Kennung, damit sie nicht den
+                       Entwurf der Person erbt, die sie erzeugt. Der
+                       Zeitpunkt ist jetzt: er entscheidet, ob die Datei
+                       oder ein Entwurf im Browser gewinnt. */
+                    metaSetzen(doc, KENNUNG_META, kennung || arbeitsId());
+                    metaSetzen(doc, ZEIT_META, new Date().toISOString());
                     /* Nur hier wird "<" escaped: der Block steckt in einer
                        HTML-Datei, und ein Script-Ende im Inhalt wuerde sie
                        zerreissen. Als JSON-Datei ist das unnoetig und
@@ -8479,6 +8701,10 @@ showSettings: false,
                     if (this.mwsModus || this.laedt) return;
                     this.dateiWarnung = true;
                     SimpleWikiStore.set('simplewiki_datei_warnung', '1');
+                    /* Der Entwurf ist jetzt der juengste Stand. Der
+                       Zeitpunkt entscheidet beim naechsten Oeffnen, ob er
+                       eine aeltere Datei ueberdauert (siehe loadPages). */
+                    SimpleWikiStore.set('simplewiki_draft_time', String(Date.now()));
                 },
 
                 /* Die Warnung zuruecknehmen: nach dem Sichern der Datei und
@@ -8546,7 +8772,7 @@ showSettings: false,
                             palette: this.palette,
                             eigeneFarben: this.eigeneFarben
                         };
-                        this.dateiHerunterladen(this.bauExport(leer), 'simplewiki-leer.html', 'text/html');
+                        this.dateiHerunterladen(this.bauExport(leer, neueKennung()), 'simplewiki-leer.html', 'text/html');
                         this.hinweis(this.t('noticeLeerSaved'));
                     } catch (e) {
                         this.hinweis(this.t('noticeSaveError'));
@@ -8728,22 +8954,34 @@ showSettings: false,
                    sonst eine neue Wiki. Der Speicher entscheidet selbst,
                    ob er aus dem Browser oder vom Server kommt.
 
-                   Eine Ausnahme dazu: eine andere oder neuere Datei.
-                   Alle doppelgeklickten Dateien teilen sich denselben
-                   Browserspeicher; ohne Pruefung zeigte eine frisch
-                   geladene Datei also ewig den Stand der zuletzt
-                   geoffneten, bis der Speicher geleert ist. Laeuft die
-                   Datei im Browser, wird deshalb ihr Fingerabdruck mit
-                   dem des letzten Mal verglichen: ist er anders - oder dort
-                   steht noch keiner - gehoert der Datenblock einer anderen
-                   (oder noch nie gesehenen) Datei, und ihr Inhalt ersetzt
-                   den Stand im Browser. Ist er gleich, wird es dieselbe
-                   Datei sein, und was der Browser hat, bleibt stehen
-                   (auch eigene Aenderungen). */
+                   Zwei Dinge kommen hinzu. Erstens die Kennung: der
+                   Browserspeicher gehoert immer nur einer Datei. Beim
+                   Wechsel wird der alte Entwurf zur Seite gelegt und der
+                   der neuen Datei hervorgeholt (dokumentwechsel), und
+                   zwar bevor gelesen wird.
+
+                   Zweitens "was neuer ist, gewinnt". Traegt die Datei
+                   einen Zeitpunkt, wird er mit dem letzten Schreibvorgang
+                   im Browser verglichen. Ist die Datei juenger, gilt sie;
+                   bei Gleichstand ebenfalls, denn die Datei ist das, was
+                   weitergegeben wird. Eine alte Datei ohne Zeitpunkt
+                   entscheidet weiter ueber den Fingerabdruck ihres
+                   Datenblocks: derselbe heisst dieselbe Datei, und dann
+                   bleibt der Entwurf stehen. Genau das war der Fehler:
+                   eine frisch gesicherte, leere Datei hatte keinen
+                   Fingerabdruck, und der Browser gewann faelschlich. */
                 loadPages() {
                     this.laedt = true;
-                    const geladen = SPEICHER.laden();
                     this.mwsModus = SPEICHER.art === 'mws';
+
+                    /* Erst das Dokument klaeren, dann lesen: sonst laese
+                       der Speicher den Entwurf der vorigen Datei. */
+                    if (!this.mwsModus) {
+                        dokumentwechsel(dateiId());
+                        SimpleWikiStore.set('simplewiki_doc_id', arbeitsId());
+                    }
+
+                    const geladen = SPEICHER.laden();
                     /* Die gemerkte Warnung nur im Browserbetrieb: auf dem
                        Server gibt es keine Datei zu sichern. */
                     this.dateiWarnung = !this.mwsModus
@@ -8756,30 +8994,44 @@ showSettings: false,
 
                     const ausDatei = this.readDatenAusDatei();
                     const finger = this.dateiFingerabdruck();
+                    const hatDateiSeiten = !!(ausDatei && Array.isArray(ausDatei.seiten)
+                        && ausDatei.seiten.length);
 
                     if (geladen.vorhanden) {
-                        if (!this.mwsModus && finger && ausDatei.seiten.length &&
-                                finger !== SimpleWikiStore.get('simplewiki_digest', '')) {
+                        if (!this.mwsModus && this.dateiGewinnt(ausDatei, finger)) {
                             this.fremdeAngabenMerken(ausDatei);
                             this.pages = this.normiereSeiten(ausDatei.seiten);
                             this.seitenUebernehmen();
                             this.seitenSichern();
                             this.uebernehmenAusDatei(ausDatei);
-                            SimpleWikiStore.set('simplewiki_digest', finger);
+                            this.dateiUebernommen(finger);
                             this.dateiWarnungLoeschen();
                         } else {
                             this.pages = this.normiereSeiten(geladen.seiten);
                             this.seitenUebernehmen();
                             this.startPageId = geladen.startseite || '';
                             this.einstellungenMerken(geladen);
+                            /* Hier gilt der Entwurf, weil er juenger ist
+                               als die Datei: was zu sehen ist, kennt die
+                               Datei noch nicht. Die Warnung sagt es, statt
+                               zu verschweigen, woher das Gezeigte kommt.
+                               Nur wenn die Datei einen Zeitpunkt traegt -
+                               sonst entschied der Fingerabdruck, und
+                               derselbe Fingerabdruck ist dieselbe Datei. */
+                            const dzeit = dateiExportZeit();
+                            if (!this.mwsModus && dzeit
+                                    && this.entwurfZeit() > dzeit) {
+                                this.dateiWarnung = true;
+                                SimpleWikiStore.set('simplewiki_datei_warnung', '1');
+                            }
                         }
-                    } else if (ausDatei && ausDatei.seiten && ausDatei.seiten.length) {
+                    } else if (hatDateiSeiten) {
                         this.fremdeAngabenMerken(ausDatei);
                         this.pages = this.normiereSeiten(ausDatei.seiten);
                         this.seitenUebernehmen();
                         this.seitenSichern();
                         this.uebernehmenAusDatei(ausDatei);
-                        if (finger) SimpleWikiStore.set('simplewiki_digest', finger);
+                        this.dateiUebernommen(finger);
                         this.dateiWarnungLoeschen();
                     } else {
                         this.pages = [
@@ -8795,6 +9047,7 @@ showSettings: false,
                         ];
                         this.seitenUebernehmen();
                         this.seitenSichern();
+                        this.dateiUebernommen('');
                         this.dateiWarnungLoeschen();
                     }
 
@@ -8808,6 +9061,45 @@ showSettings: false,
                     }
                     this.currentPage = this.pages.find(p => p.id === this.startPageId) || null;
                     this.laedt = false;
+                },
+
+                /* Der Zeitpunkt des letzten Schreibvorgangs im Browser,
+                   0 wenn keiner gemerkt ist. */
+                entwurfZeit() {
+                    return Number(SimpleWikiStore.get('simplewiki_draft_time', '0')) || 0;
+                },
+
+                /* Gewinnt die Datei gegen den Entwurf im Browser?
+
+                   Traegt die Datei einen Zeitpunkt, entscheidet er: ist
+                   sie juenger als der Entwurf (oder gibt es keinen),
+                   gewinnt sie; bei Gleichstand ebenfalls - die Datei ist
+                   das, was weitergegeben wird. Eine alte Datei ohne
+                   Zeitpunkt entscheidet ueber den Fingerabdruck ihres
+                   Datenblocks: derselbe Fingerabdruck heisst dieselbe
+                   Datei, und dann bleibt der Entwurf stehen. */
+                dateiGewinnt(ausDatei, finger) {
+                    if (!ausDatei || !Array.isArray(ausDatei.seiten)
+                            || !ausDatei.seiten.length) {
+                        return false;
+                    }
+                    const zeit = dateiExportZeit();
+                    if (zeit) {
+                        const entwurf = this.entwurfZeit();
+                        return !entwurf || zeit >= entwurf;
+                    }
+                    return !!finger && finger !== SimpleWikiStore.get('simplewiki_digest', '');
+                },
+
+                /* Nach dem Uebernehmen einer Datei: Fingerabdruck und
+                   Zeitpunkt des Entwurfs auf die Datei ziehen. So gilt
+                   dieselbe Datei beim naechsten Oeffnen als gleich alt
+                   (Gleichstand -> Datei) und nicht als aelter. */
+                dateiUebernommen(finger) {
+                    if (this.mwsModus) return;
+                    SimpleWikiStore.set('simplewiki_digest', finger || '');
+                    SimpleWikiStore.set('simplewiki_draft_time',
+                        String(dateiExportZeit() || 0));
                 },
 
                 /* Farbe, Farbwelt und Sprache, die der Speicher mitgebracht hat. */

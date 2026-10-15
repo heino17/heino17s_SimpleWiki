@@ -56,6 +56,7 @@ REIHENFOLGE = [
     't_leerwiki.py',   # Leere Wiki-Datei, Vorlage fuellen und oeffnen
     't_export.py',     # Die gesicherte Datei wirklich oeffnen
     't_finger.py',     # Fingerabdruck: eine andere Datei gewinnt ohne Speicher leeren
+    't_dokument.py',   # Kennung und Zeitpunkt im Kopf: welche Datei, was ist neuer
     't_dateiwarnung.py',  # Warnhinweis unter file://: bearbeiten, speichern, sichern
     't_fluss.py',      # Fluss und Druckansicht
     't_scroll.py',     # Scrollen und Druck ueber Blaetter
@@ -102,6 +103,7 @@ BESCHRIEBUNG = {
     't_leerwiki.py': 'Leere Wiki-Datei als Vorlage, Angaben oben, der Weg zurueck',
     't_export.py': 'Die gesicherte Datei wirklich oeffnen',
     't_finger.py': 'Fingerabdruck: eine andere Datei gewinnt ohne Speicher leeren',
+    't_dokument.py': 'Kennung und Zeitpunkt: die neuere Datei gewinnt, leere Datei ohne fremden Entwurf',
     't_dateiwarnung.py': 'Warnhinweis unter file://: bearbeiten, speichern, Datei sichern',
     't_fluss.py': 'Fluss und Druckansicht',
     't_scroll.py': 'Scrollen im Fluss, Druck ueber Blaetter',

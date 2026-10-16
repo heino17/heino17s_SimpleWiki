@@ -8,11 +8,14 @@ Formel, wenn kein Leerzeichen dahinter und keine Ziffer dahinter folgt.
 Teil 2 oeffnet denselben Inhalt im Editor und schaltet auf Markdown um:
 die Vorschau ist TOAST UIs eigene Anzeige und kennt beides nicht - die
 App holt es ueber simplewikiVeredle nach (Ereignisse change/changeMode).
-"""
 
+Teil 3 prueft den Round-Trip im WYSIWYG-Modus: Text mit Math oeffnen,
+speichern, erneut oeffnen und speichern - die Formeln muessen erhalten
+bleiben. Der Token-Trick stellt die Unvertraeglichkeit zwischen TOAST UI
+und $$ ... $$ her.
+"""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 from mkcopy import build
 from _hilfe import pruefe
 
@@ -24,8 +27,19 @@ INHALT = (
     "Es kostet $5 und $10.\n"
 )
 
+INHALT3 = (
+    "# Math\n\n"
+    "$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$\n\n"
+    "Inline $a_b^c$ und $x_0$.\n"
+)
+
 seiten = [
     {"id": "a", "title": "Alpha", "content": INHALT,
+     "links": [], "tags": [], "created": "x", "updated": "x"},
+]
+
+seiten3 = [
+    {"id": "m", "title": "Math", "content": INHALT3,
      "links": [], "tags": [], "created": "x", "updated": "x"},
 ]
 
@@ -47,8 +61,6 @@ KOPF = r"""
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 """
 
-# ---------------------------------------------------------------- Teil 1
-# Leseansicht: Code, Blockformel, Formel im Text - und der Preis bleibt Text.
 teil1 = r"""
     <script>
     (function () {
@@ -81,8 +93,6 @@ teil1 = r"""
     </script>
 """
 
-# ---------------------------------------------------------------- Teil 2
-# Editor-Vorschau: Umschalten auf Markdown, dann muss veredelt sein.
 teil2 = r"""
     <script>
     (function () {
@@ -125,7 +135,59 @@ teil2 = r"""
     </script>
 """
 
+teil3 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+""" + KOPF + r"""
+      var testId = 'm';
+      setTimeout(function () {
+        head('Round-Trip: Bearbeiten, Sichern, Neu oeffnen, Sichern');
+        knopf(/Bearbeiten/).click();
+        spaeter(function () {
+          ok(!!window.__ed, 'Testhaken am Editor');
+          var speichern1 = knopf(/Speichern/);
+          ok(!!speichern1, 'Knopf Speichern vorhanden');
+          if (!speichern1) { schluss(); return; }
+          speichern1.click();
+          spaeter(function () {
+            ok(true, 'Erste Speicherung erfolgt');
+            var seiten1 = window.__vm ? window.__vm.pages : [];
+            var s1 = seiten1.filter(function (p) { return p.id === testId; })[0];
+            ok(!!s1, 'Seite nach Speichern vorhanden');
+            if (!s1) { schluss(); return; }
+            var c1 = s1.content || '';
+            ok(c1.indexOf('$$\\int_{0}^{\\infty}') >= 0, 'Blockformel nach erstem Speichern erhalten');
+            ok(c1.indexOf('Inline $a_b^c') >= 0 || c1.indexOf('$a_b^c') >= 0, 'Inline-Formeln nach erstem Speichern erhalten');
+
+            knopf(/Bearbeiten/).click();
+            spaeter(function () {
+              var speichern2 = knopf(/Speichern/);
+              ok(!!speichern2, 'Zweite Speicherung moeglich');
+              speichern2.click();
+              spaeter(function () {
+                var seiten2 = window.__vm ? window.__vm.pages : [];
+                var s2 = seiten2.filter(function (p) { return p.id === testId; })[0];
+                ok(!!s2, 'Seite nach zweitem Speichern vorhanden');
+                if (!s2) { schluss(); return; }
+                var c2 = s2.content || '';
+                ok(c2 === c1, 'Inhalt nach zweitem Speichern unveraendert (Round-Trip)');
+                ok(c2.indexOf('$$\\int_{0}^{\\infty}') >= 0, 'Blockformel bleibt erhalten');
+                ok(c2.indexOf('$a_b^c') >= 0, 'Inline-Formel a_b^c bleibt erhalten');
+                ok(c2.indexOf('$x_0') >= 0, 'Inline-Formel x_0 bleibt erhalten');
+
+                schluss();
+              });
+            });
+          });
+        });
+      }, 2500);
+    })();
+    </script>
+"""
+
 pruefe(
     build('_mathe1.html', teil1, seiten, startpage='a'),
     build('_mathe2.html', teil2, seiten, startpage='a'),
+    build('_mathe3.html', teil3, seiten3, startpage='m'),
 )

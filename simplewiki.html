@@ -1701,6 +1701,32 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
             marked.use({ renderer: { code: gefaerbterCode } });
         }
 
+        /* Der WYSIWYG-Editor von TOAST UI kennt kein $$ ... $$: er haelt
+           $$ fuer seine eigene Baustein-Syntax und schreibt beim Umsetzen
+           in Markdown Backslashes und Unterstriche um. Eine Formel wuerde
+           damit beim blosen Oeffnen und Sichern beschaedigt. Darum wird
+           jede Formel vor dem Laden in eine unscheinbare Marke @@MWS:n@@
+           verwandelt und beim Lesen aus dem Editor wieder zurueckgesetzt.
+           Die Marke uebersteht den Editor unveraendert; welche Formel zu
+           welcher Nummer gehoert, steht in der Karte. */
+        window.simplewikiMatheSchuetzen = function (text) {
+            var karte = [];
+            var re = /\$\$([\s\S]+?)\$\$|\$(?!\$)([^\s$](?:[^\n$]*[^\s$])?)\$(?!\d)/g;
+            var ergebnis = String(text == null ? '' : text).replace(re, function (treffer) {
+                karte.push(treffer);
+                return '@@MWS:' + (karte.length - 1) + '@@';
+            });
+            return { text: ergebnis, karte: karte };
+        };
+
+        window.simplewikiMatheLoesen = function (text, karte) {
+            if (!karte || !karte.length) return String(text == null ? '' : text);
+            return String(text == null ? '' : text).replace(/@@MWS:(\d+)@@/g, function (marke, zahl) {
+                var i = parseInt(zahl, 10);
+                return (i >= 0 && i < karte.length) ? karte[i] : marke;
+            });
+        };
+
         if (typeof katex !== 'undefined' && katex && typeof katex.renderToString === 'function') {
             var fehlerFest = { throwOnError: false, strict: false };
 
@@ -1757,11 +1783,11 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
                Nach jedem Aufbau der Vorschau holt simplewikiVeredle das
                nach. Beide Durchgaenge sind wiederholbar - schon fertige
                Stuecke werden nicht noch einmal angefasst. */
-            window.simplewikiVeredle = function (wurzel) {
+            window.simplewikiVeredle = function (wurzel, karte) {
                 if (!wurzel) return;
                 vorschauCode(wurzel);
-                vorschauBlockMathe(wurzel);
-                vorschauInlineMathe(wurzel);
+                vorschauBlockMathe(wurzel, karte);
+                vorschauInlineMathe(wurzel, karte);
             };
         }
 
@@ -1791,17 +1817,20 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
             }
         }
 
-        function vorschauBlockMathe(wurzel) {
+        function vorschauBlockMathe(wurzel, karte) {
+            if (!karte || !karte.length) return;
             var absaetze = wurzel.querySelectorAll('p');
             for (var i = 0; i < absaetze.length; i++) {
                 var el = absaetze[i];
                 if (el.querySelector('.katex, .katex-display, img, input')) continue;
                 var t = (el.textContent || '').trim();
-                var m = /^\$\$([\s\S]+?)\$\$$/.exec(t);
+                var m = /^@@MWS:(\d+)@@$/.exec(t);
                 if (!m) continue;
+                var roh = karte[parseInt(m[1], 10)];
+                if (!roh || roh.slice(0, 2) !== '$$') continue;
                 var span = document.createElement('span');
                 span.className = 'sw-mathe';
-                span.innerHTML = katex.renderToString(m[1].trim(), {
+                span.innerHTML = katex.renderToString(roh.slice(2, -2).trim(), {
                     displayMode: true, throwOnError: false, strict: false
                 });
                 el.innerHTML = '';
@@ -1809,11 +1838,12 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
             }
         }
 
-        function vorschauInlineMathe(wurzel) {
-            var re = /(^|[^\\$])\$(?!\$)([^\s$](?:[^\n$]*[^\s$])?)\$(?!\d)/g;
+        function vorschauInlineMathe(wurzel, karte) {
+            if (!karte || !karte.length) return;
+            var re = /@@MWS:(\d+)@@/g;
             var lauf = document.createTreeWalker(wurzel, NodeFilter.SHOW_TEXT, {
                 acceptNode: function (n) {
-                    if (!n.nodeValue || n.nodeValue.indexOf('$') < 0) return NodeFilter.FILTER_SKIP;
+                    if (!n.nodeValue || n.nodeValue.indexOf('@@MWS:') < 0) return NodeFilter.FILTER_SKIP;
                     var p = n.parentNode;
                     if (p && p.closest && p.closest('code, pre, .katex, .katex-display, .sw-mathe')) {
                         return NodeFilter.FILTER_REJECT;
@@ -1829,13 +1859,14 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
                 var m; var last = 0; var stueck = null;
                 re.lastIndex = 0;
                 while ((m = re.exec(text))) {
-                    var vor = m[1] || '';
-                    var bis = m.index + vor.length;
+                    var roh = karte[parseInt(m[1], 10)];
+                    if (!roh) continue;
+                    var innen = roh.slice(0, 2) === '$$' ? roh.slice(2, -2).trim() : roh.slice(1, -1);
                     if (!stueck) stueck = document.createDocumentFragment();
-                    if (bis > last) stueck.appendChild(document.createTextNode(text.slice(last, bis)));
+                    if (m.index > last) stueck.appendChild(document.createTextNode(text.slice(last, m.index)));
                     var span = document.createElement('span');
                     span.className = 'sw-mathe-inline';
-                    span.innerHTML = katex.renderToString(m[2], {
+                    span.innerHTML = katex.renderToString(innen, {
                         displayMode: false, throwOnError: false, strict: false
                     });
                     stueck.appendChild(span);
@@ -9303,6 +9334,13 @@ showSettings: false,
                         this.decorateWikiLinks(marked.parse(roh, { breaks: true })));
                 },
 
+                /* Formelmarken aus dem Editor wieder zu echten Formeln
+                   machen (siehe simplewikiMatheSchuetzen im Kopf). */
+                matheLoesen(text) {
+                    if (!window.simplewikiMatheLoesen) return text;
+                    return window.simplewikiMatheLoesen(text, this._matheKarte);
+                },
+
                 /* Die Vorschau des Editors ist TOAST UIs eigene Anzeige:
                    sie kennt weder Codefarben noch Formeln. simplewikiVeredle
                    holt beides am DOM nach (siehe Kopf). Hier nur der Ort,
@@ -9312,7 +9350,7 @@ showSettings: false,
                     const ziel = host && host.querySelector(
                         '.toastui-editor-md-preview .toastui-editor-contents');
                     if (ziel && window.simplewikiVeredle) {
-                        window.simplewikiVeredle(ziel);
+                        window.simplewikiVeredle(ziel, this._matheKarte);
                     }
                 },
 
@@ -10015,7 +10053,7 @@ showSettings: false,
                     /* Läuft der Editor gerade, neu aufbauen – sonst bliebe seine
                        Oberfläche in der alten Sprache. */
                     if (this.mdEditor) {
-                        this.editContent = this.mdEditor.getMarkdown();
+                        this.editContent = this.matheLoesen(this.mdEditor.getMarkdown());
                         this.$nextTick(() => this.initEditor());
                     }
                 },
@@ -11268,6 +11306,15 @@ createNewPage() {
                         return;
                     }
 
+                    /* Formeln vor dem Laden in Marken verwandeln: der
+                       WYSIWYG-Editor wuerde sie sonst beim Sichern
+                       beschaedigen (siehe Kopf). Die Karte loest sie
+                       beim Lesen wieder auf. */
+                    const geschuetzt = window.simplewikiMatheSchuetzen
+                        ? window.simplewikiMatheSchuetzen(this.editContent)
+                        : { text: this.editContent, karte: [] };
+                    this._matheKarte = geschuetzt.karte;
+
                     const editor = new window.toastui.Editor({
                         el: host,
                         height: this.editorHeight(),
@@ -11275,7 +11322,7 @@ createNewPage() {
                         /* Sprache der Editor-Oberfläche. Die Wortliste für
                            Deutsch wird einmalig unten registriert. */
                         language: this.currentLang === 'de' ? 'de' : 'en-US',
-                        initialValue: this.editContent,
+                        initialValue: geschuetzt.text,
                         placeholder: this.t('contentPlaceholder'),
                         usageStatistics: false
                     });
@@ -11451,7 +11498,7 @@ createNewPage() {
                             return;
                         }
                         if (this.mdEditor) {
-                            this.editContent = this.mdEditor.getMarkdown();
+                            this.editContent = this.matheLoesen(this.mdEditor.getMarkdown());
                         }
                         /* Ein noch nicht mit Enter bestaetigtes Schlagwort
                            aus dem Feld aufnehmen, sonst ginge es mit dem
@@ -11524,7 +11571,7 @@ createNewPage() {
                        im Bearbeitungsmodus, also soll die Kopie genau das
                        zeigen, was gerade zu sehen ist. */
                     const inhalt = this.mdEditor
-                        ? this.mdEditor.getMarkdown()
+                        ? this.matheLoesen(this.mdEditor.getMarkdown())
                         : (this.editContent || quelle.content || '');
 
                     /* Name der Vorlage, notfalls der Titel aus dem

@@ -14,7 +14,7 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ## 2026-10-16
 
-### v0.1.47 — Code und Formeln in Leseansicht und Editor-Vorschau — 1276 Prüfungen
+### v0.1.47 — Code und Formeln in Leseansicht und Editor-Vorschau — 1288 Prüfungen
 
 Zwei Bibliotheken kommen fest eingebettet in die Datei, beide ohne Netz:
 **highlight.js** 11.11.1 (BSD-3-Clause) färbt Codeblöcke, **KaTeX**
@@ -40,7 +40,9 @@ damit die Datei weiter ohne Netz und ohne Nachbardateien auskommt.
 Die Vorschau des Editors ist TOAST UIs eigene Anzeige: sie kennt weder
 Codefarben noch Formeln. Dieselbe Arbeit wird deshalb am DOM nachgeholt
 (`simplewikiVeredle`) — nach jedem Aufbau der Vorschau, an den
-Ereignissen `change` und `changeMode`, kurz entprellt.
+Ereignissen `change` und `changeMode`, kurz entprellt. `simplewikiVeredle`
+versteht beides: eine echte Formel `$$ … $$` / `$ … $` und eine Marke
+`@@MWS:n@@`, deren Formel in der Karte steht.
 
 Der WYSIWYG-Editor von TOAST UI verträgt `$$ … $$` nicht: er hält `$$`
 für seine eigene Baustein-Syntax und schreibt beim Umsetzen in Markdown
@@ -49,10 +51,15 @@ machte aus `\int` ein `\\ int` und aus `x_1` ein `x\_1`. Darum wird jede
 Formel vor dem Laden in eine Marke `@@MWS:n@@` verwandelt und beim Lesen
 aus dem Editor wieder zurückgesetzt (`simplewikiMatheSchuetzen` /
 `simplewikiMatheLoesen`, beim Laden, beim Sichern, beim Sprachwechsel
-und beim Duplizieren). Der Text in der Datei bleibt unversehrt. Im
-WYSIWYG-Modus sieht man beim Bearbeiten die Marke statt der gesetzten
-Formel — Formeln ändert man im Markdown-Modus, dessen Vorschau sie
-gesetzt zeigt.
+und beim Duplizieren). Der Text in der Datei bleibt unversehrt.
+
+Die Marke gilt nur für den WYSIWYG-Modus. Beim Wechsel in den
+Markdown-Modus löst die App sie wieder zu echten Formeln auf — Quelle und
+Vorschau zeigen dort genau das, was in der Datei steht. Beim Wechsel
+zurück in den WYSIWYG-Modus werden die Formeln zuvor wieder gefasst,
+sonst wären sie beim Einlesen schon beschädigt. Nur im WYSIWYG-Modus
+sieht man beim Bearbeiten also die Marke; neue Formeln schreibt man im
+Markdown-Modus.
 
 Die beiden neuen Teile tragen eigene Klassen (`.sw-mathe` als Block mit
 seitlichem Rollen, `.sw-mathe-inline` im Text), damit Farbe und Abstand
@@ -67,10 +74,11 @@ CSS-Stichwort.
 
 Geprüft mit `tests/t_mathe.py`: in der Leseansicht ist der Codeblock
 gefärbt, die Blockformel und beide Formeln im Text sind gesetzt, und ein
-Preis bleibt Text. Im Editor wird auf Markdown umgeschaltet und dasselbe
-in der Vorschau verlangt. Zuletzt der Rundlauf: eine Seite mit drei
-Formeln wird geöffnet, gesichert, erneut geöffnet und gesichert — die
-Formeln stehen danach unverändert da.
+Preis bleibt Text. Im Editor wird auf Markdown umgeschaltet: die Quelle
+zeigt die echten Formeln, die Vorschau setzt sie. Der Rundlauf öffnet
+eine Seite mit drei Formeln, sichert, öffnet erneut und sichert — die
+Formeln stehen danach unverändert da. Zuletzt der Weg Markdown →
+WYSIWYG → Markdown: die Formeln überstehen ihn unbeschädigt.
 
 ---
 

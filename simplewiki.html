@@ -1782,7 +1782,11 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
                eigene Anzeige: sie kennt weder Codefarben noch Formeln.
                Nach jedem Aufbau der Vorschau holt simplewikiVeredle das
                nach. Beide Durchgaenge sind wiederholbar - schon fertige
-               Stuecke werden nicht noch einmal angefasst. */
+               Stuecke werden nicht noch einmal angefasst.
+               Verstanden wird beides: eine echte Formel $$ ... $$ / $ ... $
+               und eine Marke @@MWS:n@@, deren Formel in der Karte steht.
+               Im Markdown-Modus stehen echte Formeln, im WYSIWYG-Modus nur
+               Marken (siehe initEditor). */
             window.simplewikiVeredle = function (wurzel, karte) {
                 if (!wurzel) return;
                 vorschauCode(wurzel);
@@ -1818,19 +1822,25 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
         }
 
         function vorschauBlockMathe(wurzel, karte) {
-            if (!karte || !karte.length) return;
             var absaetze = wurzel.querySelectorAll('p');
             for (var i = 0; i < absaetze.length; i++) {
                 var el = absaetze[i];
                 if (el.querySelector('.katex, .katex-display, img, input')) continue;
                 var t = (el.textContent || '').trim();
+                var innen = null;
                 var m = /^@@MWS:(\d+)@@$/.exec(t);
-                if (!m) continue;
-                var roh = karte[parseInt(m[1], 10)];
-                if (!roh || roh.slice(0, 2) !== '$$') continue;
+                if (m) {
+                    var roh = karte && karte[parseInt(m[1], 10)];
+                    if (!roh || roh.slice(0, 2) !== '$$') continue;
+                    innen = roh.slice(2, -2).trim();
+                } else {
+                    m = /^\$\$([\s\S]+?)\$\$$/.exec(t);
+                    if (!m) continue;
+                    innen = m[1].trim();
+                }
                 var span = document.createElement('span');
                 span.className = 'sw-mathe';
-                span.innerHTML = katex.renderToString(roh.slice(2, -2).trim(), {
+                span.innerHTML = katex.renderToString(innen, {
                     displayMode: true, throwOnError: false, strict: false
                 });
                 el.innerHTML = '';
@@ -1839,11 +1849,16 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
         }
 
         function vorschauInlineMathe(wurzel, karte) {
-            if (!karte || !karte.length) return;
-            var re = /@@MWS:(\d+)@@/g;
+            /* Zwei Formen in einem Durchgang: eine Marke @@MWS:n@@ oder eine
+               echte Formel $ ... $. Beide zusammen, damit ein Textknoten mit
+               beidem in einem Zug zerlegt wird. */
+            var re = /@@MWS:(\d+)@@|\$(?!\$)([^\s$](?:[^\n$]*[^\s$])?)\$(?!\d)/g;
             var lauf = document.createTreeWalker(wurzel, NodeFilter.SHOW_TEXT, {
                 acceptNode: function (n) {
-                    if (!n.nodeValue || n.nodeValue.indexOf('@@MWS:') < 0) return NodeFilter.FILTER_SKIP;
+                    if (!n.nodeValue) return NodeFilter.FILTER_SKIP;
+                    if (n.nodeValue.indexOf('@@MWS:') < 0 && n.nodeValue.indexOf('$') < 0) {
+                        return NodeFilter.FILTER_SKIP;
+                    }
                     var p = n.parentNode;
                     if (p && p.closest && p.closest('code, pre, .katex, .katex-display, .sw-mathe')) {
                         return NodeFilter.FILTER_REJECT;
@@ -1859,9 +1874,14 @@ body.dark-mode .hljs-deletion{color:#ffdcd7;background-color:#67060c}
                 var m; var last = 0; var stueck = null;
                 re.lastIndex = 0;
                 while ((m = re.exec(text))) {
-                    var roh = karte[parseInt(m[1], 10)];
-                    if (!roh) continue;
-                    var innen = roh.slice(0, 2) === '$$' ? roh.slice(2, -2).trim() : roh.slice(1, -1);
+                    var innen;
+                    if (m[1] !== undefined) {
+                        var roh = karte && karte[parseInt(m[1], 10)];
+                        if (!roh) continue;
+                        innen = roh.slice(0, 2) === '$$' ? roh.slice(2, -2).trim() : roh.slice(1, -1);
+                    } else {
+                        innen = m[2];
+                    }
                     if (!stueck) stueck = document.createDocumentFragment();
                     if (m.index > last) stueck.appendChild(document.createTextNode(text.slice(last, m.index)));
                     var span = document.createElement('span');
@@ -9367,6 +9387,50 @@ showSettings: false,
                     spaeter();
                 },
 
+                /* Der Text des Editors laeuft in zwei Formen um, je nach
+                   Modus. Im WYSIWYG-Modus vertraegt TOAST UI kein $$ ... $$:
+                   die Formeln stehen dort als Marken @@MWS:n@@ (siehe
+                   initEditor und Kopf). Im Markdown-Modus ist der Editor
+                   harmlos und zeigt die echten Formeln, wie der Nutzer sie
+                   geschrieben hat - die Vorschau setzt sie ueber
+                   simplewikiVeredle. Darum wird beim Wechsel umgeschrieben:
+                   hinein in den Markdown-Modus die Marken aufloesen, hinein
+                   in den WYSIWYG-Modus die Formeln wieder fassen.
+                   Das Umschalten selbst ist TOAST UIs Klick auf den Reiter.
+                   Der WYSIWYG-Klick traegt sich in der Capture-Phase ein und
+                   laeuft damit vor TOAST UIs eigenem Umschalten; sonst waeren
+                   die echten Formeln beim Einlesen schon beschaedigt. */
+                modusWechselEinrichten(editor) {
+                    editor.on('changeMode', (mode) => {
+                        if (mode !== 'markdown') return;
+                        const roh = this._edRoh;
+                        if (!roh) return;
+                        const md = roh.getMarkdown();
+                        const echt = this.matheLoesen(md);
+                        if (echt !== md) roh.setMarkdown(echt);
+                    });
+
+                    const host = this.$refs.mdHost;
+                    if (host && !host.getAttribute('data-mws-wysiwyg')) {
+                        host.setAttribute('data-mws-wysiwyg', '1');
+                        host.addEventListener('click', (e) => {
+                            const tab = e.target && e.target.closest
+                                ? e.target.closest('.tab-item') : null;
+                            if (!tab || tab.textContent.trim() !== 'WYSIWYG') return;
+                            const roh = this._edRoh;
+                            if (!roh || !roh.isMarkdownMode || !roh.isMarkdownMode()) return;
+                            const md = roh.getMarkdown();
+                            const geschuetzt = window.simplewikiMatheSchuetzen
+                                ? window.simplewikiMatheSchuetzen(md)
+                                : { text: md, karte: [] };
+                            if (geschuetzt.text !== md) {
+                                this._matheKarte = geschuetzt.karte;
+                                roh.setMarkdown(geschuetzt.text);
+                            }
+                        }, true);
+                    }
+                },
+
                 /* Hinweiskaesten im GitHub-Stil: ein Zitat, dessen erster
                    Absatz mit [!NOTE] beginnt (auch [!HINWEIS] und die
                    uebrigen Marken), wird zum farbigen Kasten mit einer
@@ -11327,11 +11391,16 @@ createNewPage() {
                         usageStatistics: false
                     });
                     this.mdEditor = editor;
+                    /* Der rohe Editor neben dem Vue-Proxy: setMarkdown und
+                       isMarkdownMode gehen ueber den Proxy schief (siehe
+                       modusWechselEinrichten). */
+                    this._edRoh = editor;
                     /* Die eigenen Einrück-Befehle am rohen Editor
                        anmelden, solange er kein Vue-Proxy ist. */
                     this.einrueckungEinrichten(editor);
                     this.applyEditorTheme();
                     this.vorschauBeobachten(editor);
+                    this.modusWechselEinrichten(editor);
                 },
 
                 /* Einrücken und Ausrücken auch für normale Absätze. Toast
@@ -11447,6 +11516,7 @@ createNewPage() {
                         this.mdEditor.destroy();
                         this.mdEditor = null;
                     }
+                    this._edRoh = null;
                     this.editorReady = false;
                 },
 

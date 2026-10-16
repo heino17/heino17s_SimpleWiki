@@ -13,6 +13,10 @@ Teil 3 prueft den Round-Trip im WYSIWYG-Modus: Text mit Math oeffnen,
 speichern, erneut oeffnen und speichern - die Formeln muessen erhalten
 bleiben. Der Token-Trick stellt die Unvertraeglichkeit zwischen TOAST UI
 und $$ ... $$ her.
+
+Teil 4 prueft den Wechsel der Modi: im Markdown-Modus steht in der Quelle
+die echte Formel (keine Marke), und der Weg Markdown -> WYSIWYG ->
+Markdown beschaedigt sie nicht.
 """
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -120,6 +124,12 @@ teil2 = r"""
             ok(bereich.querySelectorAll('.sw-mathe-inline .katex').length === 2,
                'beide Formeln im Text gesetzt: ' + bereich.querySelectorAll('.sw-mathe-inline .katex').length);
 
+            head('Die Quelle zeigt im Markdown-Modus die echte Formel');
+            var quelle = window.__ed.getMarkdown();
+            ok(quelle.indexOf('@@MWS') < 0, 'keine Marke in der Quelle: ' + JSON.stringify(quelle));
+            ok(quelle.indexOf('$$a^2 + b^2 = c^2$$') >= 0, 'Blockformel steht in der Quelle');
+            ok(quelle.indexOf('$x_1$') >= 0, 'Inline-Formel steht in der Quelle');
+
             head('Ein Preis bleibt Text');
             var absaetze = all('.toastui-editor-md-preview .toastui-editor-contents p');
             var preis = absaetze[absaetze.length - 1];
@@ -186,8 +196,52 @@ teil3 = r"""
     </script>
 """
 
+teil4 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+""" + KOPF + r"""
+      setTimeout(function () {
+        head('Wechsel Markdown -> WYSIWYG -> Markdown');
+        knopf(/Bearbeiten/).click();
+        spaeter(function () {
+          var tab = modus('Markdown');
+          ok(!!tab, 'Umschalter Markdown ist da');
+          if (!tab) { schluss(); return; }
+          tab.click();
+          spaeter(function () {
+            ok(window.__ed.getMarkdown().indexOf('$$a^2 + b^2 = c^2$$') >= 0,
+               'im Markdown-Modus echte Formel in der Quelle');
+
+            var wz = modus('WYSIWYG');
+            ok(!!wz, 'Umschalter WYSIWYG ist da');
+            if (!wz) { schluss(); return; }
+            wz.click();
+            spaeter(function () {
+              var m = window.__ed.getMarkdown();
+              ok(m.indexOf('\\\\') < 0, 'kein doppelter Backslash nach dem Weg: ' + JSON.stringify(m));
+              ok(m.indexOf('x\\_') < 0, 'kein escapter Unterstrich nach dem Weg');
+              ok(m.indexOf('@@MWS') >= 0, 'im WYSIWYG stehen wieder Marken');
+
+              modus('Markdown').click();
+              spaeter(function () {
+                var q = window.__ed.getMarkdown();
+                ok(q.indexOf('@@MWS') < 0, 'zurueck im Markdown-Modus ohne Marke');
+                ok(q.indexOf('$$a^2 + b^2 = c^2$$') >= 0, 'Blockformel wieder echt');
+                ok(q.indexOf('$x_1$') >= 0, 'Inline-Formel wieder echt');
+                schluss();
+              });
+            });
+          });
+        });
+      }, 2500);
+    })();
+    </script>
+"""
+
 pruefe(
     build('_mathe1.html', teil1, seiten, startpage='a'),
     build('_mathe2.html', teil2, seiten, startpage='a'),
     build('_mathe3.html', teil3, seiten3, startpage='m'),
+    build('_mathe4.html', teil4, seiten, startpage='a'),
 )

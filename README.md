@@ -59,6 +59,7 @@ python3 tests/t_order.py          # a single test
 | **Task lists** | a `- [ ]` in the text becomes a checkbox you can click while reading; the click changes only the tick in the line and saves the page. Where you may not write, the boxes stay switched off |
 | **Page contents** | a switch in the settings dialog shows a list of the open page's headings above the text; a click jumps to the heading. The list is read from the finished view, so code blocks stay out of it |
 | **Callouts** | a quote that begins with `> [!NOTE]` (also `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]` and the German tags `[!HINWEIS]`, `[!TIPP]`, `[!WICHTIG]`, `[!WARNUNG]`, `[!ACHTUNG]`) becomes a coloured box with a title. Every other quote stays a quote |
+| **Code & formulas** | a fenced code block gets syntax colours (highlight.js); `$$ … $$` on its own becomes a formula on its own line, `$ … $` sets one in the running text (KaTeX). A lone `$` requires no space after it and no digit after the closing one, so prices like `$5` stay text. Also in the editor preview |
 | **Undo** | the ↶ button in the toolbar takes back the last change to the content — a deleted page, an edited text, a freshly created page. One step, not a history |
 | **Light / dark** | also in the editor; the 🌙/☀️ switch stays in every colour world |
 | **Colour worlds** | nine moods — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung and the **Own** one; each with a light and a dark branch, selectable in the settings dialog. The Own one grows from a cloned world and can be set colour by colour |
@@ -140,7 +141,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.46">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.47">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -362,6 +363,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Aufgabenlisten** | aus einem `- [ ]` im Text wird ein Kästchen, das beim Lesen angeklickt werden kann; der Klick ändert nur den Haken in der Zeile und speichert die Seite. Wo nicht geschrieben werden darf, bleiben die Kästchen abgeschaltet |
 | **Inhaltsverzeichnis der Seite** | ein Schalter in den Einstellungen legt über den Text ein Verzeichnis seiner Überschriften; ein Klick springt zur Überschrift. Die Liste kommt aus der fertigen Vorschau, ein Codeblock bleibt damit außen vor |
 | **Hinweiskästen** | ein Zitat, das mit `> [!NOTE]` beginnt (`[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]` sowie deutsch `[!HINWEIS]`, `[!TIPP]`, `[!WICHTIG]`, `[!WARNUNG]`, `[!ACHTUNG]`), wird ein farbiger Kasten mit Titelzeile; jedes andere Zitat bleibt ein Zitat |
+| **Code und Formeln** | ein eingezäunter Codeblock bekommt Syntaxfarben (highlight.js); `$$ … $$` für sich wird eine Formel in eigener Zeile, `$ … $` setzt sie im laufenden Text (KaTeX). Ein einzelnes `$` verlangt kein Leerzeichen dahinter und keine Ziffer nach dem schließenden, damit Preise wie `$5` Text bleiben. Auch in der Editor-Vorschau |
 | **Rückgängig** | der ↶-Knopf in der Werkzeugleiste nimmt die letzte Änderung am Inhalt zurück — eine gelöschte Seite, ein geänderter Text, eine frisch angelegte Seite. Ein Schritt, keine Chronik |
 | **Hell / Dunkel** | auch im Editor; die 🌙/☀️-Achse bleibt in jeder Farbwelt |
 | **Farbwelten** | neun Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung und die **Eigene**; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar. Die Eigene entsteht aus einer geklonten Welt und lässt sich Farbe für Farbe einstellen |
@@ -373,7 +375,7 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 10406 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 11929 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
@@ -382,12 +384,12 @@ Reihenfolge:
               steht, warum das Format so aussieht und was der Server
               liefern muss.
          261  <script id="simplewiki-daten">  die Dateninsel
-     265–399  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+    265–1895  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
               DOMPurify)
-    400–3262  das Stylesheet
-        3272  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    3275–3920  die Oberfläche (Vue-Template)
-    3922–10406  das Programm
+    1896–4758  das Stylesheet
+        4768  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+    4771–5416  die Oberfläche (Vue-Template)
+    5418–11929  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -538,7 +540,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **45 Testdateien**, 1247 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **46 Testdateien**, 1264 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

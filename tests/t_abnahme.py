@@ -46,9 +46,13 @@ def melde(name, treffer, moeglich):
 # ---------------------------------------------------------------- 1
 print('=== 1. grep auf externe Lade-Referenz ===')
 quelle = io.open(os.path.join(PROJEKT, 'simplewiki.html'), encoding='utf-8').read()
+# Nur echte style-Bloecke fuer @import: im JavaScript der eingebetteten
+# Bibliotheken steht '@import' als Zeichenkette in einem Sprachbaum
+# (highlight.js kennt CSS), geladen wird dort nichts.
+styles = '\n'.join(re.findall(r'<style[^>]*>([\s\S]*?)</style>', quelle))
 lader = re.findall(r'<script[^>]*\ssrc=', quelle) + \
         re.findall(r'<link[^>]*rel=["\']?stylesheet', quelle, re.I) + \
-        re.findall(r'@import', quelle)
+        re.findall(r'@import', styles)
 melde('kein <script src>, kein <link stylesheet>, kein @import', len(lader), 0)
 
 # Kein src= und kein href= zeigt nach draussen. Das ist die eigentliche
@@ -60,9 +64,8 @@ nach_draussen = re.findall(r'(?:src|href)\s*=\s*["\']?(https?://[^"\'\s>]+)', qu
 melde('kein src= oder href= zeigt nach draussen', len(nach_draussen), 0)
 
 # Und keine Datei wird ueber url() nachgeladen: alles ist data:.
-# Nur die style-Bloecke ansehen - im JavaScript gibt es eine Methode
-# namens url(), die nichts mit CSS zu tun hat.
-styles = '\n'.join(re.findall(r'<style[^>]*>([\s\S]*?)</style>', quelle))
+# Die style-Bloecke liegen schon oben vor - im JavaScript gibt es eine
+# Methode namens url(), die nichts mit CSS zu tun hat.
 url_ohne_data = [u for u in re.findall(r'url\(\s*["\']?([^)"\']+)', styles)
                  if not u.strip().startswith('data:')]
 melde('jedes url() im CSS zeigt auf data:', len(url_ohne_data), 0)

@@ -84,7 +84,9 @@ def _echte_tags(h):
     Ein blosses replace() landet dort also mitten im JavaScript und
     zerschiesst die Testkopie. Deshalb wird der Dokumenttext ueber
     Kommentare und script-/style-Bloecke hinweg gescannt und nur Tags
-    ausserhalb deren Inhalt verwendet.
+    ausserhalb deren Inhalt verwendet. Und ein '<!--' in einem Regex
+    einer Bibliothek zaehlt nicht als Kommentar: der Rohtext hat
+    Vorrang, sonst kippt die Zaehlung der Kommentare.
 
     Liefert (ende_von_head, ende_vom_body_tag, beginn_vom_/body).
     """
@@ -93,6 +95,10 @@ def _echte_tags(h):
     head = body_tag_ende = body = None
     for m in _SCAN.finditer(h):
         t = m.group(0).lower()
+        if roh:
+            if t.startswith('</script') or t.startswith('</style'):
+                roh = False
+            continue
         if t.startswith('<!--'):
             kommentar = not kommentar
             continue
@@ -103,8 +109,6 @@ def _echte_tags(h):
             continue
         if t.startswith('</script') or t.startswith('</style'):
             roh = False
-            continue
-        if roh:
             continue
         if t.startswith('</head>'):
             head = m.start()

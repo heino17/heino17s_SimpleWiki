@@ -74,6 +74,7 @@ REIHENFOLGE = [
     't_bild.py',       # Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen
     't_umbruch.py',    # Ein einzelner Zeilenumbruch bleibt ein Umbruch
     't_einrueck.py',   # Einruecken/Ausruecken: Absatz wird Zitat, Listen verschachteln
+    't_mathe.py',      # Code und Formeln: Leseansicht und Editor-Vorschau
     't_buchhaltung.py',  # Die Buchhaltung selbst: Aufbau, Fassung, Zahlen
 ]
 
@@ -122,6 +123,7 @@ BESCHRIEBUNG = {
     't_bild.py': 'Bild nach leeren Absaetzen: <br>-Blöcke aus dem Editor trennen',
     't_umbruch.py': 'Ein einzelner Zeilenumbruch bleibt ein Umbruch',
     't_einrueck.py': 'Einruecken und Ausruecken: Absatz wird Zitat, Listen verschachteln',
+    't_mathe.py': 'Code und Formeln: highlight.js und KaTeX in Leseansicht und Editor-Vorschau',
     't_buchhaltung.py': 'Buchhaltung ohne Browser: Aufbau, Fassung, Zahl der Testdateien',
 }
 

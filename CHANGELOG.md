@@ -4,11 +4,61 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.46">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.47">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
+
+---
+
+## 2026-10-16
+
+### v0.1.47 — Code und Formeln in Leseansicht und Editor-Vorschau — 1264 Prüfungen
+
+Zwei Bibliotheken kommen fest eingebettet in die Datei, beide ohne Netz:
+**highlight.js** 11.11.1 (BSD-3-Clause) färbt Codeblöcke, **KaTeX**
+0.16.11 (MIT) setzt Formeln. Beide hängen an marked und wirken damit
+überall, wo SimpleWiki Markdown in HTML umsetzt: in der Leseansicht, im
+Fluss und in der Vorschau des Editors.
+
+Ein eingezäunter Codeblock trägt jetzt seine Farben. Das helle Thema gilt
+immer, das dunkle hängt an `body.dark-mode` — so bleibt `updateTheme()`
+unberührt. Kennt niemand die Sprache, rät highlight.js selbst; schlägt
+auch das fehl, bleibt der Text nur maskiert stehen.
+
+Formeln stehen als Block zwischen `$$ … $$` und im laufenden Text
+zwischen einfachen `$ … $`. Beim einzelnen `$` gelten die üblichen
+Regeln, damit Preise Text bleiben: nach dem öffnenden `$` kein
+Leerzeichen, vor dem schließenden `$` kein Leerzeichen, nach dem
+schließenden `$` keine Ziffer. `Es kostet $5 und $10.` bleibt damit ein
+Satz. Auf die Schreibweise `\( … \)` wird verzichtet: TOAST UIs Vorschau
+wendet die Markdown-Maskierung an und macht daraus `( … )`,
+unwiederbringlich. Die Schriften von KaTeX stecken als base64 im CSS,
+damit die Datei weiter ohne Netz und ohne Nachbardateien auskommt.
+
+Die Vorschau des Editors ist TOAST UIs eigene Anzeige: sie kennt weder
+Codefarben noch Formeln. Dieselbe Arbeit wird deshalb am DOM nachgeholt
+(`simplewikiVeredle`) — nach jedem Aufbau der Vorschau, an den
+Ereignissen `change` und `changeMode`, kurz entprellt. Im WYSIWYG-Modus
+bleibt der Quelltext der Formel als `$ … $` stehen; gesetzt wird sie im
+Markdown-Modus und in der Leseansicht.
+
+Die beiden neuen Teile tragen eigene Klassen (`.sw-mathe` als Block mit
+seitlichem Rollen, `.sw-mathe-inline` im Text), damit Farbe und Abstand
+zur Umgebung passen.
+
+Zwei Testhilfen mussten mit: `tests/mkcopy.py` sucht die echten
+`</head>`/`<body>`-Grenzen und ließ sich bisher von einem `<!--` mitten
+im JavaScript einer Bibliothek aus dem Takt bringen — der Rohtext hat
+jetzt Vorrang. `tests/t_abnahme.py` sucht `@import` in SimpleWiki nun
+nur noch in `<style>`-Blöcken; highlight.js führt die Zeichenkette als
+CSS-Stichwort.
+
+Geprüft mit `tests/t_mathe.py`: in der Leseansicht ist der Codeblock
+gefärbt, die Blockformel und beide Formeln im Text sind gesetzt, und ein
+Preis bleibt Text. Im Editor wird auf Markdown umgeschaltet und dasselbe
+in der Vorschau verlangt.
 
 ---
 

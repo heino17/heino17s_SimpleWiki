@@ -63,7 +63,9 @@ Markdown-Modus.
 
 Die beiden neuen Teile tragen eigene Klassen (`.sw-mathe` als Block mit
 seitlichem Rollen, `.sw-mathe-inline` im Text), damit Farbe und Abstand
-zur Umgebung passen.
+zur Umgebung passen. Der Block rollt nur seitlich (`overflow-x: auto`);
+ein ausdrückliches `overflow-y: hidden` verhindert den schmalen senkrechten
+Balken, den der Browser sonst daraus ableitet.
 
 Zwei Testhilfen mussten mit: `tests/mkcopy.py` sucht die echten
 `</head>`/`<body>`-Grenzen und ließ sich bisher von einem `<!--` mitten

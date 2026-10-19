@@ -4,13 +4,52 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.47">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.48">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
+
+## 2026-10-19
+
+### v0.1.48 — Betrieb auf Tiddlyhost: der Insel-Speicher — 1312 Prüfungen
+
+SimpleWiki lässt sich jetzt auch von **Tiddlyhost-Wikiwise** hosten — nicht
+nur vom MultiWikiServer. Der Inhalt liegt dort nicht in Tiddlern, sondern in
+der **Dateninsel** der Seite (`<script id="simplewiki-daten">`), derselben
+Stelle, die eine gesicherte Datei trägt. Diese Insel ist die Austauschform;
+wer sie liest, hat das ganze Wiki.
+
+Ein Server erkennt sich an drei Meta-Zeilen im Kopf: `simplewiki-server`
+mit dem Wert `tiddlyhost`, dazu die Adressen `simplewiki-status-url` und
+`simplewiki-data-url`. Stehen sie da, wählt die App die dritte Ausprägung
+des Speichers, `TiddlyhostStore`. Der Vertrag ist derselbe wie im Browser und
+am MWS (`SPEICHER_METHODEN`); die App muss den Unterschied nicht kennen, sie
+fragt über `SPEICHER.serverseitig`.
+
+Geschrieben wird als **Ganzes**: jede Änderung — eine Seite, die Startseite,
+Farbe, Sprache — sammelt sich und geht gebündelt als ein `PUT` an
+`/simplewiki/data`. Ein kurzer Aufschub (400 ms) fasst zusammen, was sonst
+viele einzelne Schreibvorgänge wären; beim Verlassen der Seite und beim
+Wechsel in den Hintergrund (`pagehide`, `visibilitychange`) geht der
+aufgeschobene Stand sofort raus. So bleiben die Schreibvorgänge klein, auch
+wenn eine Umbenennung viele Seiten berührt.
+
+Der Server führt zu jeder Fassung eine eigene Version (ETag). Jeder `PUT`
+trägt die zuletzt gelesene als `If-Match` mit; hat ein anderer seither
+geschrieben, antwortet der Server mit **409**, und die Wiki holt den neuen
+Stand und sagt es (`simplewiki:konflikt`), statt ihn zu überschreiben. Ein
+403 schaltet das Bearbeiten ab, wie am MWS. „Abmelden" bleibt im Wiki und
+geht an Tiddlyhosts eigenen Weg (`DELETE /users/sign_out`) — das Sitzungs-
+Cookie gilt domainweit, das passt zusammen.
+
+Eine leere Dateninsel ist ein leeres Server-Wiki und bleibt leer: hier wird
+keine Willkommensseite erfunden — dieselbe Haltung wie am MWS. Der neue Test
+`tests/t_tiddlyhost.py` stellt das mit einem Fixture-Server nach
+(`tests/tiddlyhostserver.py`): Erkennung, Vertrag, gebündeltes Schreiben mit
+`If-Match`, der Konflikt, `status()`, Abmelden.
 
 ## 2026-10-16
 

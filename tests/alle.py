@@ -51,6 +51,7 @@ REIHENFOLGE = [
     't_anmeldung.py',  # Anmeldung und Schreibrechte: Status, Kopf, ausgeblendete Knoepfe
     't_login.py',      # Anmelden und abmelden: Link zum Server, POST /logout
     't_speicher.py',   # Eine Abstraktion, zwei Auspraegungen
+    't_tiddlyhost.py', # Betrieb auf Tiddlyhost: Metas, Dateninsel, ETag, 409
     't_mwsdatei.py',   # MWS-Modus an einer Datei: Auswahl am Marker, Verweise
     't_abnahme.py',    # Abnahme: ohne Netz, mit Marker, nach dem Neuladen
     't_leerwiki.py',   # Leere Wiki-Datei, Vorlage fuellen und oeffnen
@@ -100,6 +101,7 @@ BESCHRIEBUNG = {
     't_anmeldung.py': 'Anmeldung und Schreibrechte: Status, Name, ausgeblendete Knoepfe',
     't_login.py': 'Anmelden und abmelden: Link auf /login, POST /logout, Fehlerfall',
     't_speicher.py': 'Speicherabstraktion: gleicher Vertrag, Browser und Server',
+    't_tiddlyhost.py': 'Betrieb auf Tiddlyhost: Erkennung, Dateninsel, gebuendeltes Schreiben, ETag und Konflikt',
     't_mwsdatei.py': 'MWS an einer Datei: Auswahl am Marker, Verweise, kein Schreiben',
     't_abnahme.py': 'Abnahme: kein Nachladen, Doppelklick ohne Netz, Aenderung bleibt',
     't_leerwiki.py': 'Leere Wiki-Datei als Vorlage, Angaben oben, der Weg zurueck',

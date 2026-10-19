@@ -165,6 +165,7 @@ nicht committet. Der Ordner lässt sich jederzeit löschen.
 | `t_anmeldung.py` | **Anmeldung und Schreibrechte: Statusabfrage, Name im Kopf, ausgeblendete Schreibknöpfe** |
 | `t_login.py` | **Anmelden und abmelden: Link auf `/login?redirect=…`, Rückweg in diese Wiki, `POST /logout`, der Fall, dass es nicht klappt** |
 | `t_speicher.py` | **eine Speicherabstraktion, zwei Ausprägungen: derselbe Vertrag in Browser und Server, und dass die laufende App ihn wirklich benutzt** |
+| `t_tiddlyhost.py` | **Betrieb auf einem Tiddlyhost-Server: Erkennung an den Meta-Zeilen, die Dateninsel als Austauschform, gebündeltes Schreiben mit `If-Match`, der Konflikt (409), `status()` und Abmelden — gegen die Testfigur `tests/tiddlyhostserver.py`** |
 | `t_mwsdatei.py` | **MWS-Modus an einer Datei: Auswahl am Marker, Verweise, Schreiben aus einer Datei und die sichtbare Fehlermeldung** |
 | `t_abnahme.py` | **die fünf Abnahmepunkte: kein Nachladen, Doppelklick ohne Netz, Änderung bleibt, Store von außen** |
 | `t_leerwiki.py` | leere Wiki-Datei, Vorlage füllen und öffnen, Angaben oben |

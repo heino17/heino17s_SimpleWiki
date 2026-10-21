@@ -160,10 +160,21 @@ speicher = r"""
         ok(document.title === 'Aus dem Speicher', 'auch der Fenstertitel: ' + document.title);
 """ + ende()
 
-# 3. Eine geoeffnete Datei bringt ihren Namen mit.
+# 3. Eine geoeffnete Datei bringt Namen und Untertitel mit.
 datei = r"""
         ok(h1() === 'Datei-Wiki', 'der Name kommt aus der Datei: ' + h1());
         ok(localStorage.getItem('simplewiki_titel') === 'Datei-Wiki', 'die Datei setzt den Speicher');
+        var u = q('.kopf-untertitel');
+        ok(u && u.textContent.trim() === 'Klein und fein',
+           'der Untertitel kommt aus der Datei: ' + (u ? u.textContent.trim() : '-'));
+        var exp = new DOMParser().parseFromString(window.__vm.bauExport(), 'text/html');
+        var em = exp.querySelector('meta[name="simplewiki-subtitle"]');
+        ok(em && em.getAttribute('content') === 'Klein und fein',
+           'der Export traegt den Untertitel: ' + (em ? em.getAttribute('content') : '-'));
+        var leer = new DOMParser().parseFromString(
+            window.__vm.bauExport(window.__vm.bauDaten(), 'leer', '', ''), 'text/html');
+        var lm = leer.querySelector('meta[name="simplewiki-subtitle"]');
+        ok(lm && lm.getAttribute('content') === '', 'die leere Vorlage erbt den Untertitel nicht');
 """ + ende()
 
 NAMEN = ['_titel_bearbeiten.html', '_titel_speicher.html', '_titel_datei.html']
@@ -179,6 +190,8 @@ build(NAMEN[1], teil('Der Browserspeicher bringt den Namen mit', speicher), [], 
 mkcopy.EXTRA_REPLACEMENTS = [
     ('<meta name="simplewiki-title" content="">',
      '<meta name="simplewiki-title" content="Datei-Wiki">'),
+    ('<meta name="simplewiki-subtitle" content="">',
+     '<meta name="simplewiki-subtitle" content="Klein und fein">'),
 ]
 mkcopy.PRE_SCRIPT = ''
 build(NAMEN[2], teil('Eine geoeffnete Datei bringt ihren Namen mit', datei), [], seed=False, daten=DATEN)

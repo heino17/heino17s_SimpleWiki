@@ -45,6 +45,12 @@ skript = r"""
         ok(sp.SPEICHER.art === 'tiddlyhost', 'art: ' + sp.SPEICHER.art);
         ok(sp.SPEICHER.serverseitig === true, 'serverseitig: ' + sp.SPEICHER.serverseitig);
         ok(!!document.querySelector('.mws-hinweis'), 'Serverhinweis steht da');
+        var h = document.querySelector('.header h1');
+        ok(h && h.textContent.indexOf('Tiddlyhost-Wiki') >= 0,
+           'Kopf zeigt simplewiki-title: ' + (h ? h.textContent.trim() : '-'));
+        var u = document.querySelector('.kopf-untertitel');
+        ok(u && u.textContent.trim() === 'Klein und fein',
+           'Kopf zeigt simplewiki-subtitle: ' + (u ? u.textContent.trim() : '-'));
 
         log.push('--- Derselbe Vertrag wie im Browser');
         ok(sp.vertrag.join(',') === VERTRAG.join(','), 'der Vertrag im Programm');
@@ -138,7 +144,13 @@ SEITEN = [
 INSEL = insel_aus_seiten(SEITEN, startseite='a1', sprache='en', thema='dark')
 
 wikis = {'wiki': Wiki('wiki', insel=INSEL, skript=skript,
-                      ersetzungen=[(WAHL, HAKEN)])}
+                      ersetzungen=[
+                          (WAHL, HAKEN),
+                          ('<meta name="simplewiki-title" content="">',
+                           '<meta name="simplewiki-title" content="Tiddlyhost-Wiki">'),
+                          ('<meta name="simplewiki-subtitle" content="">',
+                           '<meta name="simplewiki-subtitle" content="Klein und fein">'),
+                      ])}
 server, thread, port = starten(wikis)
 
 fehler_gesamt = 0

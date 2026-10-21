@@ -4,13 +4,30 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.48">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.49">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
+
+## 2026-10-21
+
+### v0.1.49 — Titel und Untertitel wandern mit — 1321 Prüfungen
+
+Der Name und der Untertitel einer Wiki stehen jetzt in vier Meta-Zeilen im
+Kopf der Datei: `simplewiki-title` und `simplewiki-subtitle` kommen zu
+`simplewiki-doc-id` und `simplewiki-exported` hinzu. Beim Sichern schreibt
+SimpleWiki beide mit; beim Öffnen liest es sie wieder. So trägt eine
+heruntergeladene Datei denselben Kopf wie die gehostete Seite.
+
+Im Serverbetrieb setzt der Server die beiden Zeilen: MWS aus
+`$:/SiteTitle`/`$:/SiteSubtitle`, Tiddlyhost aus den Feldern „Anzeigename“
+und „Untertitel“ der Seiteneinstellungen. Der Export nimmt sie aus dem
+laufenden Zustand mit, statt den im MWS-Modus leeren eigenen Titel zu
+schreiben. Die leere Vorlage bleibt leer und erbt weder Name noch
+Untertitel der erzeugenden Person.
 
 ## 2026-10-19
 

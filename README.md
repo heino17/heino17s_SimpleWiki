@@ -141,7 +141,7 @@ All calls carry the header `X-Requested-With: fetch`. Batch calls are
 
 For the interface, the server says which template version this wiki is on
 (the response of `/status` carries it under `shell`). The interface names its
-own version via `<meta name="mws-shell-version" content="v0.1.48">` in the
+own version via `<meta name="mws-shell-version" content="v0.1.49">` in the
 head of `simplewiki.html` — this name appears in the admin app and in the
 update hint instead of the counting release number and is raised with every
 interface change. A wiki with the policy **notify** for which a newer version
@@ -375,21 +375,21 @@ Bildern übergibt, verliert sie, und sollte das vorher sagen.
 
 ## 🗂️ Wie die Datei aufgebaut ist
 
-`simplewiki.html` ist 12450 Zeilen lang und hat diese Teile, immer in derselben
+`simplewiki.html` ist 12494 Zeilen lang und hat diese Teile, immer in derselben
 Reihenfolge:
 
 ```
-       1–260  zwei Kommentare im <head>: der Austauschvertrag und der
+       1–267  zwei Kommentare im <head>: der Austauschvertrag und der
               MWS-Betrieb. Sie sind die eigentliche Dokumentation — hier
               steht, warum das Format so aussieht und was der Server
               liefern muss.
-         261  <script id="simplewiki-daten">  die Dateninsel
-    265–1946  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
+         268  <script id="simplewiki-daten">  die Dateninsel
+    272–1953  die eingebetteten Bibliotheken (marked, Vue, TOAST UI inkl.
               DOMPurify)
-    1947–4809  das Stylesheet
-        4819  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
-    4822–5467  die Oberfläche (Vue-Template)
-    5469–12450  das Programm
+    1954–4816  das Stylesheet
+        4826  der Store-Punkt, hinter dem der Server seine Tiddler einsetzt
+    4829–5474  die Oberfläche (Vue-Template)
+    5476–12494  das Programm
 ```
 
 Die beiden Kommentare im Kopf sind **normales HTML und kein Ballast**: wer die
@@ -540,7 +540,7 @@ python3 tests/alle.py mws        # nur die Tests mit "mws" im Namen
 python3 tests/t_fluss.py         # einen einzelnen Test
 ```
 
-- **47 Testdateien**, 1312 Prüfungen pro Suite-Lauf; die beiden Drucktests
+- **47 Testdateien**, 1321 Prüfungen pro Suite-Lauf; die beiden Drucktests
   starten Chromium ein zweites Mal für das PDF.
 - Ein Test steht **nicht** in `alle.py`, weil er einen echten Server startet:
   `tests/live_mws.py` prüft die Wiki gegen ein **echtes** MWS-wikiwise statt

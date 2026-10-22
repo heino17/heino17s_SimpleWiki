@@ -10,7 +10,7 @@ from _hilfe import dumpdom, dumpdom_url, bericht, zahlen
 # eine Stelle, an der die Wahl faellt, genau wie mkcopy es mit dem
 # Editor-Haken macht.
 WAHL = """        const MWS_TIDDLER = mwsTiddlerLesen();
-        const SPEICHER = (tiddlyhostServer() === 'tiddlyhost')
+        const SPEICHER = tiddlyhostServerAktiv()
             ? new TiddlyhostStore()
             : ((MWS_TIDDLER && MWS_TIDDLER.length)
                 ? new MwsStore(MWS_TIDDLER)

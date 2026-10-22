@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.50">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.51">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,24 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-22
+
+### v0.1.51 — Ein Export aus dem Server ist ein Datei-Wiki — 1377 Prüfungen
+
+Tiddlyhost liefert die Shell mit drei Meta-Zeilen aus (`simplewiki-server`,
+`simplewiki-status-url`, `simplewiki-data-url`). Eine gesicherte Datei trug
+diese Zeilen bisher mit, weil die Vorlage beim Ausliefern kopiert wurde – sie
+hielt sich deshalb für ein Server-Wiki, obwohl der Server nicht mehr da ist:
+kein Datei-Hinweis, Titel und Untertitel vom Server verwaltet statt
+anklickbar.
+
+Jetzt zählt der Server nur noch, wenn er auch erreichbar ist: unter `file://`
+und auf einem fremden Origin entscheidet die Datei. Zusätzlich entfernt „Als
+Datei sichern“ die drei Server-Metas aus der gesicherten Datei; Titel,
+Untertitel und Datenblock bleiben. Ein Export aus Tiddlyhost verhält sich
+damit wie einer aus MWS.
+
+Der neue Test `t_serverfrei.py` prüft beide Wege: die ausgelieferte Seite
+als Datei geöffnet und die gesicherte Datei wieder geöffnet.
 
 ### v0.1.50 — Der Untertitel im Kopf: gesetzt wie der Name — 1348 Prüfungen
 

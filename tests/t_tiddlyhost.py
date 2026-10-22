@@ -8,7 +8,7 @@ from _hilfe import bericht, zahlen, dumpdom_url
 # genau wie t_speicher.py. So kommt er an den Speicher, ohne durch die
 # ganze Oberflaeche zu gehen.
 WAHL = """        const MWS_TIDDLER = mwsTiddlerLesen();
-        const SPEICHER = (tiddlyhostServer() === 'tiddlyhost')
+        const SPEICHER = tiddlyhostServerAktiv()
             ? new TiddlyhostStore()
             : ((MWS_TIDDLER && MWS_TIDDLER.length)
                 ? new MwsStore(MWS_TIDDLER)

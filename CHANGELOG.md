@@ -4,7 +4,7 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.51">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.52">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
@@ -13,6 +13,23 @@ Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 ---
 
 ## 2026-10-22
+
+### v0.1.52 — Der Titel bleibt, auch wenn der Entwurf gewinnt — 1383 Prüfungen
+
+Der Name im Kopf ging verloren, sobald der Entwurf im Browserspeicher
+jünger war als die Datei – also nach jeder Änderung an den Seiten. Er
+stand dann als „SimpleWiki“ da, obwohl die Datei ihren Titel im Kopf
+trägt (etwa „Neues Wiki“ aus Tiddlyhost). Grund: Der Name wurde erst in
+den Browserspeicher geschrieben, wenn ihn jemand änderte; ein fehlender
+Eintrag sah aus wie „kein Name“, und nur der Fall „Datei gewinnt“ las ihn
+aus dem Kopf.
+
+Jetzt gilt für den Namen dasselbe wie für den Untertitel: ein fehlender
+Eintrag heißt „noch nicht geändert“ – dann zählt der Kopf der Datei. Ein
+leerer Eintrag bleibt die bewusste Entscheidung „fester Name“. Teil 4 von
+`t_serverfrei.py` öffnet eine gesicherte Datei mit einem jüngeren Entwurf
+im Speicher und prüft, dass die Seiten aus dem Entwurf kommen und der
+Titel trotzdem aus der Datei.
 
 ### v0.1.51 — Ein Export aus dem Server ist ein Datei-Wiki — 1377 Prüfungen
 

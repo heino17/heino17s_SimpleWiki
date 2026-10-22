@@ -13,6 +13,10 @@ Die Datei muss das merken und wie jedes andere file://-Wiki arbeiten:
      Untertitel und Datenblock bleiben.
   3. Die so gesicherte Datei wieder geoeffnet ist ebenfalls ein
      Datei-Wiki mit bearbeitbarem Titel und Untertitel.
+  4. Gewinnt beim Oeffnen ein Entwurf aus dem Browserspeicher, kommt der
+     Titel trotzdem aus dem Kopf der Datei - solange die Person ihn
+     nicht selbst geaendert hat (ein fehlender Eintrag heisst "noch
+     nicht geaendert", nicht "kein Titel").
 
 Der Serverfall selbst steht in t_tiddlyhost.py - dort antwortet der
 Server unter demselben Origin, und die Wiki bleibt im Serverbetrieb.
@@ -225,6 +229,70 @@ text3 = bericht(dumpdom('_sf2.html', budget=120000))
 print(text3 if text3 else 'KEIN REPORT')
 bestanden += zahlen(text3)[0]
 fehler += len(re.findall(r'(?m)^FAIL ', text3))
+
+# Teil 4: der Entwurf im Browserspeicher ist juenger als die Datei und
+# gewinnt - so, wie nach einer Aenderung an den Seiten. Den Titel hat
+# die Person nie angefasst, also steht kein Eintrag im Speicher: der
+# Titel muss aus dem Kopf der Datei kommen.
+m = re.search(r'<meta name="simplewiki-doc-id" content="([^"]*)"', exportiert)
+KENNUNG = m.group(1) if m else ''
+ENTWURF = [
+    {'id': 'x', 'title': 'Entwurf A', 'content': '# Entwurf A\n\nAus dem Speicher.',
+     'links': [], 'tags': [], 'created': ISO, 'updated': ISO},
+    {'id': 'y', 'title': 'Entwurf B', 'content': '# Entwurf B\n\nAuch aus dem Speicher.',
+     'links': [], 'tags': [], 'created': ISO, 'updated': ISO},
+]
+TEIL4 = """
+    <script>
+    try {
+      localStorage.clear();
+      localStorage.setItem('simplewiki_doc_id', %s);
+      localStorage.setItem('simplewiki_pages', %s);
+      localStorage.setItem('simplewiki_startpage', 'x');
+      localStorage.setItem('simplewiki_untertitel', 'opencode ist cool :)');
+      localStorage.setItem('simplewiki_draft_time', String(Date.now() + 3600000));
+      localStorage.setItem('simplewiki_datei_warnung', '1');
+    } catch (e) {}
+    </script>
+""" % (json.dumps(KENNUNG), json.dumps(json.dumps(ENTWURF)))
+PRUEF4 = r"""
+    <script>
+    (function () {
+      var log = [], fails = 0;
+      function q(s) { return document.querySelector(s); }
+      function out() { var p = document.getElementById('report'); if (!p) { p = document.createElement('pre'); p.id = 'report'; document.body.appendChild(p); } p.textContent = log.join('\n'); }
+      function ok(c, m) { if (!c) fails++; log.push((c ? 'OK   ': 'FAIL ') + m); out(); }
+      window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
+      setTimeout(function () {
+        ok(!!q('.header h1'), 'Oberflaeche ist da');
+        ok(q('.content-title') && q('.content-title').textContent.trim() === 'Entwurf A',
+           'Entwurf aus dem Speicher gewinnt: ' + (q('.content-title') ? q('.content-title').textContent.trim() : '-'));
+        ok(q('.header h1') && q('.header h1').textContent.indexOf('Mein neues Wiki') >= 0,
+           'Titel aus dem Kopf der Datei: ' + (q('.header h1') ? q('.header h1').textContent.trim() : '-'));
+        ok(q('.header h1') && q('.header h1').className.indexOf('kopf-titel-editierbar') >= 0,
+           'Titel ist anklickbar');
+        ok(q('.kopf-untertitel') && q('.kopf-untertitel').textContent.trim() === 'opencode ist cool :)',
+           'Untertitel aus dem Speicher: ' + (q('.kopf-untertitel') ? q('.kopf-untertitel').textContent.trim() : '-'));
+        q('.header h1').click();
+        setTimeout(function () {
+          ok(q('.kopf-titel-feld') && q('.kopf-titel-feld').value === 'Mein neues Wiki',
+             'Feld traegt den Titel: ' + (q('.kopf-titel-feld') ? q('.kopf-titel-feld').value : '-'));
+          log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
+          out();
+        }, 200);
+      }, 1600);
+    })();
+    </script>
+"""
+
+with io.open(ziel('_sf4.html'), 'w', encoding='utf-8') as fh:
+    fh.write(mkcopy.hauptskripte(exportiert, pre=TEIL4, script=PRUEF4))
+
+print('\n=== Teil 4: Entwurf aus dem Speicher, Titel aus der Datei ===')
+text4 = bericht(dumpdom('_sf4.html', budget=120000))
+print(text4 if text4 else 'KEIN REPORT')
+bestanden += zahlen(text4)[0]
+fehler += len(re.findall(r'(?m)^FAIL ', text4))
 
 print()
 print('>>> ' + ('%d FEHLGESCHLAGEN' % fehler if fehler else 'ALLE BESTANDEN'))

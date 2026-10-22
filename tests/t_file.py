@@ -36,6 +36,18 @@ script1 = r"""
       HTMLAnchorElement.prototype.click = function () { window.__name = this.download; };
       window.addEventListener('error', function (e) { ok(false, 'JS-Fehler: ' + e.message); });
 
+      /* Was wirklich am Feld ankommt: jeder Wechsel mit seinem Element
+         und die gelesenen Dateien. Steht im Fehlerfall in der Meldung -
+         ohne diese Zahlen weiss niemand, ob der Wechsel ins Leere ging
+         oder der Hinweis nur nicht zu sehen war. */
+      window.__changes = []; window.__reads = 0;
+      document.addEventListener('change', function (e) {
+        window.__changes.push((e.target.isConnected ? 'an' : 'AB') + ':' +
+          (e.target.files ? e.target.files.length : '?'));
+      }, true);
+      var echtesLesen = FileReader.prototype.readAsText;
+      FileReader.prototype.readAsText = function () { window.__reads++; return echtesLesen.apply(this, arguments); };
+
       setTimeout(function () {
         head('Einstellungen');
         q('.settings-toggle').click();
@@ -106,7 +118,19 @@ script1 = r"""
 
               var feld = q('input.datei-feld');
               var dt = new DataTransfer();
-              dt.items.add(new File([text], 'simplewiki.html', { type: 'text/html' }));
+              /* Zum Einlesen eine schlanke Datei mit denselben Seiten,
+                 nicht der 2,2-MB-Export: die Datei wird ueber den
+                 FileReader gelesen, und der braucht echte Zeit. Unter
+                 Virtual Time laeuft die Uhr des Tests schneller als das
+                 Lesen - dann endet die Wartezeit, bevor der Hinweis da
+                 ist. (Gemessen: Wechsel an:1, gelesen 1, kein Hinweis.)
+                 Dass der volle Export die Seiten richtig traegt, steht
+                 oben in seinen eigenen Pruefungen und in t_export.py. */
+              var schlank = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+                + '<script id="simplewiki-daten" type="application/json">'
+                + JSON.stringify(daten).replace(/</g, '\\u003c')
+                + '<' + '/script></head><body></body></html>';
+              dt.items.add(new File([schlank], 'simplewiki.html', { type: 'text/html' }));
               feld.files = dt.files;
               feld.dispatchEvent(new Event('change', { bubbles: true }));
               var versuche = 0, nachher = 0;
@@ -136,8 +160,17 @@ script1 = r"""
                    dem niemand mehr haengt. Ein zweites 'change' auf
                    DASSELBE Element zu schicken ist deshalb genau das
                    Falsche - man sieht am Element nichts, was ihn
-                   verraten wuerde, und der Befehl geht ins Leere. */
-                if (versuche % 10 === 0 && versuche <= 30) {
+                   verraten wuerde, und der Befehl geht ins Leere.
+
+                   Neu gemeldet wird ueber die ganze Wartezeit, nicht
+                   nur am Anfang: ein Neuaufbau kommt auch spaeter noch
+                   (der Hinweis zum Sichern laeuft nach sechs Sekunden
+                   ab und baut den Bereich mit neu). Nach Runde 30 stand
+                   der Test sonst vor einem Feld, an dem niemand mehr
+                   haengt - 91 Runden ohne Hinweis, und die Seiten waren
+                   schon die richtigen, also fiel es nur an dieser einen
+                   Pruefung auf. */
+                if (versuche % 10 === 0) {
                   var neuFeld = q('input.datei-feld');
                   if (neuFeld) {
                     neuFeld.files = dt.files;
@@ -162,7 +195,8 @@ script1 = r"""
                   ok(gemeldet.join(' | ').indexOf('3') >= 0, 'Hinweis nennt die Seitenzahl: ' +
                      (gemeldet.join(' | ') || 'KEINER') +
                      ' [Runden ' + versuche + ', Dateifeld ' + (feld ? 'da' : 'fehlt') +
-                     ', jetzt am Schirm: ' + (jetzt ? '"' + jetzt.textContent.trim() + '"' : 'nichts') + ']');
+                     ', jetzt am Schirm: ' + (jetzt ? '"' + jetzt.textContent.trim() + '"' : 'nichts') +
+                     ', Wechsel ' + window.__changes.join(',') + ', gelesen ' + window.__reads + ']');
                   log.push(''); log.push('>>> ' + (fails ? fails + ' FEHLGESCHLAGEN' : 'ALLE ' + log.filter(function (l) { return /^OK|^FAIL/.test(l); }).length + ' BESTANDEN'));
                   out();
                   return;

@@ -75,7 +75,13 @@ script1 = r"""
            wird deshalb der ganze Text des Kopfs gegen das, was auf
            seinen Knöpfen steht. */
         function eng(s) { return s.replace(/\s+/g, ''); }
+        /* Der Untertitel unter dem Namen gehoert zum Kopf - sein Text
+           ist deshalb auch erwartet. Leer steht dort unter file:// der
+           Platzhalter, damit der Untertitel ueberhaupt erst angelegt
+           werden kann. */
+        var unter = q('.header .kopf-untertitel');
         var eigen = eng(q('.header h1').textContent) +
+                    eng(unter ? unter.textContent : '') +
                     eng(all('.header button, .header a').map(function (b) { return b.textContent; }).join(''));
         var ganz = eng(q('.header').textContent);
         ok(ganz === eigen, 'im Kopf steht nur, was dazugehoert: "' +

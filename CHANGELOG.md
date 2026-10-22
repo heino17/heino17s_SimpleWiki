@@ -4,13 +4,32 @@ Nach Tag, das Neueste zuerst. Wo eine Überschrift eine Prüfungszahl nennt, ist
 das der Stand der Suite nach diesem Schritt (`python3 tests/alle.py`).
 
 Die Oberfläche nennt seit **v0.1.0** ihre Version: Sie steht in
-`<meta name="mws-shell-version" content="v0.1.49">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.50">` im Kopf von
 `simplewiki.html`, und MWS zeigt sie statt der reinen Release-Nummer — in der
 Verwaltung und im Update-Hinweis. Bei jeder Oberflächenänderung wird diese
 Version erhöht (die `<meta>`-Zeile ist die eine Stelle, die mitwächst). Datierte
 Einträge bleiben zusätzlich, weil ein Tag sich nie streiten muss.
 
 ---
+
+## 2026-10-22
+
+### v0.1.50 — Der Untertitel im Kopf: gesetzt wie der Name — 1348 Prüfungen
+
+Der Untertitel unter dem Namen ist unter `file://` jetzt anklickbar wie der
+Name: ein Klick macht daraus ein Eingabefeld, Enter übernimmt, Escape
+verwirft, Wegklicken übernimmt ebenfalls. Leer heißt weiterhin: keine Zeile.
+Damit der Untertitel überhaupt erst entstehen kann, steht an seiner Stelle
+ein leiser Platzhalter („Untertitel hinzufügen“).
+
+Er gehört zu genau dieser Datei, wie der Name: er steht im Browserspeicher
+(`simplewiki_untertitel`), wandert beim Wechsel des Dokuments mit (er steht
+im Archiv wie der Name) und kommt beim Sichern in den Kopf der Datei
+(`simplewiki-subtitle`) — beim Export mit, im leeren Template nicht.
+
+Im Serverbetrieb bleibt der Untertitel, wo er hingehört: bei der Verwaltung
+(`$:/SiteSubtitle`). Dort ist er wie der Name kein Gegenstand dieser
+Oberfläche.
 
 ## 2026-10-21
 

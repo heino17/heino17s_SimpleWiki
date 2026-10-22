@@ -45,7 +45,7 @@ python3 tests/t_order.py          # a single test
 | **Writing** | Markdown, in the WYSIWYG editor (TOAST UI) or in the plain text field; a page just created disappears again if you then click "Cancel" |
 | **Indent** | the two buttons in the toolbar move text a level in or back out: a list item nests or flattens, every other paragraph becomes a quote (`> `) and back |
 | **New page** | a button in the header, left of the contents — gone for anyone who may not write; the new page is appended to the contents |
-| **Name** | the wiki's name stands in the header; click it to rename — Enter or a click away saves, Escape keeps the old one, an empty field brings back the fixed name. The name travels in the file and is remembered per document; in server mode it comes from the server and cannot be changed |
+| **Name** | the wiki's name stands in the header; click it to rename — Enter or a click away saves, Escape keeps the old one, an empty field brings back the fixed name. The name travels in the file and is remembered per document; if nothing is remembered yet, the title in the file's head wins — even when a newer draft sits in the browser store. In server mode it comes from the server and cannot be changed |
 | **Contents** | as a left column, pushes the content aside and keeps the header clear; foldable at the little flag, starts folded below a 640px window width |
 | **Linking** | `[[Page]]` and `[[Label\|Page]]` in the text, plus a dialog while editing |
 | **Backlinks** | incoming and outgoing links in their own panel, with a counter in the header |
@@ -64,7 +64,7 @@ python3 tests/t_order.py          # a single test
 | **Light / dark** | also in the editor; the 🌙/☀️ switch stays in every colour world |
 | **Colour worlds** | nine moods — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung and the **Own** one; each with a light and a dark branch, selectable in the settings dialog. The Own one grows from a cloned world and can be set colour by colour |
 | **Language** | eight languages (German, English, Russian, Spanish, French, Japanese, Korean, Chinese), built in |
-| **Exchange** | save and load the wiki as a file, export JSON, export an empty template |
+| **Exchange** | save and load the wiki as a file (a save made in server mode is a standalone file wiki; the server's meta tags stay behind), export JSON, export an empty template |
 
 A wiki consists of **text pages**. There are no images: whoever hands over
 content with images loses them, and should say so beforehand.
@@ -230,7 +230,7 @@ python3 tests/alle.py mws        # only the tests with "mws" in the name
 python3 tests/t_fluss.py         # a single test
 ```
 
-- **35 test files**, 1040 checks per suite run; the two print tests start
+- **49 test files**, 1383 checks per suite run; the two print tests start
   Chromium a second time for the PDF.
 - One test is **not** in `alle.py`, because it starts a real server:
   `tests/live_mws.py` checks the wiki against a **real** MWS-wikiwise
@@ -349,7 +349,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Schreiben** | Markdown, im WYSIWYG-Editor (TOAST UI) oder im reinen Textfeld; eine eben angelegte Seite verschwindet wieder, wer danach «Abbrechen» klickt |
 | **Einrücken** | die zwei Knöpfe in der Werkzeugleiste schieben Text eine Ebene ein oder wieder heraus: ein Listenpunkt verschachtelt oder flacht ab, jeder andere Absatz wird zu einem Zitat (`> `) und wieder zurück |
 | **Neue Seite** | ein Knopf im Kopf, links vom Verzeichnis — weg, wer nicht schreiben darf; die neue Seite kommt unten ins Verzeichnis |
-| **Name** | der Name der Wiki steht im Kopf; anklicken benennt sie um — Enter oder ein Klick daneben sichert, Escape lässt den alten stehen, ein leeres Feld bringt den festen Namen zurück. Der Name wandert mit der Datei und wird je Dokument gemerkt; im Serverbetrieb kommt er vom Server und lässt sich nicht ändern |
+| **Name** | der Name der Wiki steht im Kopf; anklicken benennt sie um — Enter oder ein Klick daneben sichert, Escape lässt den alten stehen, ein leeres Feld bringt den festen Namen zurück. Der Name wandert mit der Datei und wird je Dokument gemerkt; ist noch keiner gemerkt, gilt der Titel aus dem Kopf der Datei — auch wenn ein jüngerer Entwurf im Browserspeicher liegt. Im Serverbetrieb kommt er vom Server und lässt sich nicht ändern |
 | **Inhaltsverzeichnis** | als Spalte links, drängt den Inhalt zur Seite und lässt die Kopfzeile frei; am Fähnchen zu- und aufklappbar, unter 640px Fensterbreite fängt es zugeklappt an |
 | **Verlinken** | `[[Seite]]` und `[[Beschriftung\|Seite]]` im Text, dazu ein Dialog beim Bearbeiten |
 | **Verweise** | Rück- und Ausgehende in einem eigenen Panel, mit Zähler im Kopf |
@@ -368,7 +368,7 @@ python3 tests/t_order.py          # einen einzelnen Test
 | **Hell / Dunkel** | auch im Editor; die 🌙/☀️-Achse bleibt in jeder Farbwelt |
 | **Farbwelten** | neun Stimmungen — Pergament, Nord, Wacholder, Sol, Flexoki, Vanille, Wüste, Dämmerung und die **Eigene**; jede mit hellem und dunklem Zweig, im Einstellungen-Dialog wählbar. Die Eigene entsteht aus einer geklonten Welt und lässt sich Farbe für Farbe einstellen |
 | **Sprache** | acht Sprachen (Deutsch, Englisch, Russisch, Spanisch, Französisch, Japanisch, Koreanisch, Chinesisch), fest eingebaut |
-| **Austausch** | Wiki als Datei sichern und laden, JSON exportieren, leere Vorlage exportieren |
+| **Austausch** | Wiki als Datei sichern und laden (eine Sicherung aus dem Server ist eine eigenständige Datei-Wiki; die Server-Metas bleiben zurück), JSON exportieren, leere Vorlage exportieren |
 
 Eine Wiki besteht aus **Textseiten**. Es gibt keine Bilder: wer Inhalte mit
 Bildern übergibt, verliert sie, und sollte das vorher sagen.
@@ -447,7 +447,7 @@ festgeschrieben.
 Der Server sagt für die Oberfläche auf, auf welcher Template-Version diese
 Wiki steht (die Antwort von `/status` trägt das unter `shell`). Die
 Oberfläche nennt ihre Version selbst über
-`<meta name="mws-shell-version" content="v0.1.31">` im Kopf von
+`<meta name="mws-shell-version" content="v0.1.52">` im Kopf von
 `simplewiki.html` — dieser Name erscheint in der Verwaltung und im
 Update-Hinweis statt der zählenden Release-Nummer und wird bei jeder
 Oberflächenänderung erhöht. Ein Wiki mit

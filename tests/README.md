@@ -23,6 +23,11 @@ also nicht. Die Voreinstellung ist die Zahl der Prozessoren (höchstens acht);
 trotzdem in fester Reihenfolge da, damit zwei Läufe vergleichbar bleiben – oben
 stehen nur die Fortschrittszeilen mit der Dauer je Datei.
 
+Auf einem ausgelasteten Rechner können sich die vielen Browserfenster in die
+Quere kommen: Dann meldet ein Lauf einzelne Fehlschläge, die einzeln sofort
+bestehen (etwa `t_leerwiki.py` ganz ohne Ausgabe). Der ruhige Lauf
+`python3 tests/alle.py -j 1` ist der Maßstab vor einem Push.
+
 Grundabhängigkeiten: **python3** und **chromium** im Pfad. Für die beiden
 Drucktests kommen **`pdfinfo`** und **`pdftotext`** dazu (poppler-utils) — sie
 lesen das erzeugte PDF aus und sagen, was wirklich drinsteht.
